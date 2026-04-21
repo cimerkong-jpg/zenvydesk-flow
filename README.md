@@ -138,6 +138,8 @@ For backend AI handoff details, see `services/api/AI_PROVIDER_HANDOFF.md`.
 
 For worker-slice support notes covering docs and CI awareness, see `services/worker/WORKER_SLICE_SUPPORT.md`.
 
+For post-merge workspace cleanup rules and current safe-delete guidance, see `MAIN_CLEANUP_POLICY.md`.
+
 ## Tech Stack
 
 - **Backend:** FastAPI, SQLAlchemy, Pydantic

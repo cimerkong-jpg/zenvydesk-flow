@@ -7,6 +7,22 @@
 
 ## Completed Tasks
 
+### 19. Main Cleanup Policy For Merged Branches And Worktrees ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added a short post-merge cleanup policy for merged branches, worktrees, and standalone task clones
+- Documented what is safe to delete now versus what can be kept temporarily for local audit/reference
+- Added a README pointer to the cleanup policy
+
+**Files Changed:**
+- `MAIN_CLEANUP_POLICY.md` [NEW]
+- `README.md` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
+
 ### 18. Merge Facebook Posting Slice Into Main ✓
 **Date:** 2026-04-21
 **Status:** Complete
