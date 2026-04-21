@@ -85,6 +85,8 @@ DATABASE_URL=sqlite:///./zenvydesk.db
 
 See `TASK_PROGRESS.md` for detailed task history and `services/api/` documentation files for technical details.
 
+For backend test scope, merge-readiness, and bundle audit guidance, see `services/api/BACKEND_TEST_MATRIX.md`.
+
 ## Tech Stack
 
 - **Backend:** FastAPI, SQLAlchemy, Pydantic
