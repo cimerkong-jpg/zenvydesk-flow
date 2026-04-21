@@ -56,7 +56,7 @@ def test_db():
 @pytest.fixture
 def test_user(test_db):
     """Create test user"""
-    user = User(id=1, email="test@example.com", facebook_user_id="123456789")
+    user = User(id=1, email="test@example.com", name="Test User")
     test_db.add(user)
     test_db.commit()
     test_db.refresh(user)
@@ -88,7 +88,7 @@ def test_mock_provider_still_works(test_db, test_user, test_page, test_product):
     """
     TEST 1: Verify mock provider still works after adding Gemini
     """
-    rule = AutomationRule(id=1, user_id=test_user.id, page_id=test_page.id, content_type="promotion", auto_post=False, is_active=True)
+    rule = AutomationRule(id=1, user_id=test_user.id, page_id=test_page.id, name="Mock Test Rule", content_type="promotion", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
     
@@ -127,7 +127,7 @@ def test_gemini_missing_key_safe_failure(test_db, test_user, test_page, test_pro
     """
     TEST 2: Gemini with missing API key fails safely
     """
-    rule = AutomationRule(id=2, user_id=test_user.id, page_id=test_page.id, content_type="engagement", auto_post=False, is_active=True)
+    rule = AutomationRule(id=2, user_id=test_user.id, page_id=test_page.id, name="Gemini Missing Key Test", content_type="engagement", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
     
@@ -173,7 +173,7 @@ def test_gemini_provider_wiring(test_db, test_user, test_page, test_product):
     """
     TEST 3: Gemini provider selection and wiring
     """
-    rule = AutomationRule(id=3, user_id=test_user.id, page_id=test_page.id, content_type="product_intro", auto_post=False, is_active=True)
+    rule = AutomationRule(id=3, user_id=test_user.id, page_id=test_page.id, name="Gemini Wiring Test", content_type="product_intro", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
     

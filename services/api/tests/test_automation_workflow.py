@@ -59,7 +59,7 @@ def test_user(test_db):
     user = User(
         id=1,
         email="test@example.com",
-        facebook_user_id="123456789"
+        name="Test User"
     )
     test_db.add(user)
     test_db.commit()
@@ -107,8 +107,10 @@ def test_automation_rule(test_db, test_user, test_page):
         id=1,
         user_id=test_user.id,
         page_id=test_page.id,
+        name="Test Automation Rule",
         content_type="promotion",
         auto_post=False,
+        scheduled_time="daily",
         is_active=True
     )
     test_db.add(rule)
@@ -227,8 +229,10 @@ def test_automation_unknown_content_type_fallback(test_db, test_user, test_page,
         id=999,
         user_id=test_user.id,
         page_id=test_page.id,
+        name="Unknown Type Test Rule",
         content_type="unknown_type_xyz",
         auto_post=False,
+        scheduled_time="daily",
         is_active=True
     )
     test_db.add(rule)
@@ -275,8 +279,10 @@ def test_automation_auto_post_enabled(test_db, test_user, test_page, test_produc
         id=998,
         user_id=test_user.id,
         page_id=test_page.id,
+        name="Auto Post Test Rule",
         content_type="engagement",
         auto_post=True,
+        scheduled_time="daily",
         is_active=True
     )
     test_db.add(rule)
