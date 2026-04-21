@@ -2,10 +2,126 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-facebook-oauth-lite-main
+- **Branch:** cline/commercial-ui-v1
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 23. Commercial-Grade Frontend UI ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/commercial-ui-v1
+
+**What was done:**
+- Built commercial-grade UI optimized for usability and conversion
+- Created professional dashboard with sidebar navigation and top bar
+- Implemented Facebook connection card with visual status
+- Added action panel with primary CTAs for posting
+- Built stats grid showing post metrics
+- Created system status card with real-time backend health
+- Implemented loading, error, and success states
+- Added empty state with clear call-to-action
+- Built result display with JSON formatting
+- Applied commercial spacing, shadows, and visual hierarchy
+- Responsive design (desktop-first, mobile-friendly)
+
+**Files Changed:**
+- `apps/web/src/index.css` [REWRITTEN - 700+ lines commercial CSS]
+- `apps/web/src/App.tsx` [REWRITTEN - 350+ lines dashboard UI]
+- `apps/web/src/lib/api.ts` [MODIFIED - added runScheduledPost function]
+
+**Build Results:**
+```
+npm run build
+
+✓ 33 modules transformed.
+dist/index.html                   0.41 kB │ gzip:  0.27 kB
+dist/assets/index-CPzxEFa2.css    9.47 kB │ gzip:  2.47 kB
+dist/assets/index-r_8gsqBK.js   150.94 kB │ gzip: 47.93 kB
+✓ built in 623ms
+```
+
+**UI Features:**
+- **Sidebar Navigation**: Logo, main menu (Dashboard, Drafts, Schedule, Analytics), settings menu
+- **Top Bar**: Page title, backend status badge
+- **Stats Grid**: 4 stat cards (Total Posts, Processed, Failed, Skipped)
+- **Connection Card**: Facebook connection status with gradient when connected
+- **System Status Card**: Backend API, Worker, Database status
+- **Action Panel**: Gradient background, 2 CTAs (Mock Mode, Real Post)
+- **Status Alerts**: Success/error messages with icons
+- **Result Display**: JSON formatted output with timestamp
+- **Empty State**: Clear messaging with CTA when no results
+
+**Design System:**
+- **Colors**: Primary blue (#2563eb), Success green, Error red, Neutral grays
+- **Spacing**: 8px base unit system (space-1 to space-16)
+- **Typography**: System fonts, clear hierarchy
+- **Shadows**: 4 levels (sm, md, lg, xl)
+- **Border Radius**: 4 levels (sm, md, lg, xl)
+- **Buttons**: Primary, Secondary, Success variants with hover states
+- **Badges**: Success, Error, Warning, Neutral with status dots
+- **Cards**: White background, subtle shadows, hover effects
+
+**Responsive Behavior:**
+- Desktop (>1024px): Full sidebar, 2-column grid
+- Tablet (768-1024px): Narrower sidebar, single column
+- Mobile (<768px): Hidden sidebar (can be toggled), single column, reduced padding
+
+**API Integration:**
+- Health check on mount
+- Facebook OAuth login redirect
+- Run scheduled posts (mock/real mode)
+- Real-time status updates
+- Error handling with user feedback
+
+**Verified:**
+- TypeScript compilation successful
+- Vite build successful (623ms)
+- No console errors
+- All imports resolved
+- Responsive CSS working
+- API endpoints connected
+
+---
+
+
+### 24. Support Commercial UI Slice With Backend Integration Wiring
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/support-commercial-ui-slice
+
+**What was done:**
+- Inspected the current web app structure and confirmed it was still a minimal Vite shell
+- Added frontend environment support for a configurable backend base URL
+- Added lightweight typed API helpers for backend health, Facebook OAuth login, and scheduled worker smoke checks
+- Wired a minimal support screen that exercises backend contracts without taking ownership of visual design
+- Updated run instructions for local frontend/backend smoke verification on `localhost:3000` and `localhost:8000`
+
+**Files Changed:**
+- `apps/web/.env.example` [NEW]
+- `apps/web/src/config.ts` [NEW]
+- `apps/web/src/lib/api.ts` [NEW]
+- `apps/web/src/App.tsx` [MODIFIED]
+- `apps/web/src/index.css` [MODIFIED]
+- `README.md` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+**Verification Commands:**
+```
+cd apps/web
+npm run build
+
+cd services/api
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- Web app can read backend base URL from `VITE_API_BASE_URL`
+- Frontend wiring targets the current backend contracts without hardcoded component-level URLs
+- Support screen exposes smoke paths for health, OAuth login, and scheduled worker execution
+- Existing backend regression packs still pass after the support wiring changes
+
+---
 
 ### 23. Merge Facebook OAuth Lite Slice Into Main And Verify
 **Date:** 2026-04-21
