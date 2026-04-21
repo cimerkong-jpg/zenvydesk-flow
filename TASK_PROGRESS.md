@@ -2,7 +2,7 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** main
+- **Branch:** cline/fix-workflow-tests
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
@@ -159,7 +159,6 @@ pytest tests/test_gemini_provider.py -v -s
 **Test Results:**
 - All fixtures now match current SQLAlchemy model schema
 - Tests no longer fail at fixture setup
-- Remaining test failures are workflow-related (404 errors from missing routes), not schema mismatches
 - **Goal achieved:** Fixtures match real current schema exactly
 
 **Test Command:**
@@ -197,16 +196,57 @@ python3 -m pytest tests/test_gemini_provider.py -v
 
 **Test Results:**
 - **test_gemini_provider.py: ALL 3 TESTS PASSING ✓**
-  - test_mock_provider_still_works: PASSED
-  - test_gemini_missing_key_safe_failure: PASSED
-  - test_gemini_provider_wiring: PASSED
-- test_automation_workflow.py: 4 tests have database setup issues (not routing errors)
 - **404 errors completely resolved**
-- Remaining failures are test infrastructure issues, not application code issues
 
 **Route Path:**
 - Before: `/automation/run/{id}`
 - After: `/api/v1/automation-runner/run/{id}`
+
+---
+
+### 7. Fix Database Setup Issues in Automation Workflow Tests ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**Problem:**
+- test_automation_workflow.py: 4/4 tests failing with "no such table: automation_rules"
+- test_gemini_provider.py: 3/3 tests passing
+- Both files had nearly identical setup, but different behavior
+
+**Root Cause Identified:**
+- test_automation_workflow.py created tables at module level BEFORE fixtures ran
+- test_gemini_provider.py created tables INSIDE the test_db fixture for each test
+- Module-level table creation caused tables to exist but not be properly initialized for each test
+- The cleanup code tried to delete from tables that weren't properly set up per test
+
+**What was done:**
+- Changed test_automation_workflow.py to match the working pattern from test_gemini_provider.py
+- Moved `Base.metadata.create_all(bind=engine)` from module level into the test_db fixture
+- Added `Base.metadata.drop_all(bind=engine)` to clean up after each test
+- Removed complex cleanup code that was trying to manually delete records
+
+**Files Changed:**
+- `services/api/tests/test_automation_workflow.py` [MODIFIED]
+
+**Test Results - ALL TESTS NOW PASSING:**
+```
+tests/test_automation_workflow.py::test_automation_mock_provider_success PASSED
+tests/test_automation_workflow.py::test_automation_openai_missing_key_failure PASSED
+tests/test_automation_workflow.py::test_automation_unknown_content_type_fallback PASSED
+tests/test_automation_workflow.py::test_automation_auto_post_enabled PASSED
+
+4 passed, 7 warnings in 0.66s
+```
+
+**Test Command:**
+```bash
+cd services/api
+python3 -m pytest tests/test_automation_workflow.py -v
+```
+
+**Key Fix:**
+- Before: Tables created once at module level, manual cleanup
+- After: Tables created fresh for each test, automatic cleanup via drop_all
 
 ---
 
@@ -267,6 +307,7 @@ Draft/PostHistory creation
 - Fast, isolated execution
 - Fixtures match current model schema
 - Correct API route paths
+- Proper database setup per test
 
 ### 4. Multi-Provider Support
 - Mock, OpenAI, and Gemini providers
@@ -290,13 +331,12 @@ Draft/PostHistory creation
 ## Next Steps / Future Enhancements
 
 ### Potential Improvements
-1. Fix test_automation_workflow.py database setup (use same pattern as test_gemini_provider.py)
-2. Add more test cases (missing product, invalid rule_id, etc.)
-3. Add performance tests
-4. Add mock API HTTP responses for testing
-5. Test all 4 templates individually with various field combinations
-6. Add test coverage reporting
-7. Implement actual automation routes
+1. Add more test cases (missing product, invalid rule_id, etc.)
+2. Add performance tests
+3. Add mock API HTTP responses for testing
+4. Test all 4 templates individually with various field combinations
+5. Add test coverage reporting
+6. Implement actual automation routes
 
 ### Integration Points
 - Frontend integration with prompt system
@@ -337,10 +377,12 @@ Draft/PostHistory creation
 - ✓ Gemini provider integration
 - ✓ Test fixture schema fixes
 - ✓ 404 routing errors fixed
+- ✓ Database setup issues fixed
 - ✓ Documentation
 
 **Test Results:**
-- test_gemini_provider.py: 3/3 PASSING ✓
-- test_automation_workflow.py: 0/4 passing (database setup issue, not code issue)
+- **test_gemini_provider.py: 3/3 PASSING ✓**
+- **test_automation_workflow.py: 4/4 PASSING ✓**
+- **Total: 7/7 tests passing**
 
 **Ready for GitHub Push**
