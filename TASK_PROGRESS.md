@@ -2,10 +2,26 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/fix-workflow-tests
+- **Branch:** codex/dev-bootstrap
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 8. Developer Bootstrap Docs and Environment Example ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/.env.example` with safe placeholder values for local backend setup
+- Updated `README.md` with a first-time machine bootstrap flow
+- Documented virtualenv creation, dependency installation, local config setup, database initialization, backend startup, and test commands
+- Added notes for recommended Python version and `.env` handling
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/.env.example` [NEW]
+
+---
 
 ### 1. Prompt System with Content-Type Templates ✓
 **Date:** 2026-04-21
