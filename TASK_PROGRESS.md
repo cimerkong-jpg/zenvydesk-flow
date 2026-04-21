@@ -2,10 +2,47 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/facebook-oauth-lite
+- **Branch:** codex/merge-facebook-oauth-lite-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 23. Merge Facebook OAuth Lite Slice Into Main And Verify
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/merge-facebook-oauth-lite-main
+
+**What was done:**
+- Merged `cline/facebook-oauth-lite` into the current `main` baseline
+- Verified OAuth lite routes are present after merge
+- Verified the scheduled posting test route is still present after merge
+- Re-ran the required posting, automation, and scheduled posting test packs
+- Kept the OAuth lite slice logic unchanged during merge
+
+**Files Changed:**
+- `services/api/.env.example` [MERGED]
+- `services/api/app/core/config.py` [MERGED]
+- `services/api/app/api/routes/auth_facebook_lite.py` [MERGED]
+- `services/api/app/services/facebook_oauth_lite.py` [MERGED]
+- `services/api/app/api/routes/__init__.py` [MERGED]
+- `services/api/app/main.py` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+**Verification Commands:**
+```
+python -m pytest tests/test_facebook_posting.py -v
+python -m pytest tests/test_automation_workflow.py -v
+python -m pytest tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- `/api/v1/auth/facebook/login` exists on the merged branch and on `main`
+- `/api/v1/auth/facebook/callback` exists on the merged branch and on `main`
+- `/api/v1/test/run-scheduled` still exists on the merged branch and on `main`
+- Facebook posting tests, automation workflow tests, and scheduled posting tests pass
+- Remote `main` was updated to the merge result
+
+---
 
 ### 22. Facebook OAuth Lite Integration ✓
 **Date:** 2026-04-21
