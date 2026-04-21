@@ -2,10 +2,44 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/grok-provider
+- **Branch:** codex/merge-ci-discovery-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 13. Merge CI Test Discovery Expansion Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged `codex/ci-test-discovery` into the current `main` baseline on `codex/merge-ci-discovery-main`
+- Preserved baseline-plus-optional CI discovery logic
+- Extended optional discovery to include `tests/test_grok_provider.py` because it exists on the current main baseline
+- Re-ran a local CI-mirror command to verify the workflow logic against current backend test files
+
+**Files Changed:**
+- `.github/workflows/backend-tests.yml` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
+
+### 12. Backend CI Test Discovery Expansion ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Updated `.github/workflows/backend-tests.yml` to always run the backend baseline tests
+- Added `tests/test_output_validation.py` to the mandatory CI baseline
+- Added optional test discovery for `tests/test_prompt_quality_controls.py`
+- Added optional test discovery for `tests/test_claude_provider.py`
+- Kept the workflow on Python 3.11 with backend requirements installation under `services/api`
+- Added a short inline workflow comment explaining the baseline-plus-optional logic
+
+**Files Changed:**
+- `.github/workflows/backend-tests.yml` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 12. Grok AI Provider Integration ✓
 **Date:** 2026-04-21
