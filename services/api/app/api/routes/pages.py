@@ -24,10 +24,8 @@ class PageResponse(BaseModel):
 
 @router.get("", response_model=List[PageResponse])
 def get_pages(db: Session = Depends(get_db)):
-    """Return only active Facebook pages with the minimal UI payload."""
     return (
         db.query(FacebookPage)
-        .filter(FacebookPage.is_active.is_(True))
         .order_by(FacebookPage.id.asc())
         .all()
     )
