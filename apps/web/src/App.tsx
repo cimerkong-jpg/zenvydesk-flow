@@ -50,7 +50,7 @@ function App() {
         const pagesData = await fetchPages()
         if (!cancelled && pagesData.length > 0) {
           setPages(pagesData)
-          
+
           const savedPageId = localStorage.getItem(SELECTED_PAGE_KEY)
           if (savedPageId) {
             const savedPage = pagesData.find((p: PageResponse) => p.page_id === savedPageId)
@@ -97,9 +97,9 @@ function App() {
       const postResult: PostResult = {
         timestamp: new Date().toISOString(),
         result,
-        pageName: selectedPage.page_name
+        pageName: selectedPage.page_name,
       }
-      
+
       setLastResult(postResult)
       setPostingStatus({
         kind: 'ok',
@@ -117,9 +117,12 @@ function App() {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
+
+  const isPosting = postingStatus.kind === 'loading'
+  const backendOnline = backendStatus.kind === 'ok'
 
   return (
     <div className="app-container">
@@ -161,9 +164,11 @@ function App() {
       <main className="main-content">
         <div className="top-bar">
           <h1 className="page-title">Dashboard</h1>
-          <div className="badge badge-neutral">
-            <span className={`status-dot ${backendStatus.kind === 'ok' ? 'status-dot-success' : 'status-dot-error'}`}></span>
-            {backendStatus.kind === 'ok' ? 'Backend Online' : 'Backend Offline'}
+          <div className={`badge ${backendOnline ? 'badge-success' : 'badge-error'}`}>
+            <span
+              className={`status-dot ${backendOnline ? 'status-dot-success' : 'status-dot-error'}`}
+            ></span>
+            {backendOnline ? 'Backend Online' : 'Backend Offline'}
           </div>
         </div>
 
@@ -174,65 +179,37 @@ function App() {
                 <div className="page-avatar">f</div>
                 <div className="page-info">
                   <div className="page-name">{selectedPage.page_name}</div>
-                  <div className="page-meta">ID: {selectedPage.page_id} • Ready to post</div>
+                  <div className="page-meta">
+                    ID: {selectedPage.page_id} • Ready to post
+                  </div>
                 </div>
-                <button 
-                  className="btn btn-secondary"
+                <button
+                  className="btn btn-on-gradient"
                   onClick={() => setShowPageSelector(!showPageSelector)}
-                  style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}
                 >
                   {pages.length > 1 ? `Change Page (${pages.length})` : 'Selected'}
                 </button>
               </div>
 
               {showPageSelector && pages.length > 1 && (
-                <div style={{
-                  marginTop: 'var(--space-4)',
-                  background: 'rgba(255,255,255,0.95)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: 'var(--space-4)',
-                  color: 'var(--gray-900)'
-                }}>
-                  <div style={{ fontWeight: 600, marginBottom: 'var(--space-3)', fontSize: '0.875rem' }}>
-                    Select Facebook Page:
-                  </div>
-                  {pages.map(page => (
-                    <button
-                      key={page.page_id}
-                      onClick={() => handlePageSelect(page)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--space-3)',
-                        padding: 'var(--space-3)',
-                        width: '100%',
-                        background: page.page_id === selectedPage.page_id ? 'var(--primary-light)' : 'transparent',
-                        border: page.page_id === selectedPage.page_id ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: 'var(--space-2)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      <div style={{
-                        width: '32px',
-                        height: '32px',
-                        background: page.page_id === selectedPage.page_id ? 'var(--primary)' : 'var(--gray-200)',
-                        color: page.page_id === selectedPage.page_id ? 'white' : 'var(--gray-600)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.25rem'
-                      }}>
-                        {page.page_id === selectedPage.page_id ? '✓' : 'f'}
-                      </div>
-                      <div style={{ flex: 1, textAlign: 'left' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{page.page_name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--gray-600)' }}>ID: {page.page_id}</div>
-                      </div>
-                    </button>
-                  ))}
+                <div className="page-selector-dropdown">
+                  <div className="page-selector-title">Select Facebook Page</div>
+                  {pages.map((page) => {
+                    const isSelected = page.page_id === selectedPage.page_id
+                    return (
+                      <button
+                        key={page.page_id}
+                        onClick={() => handlePageSelect(page)}
+                        className={`page-option ${isSelected ? 'selected' : ''}`}
+                      >
+                        <div className="page-option-avatar">{isSelected ? '✓' : 'f'}</div>
+                        <div className="page-option-info">
+                          <div className="page-option-name">{page.page_name}</div>
+                          <div className="page-option-id">ID: {page.page_id}</div>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -252,17 +229,20 @@ function App() {
           ) : null}
 
           <div className="action-panel">
-            <h2 className="action-panel-title">🚀 Run Scheduled Posts</h2>
+            <h2 className="action-panel-title">
+              <span>🚀</span>
+              Run Scheduled Posts
+            </h2>
             <p className="action-panel-description">
               Execute your scheduled posts now. Test with mock mode or post to Facebook.
             </p>
-            <div className="flex gap-4">
+            <div className="action-panel-buttons">
               <button
                 className="btn btn-lg"
                 onClick={() => handleRunScheduledPost(true)}
-                disabled={postingStatus.kind === 'loading' || !selectedPage}
+                disabled={isPosting || !selectedPage}
               >
-                {postingStatus.kind === 'loading' ? (
+                {isPosting ? (
                   <>
                     <span className="spinner"></span>
                     Running...
@@ -277,9 +257,9 @@ function App() {
               <button
                 className="btn btn-secondary btn-lg"
                 onClick={() => handleRunScheduledPost(false)}
-                disabled={postingStatus.kind === 'loading' || !selectedPage}
+                disabled={isPosting || !selectedPage}
               >
-                {postingStatus.kind === 'loading' ? (
+                {isPosting ? (
                   <>
                     <span className="spinner"></span>
                     Posting...
@@ -293,17 +273,16 @@ function App() {
               </button>
             </div>
             {!selectedPage && (
-              <div style={{ marginTop: 'var(--space-4)', opacity: 0.9, fontSize: '0.875rem' }}>
-                ⚠️ Please connect a Facebook page first
+              <div className="action-panel-warning">
+                <span>⚠️</span>
+                Please connect a Facebook page first
               </div>
             )}
           </div>
 
           {postingStatus.kind !== 'idle' && postingStatus.kind !== 'loading' && (
             <div className={`alert ${postingStatus.kind === 'ok' ? 'alert-success' : 'alert-error'}`}>
-              <div className="alert-icon">
-                {postingStatus.kind === 'ok' ? '✓' : '✗'}
-              </div>
+              <div className="alert-icon">{postingStatus.kind === 'ok' ? '✓' : '✗'}</div>
               <div className="alert-content">
                 <div className="alert-title">
                   {postingStatus.kind === 'ok' ? 'Success!' : 'Error Occurred'}
@@ -320,20 +299,22 @@ function App() {
                   <span>📊</span>
                   Last Execution Result
                 </h3>
-                <div style={{ fontSize: '0.875rem', color: 'var(--gray-600)' }}>
-                  Page: {lastResult.pageName}
-                </div>
+                <div className="result-timestamp">Page: {lastResult.pageName}</div>
               </div>
 
               <div className="result-card">
                 <div className="result-card-header">
-                  <div className={`result-status ${lastResult.result.success ? 'success' : 'error'}`}>
+                  <div
+                    className={`result-status ${lastResult.result.success ? 'success' : 'error'}`}
+                  >
                     <span>{lastResult.result.success ? '✓' : '✗'}</span>
-                    <span>{lastResult.result.success ? 'Completed Successfully' : 'Completed with Errors'}</span>
+                    <span>
+                      {lastResult.result.success
+                        ? 'Completed Successfully'
+                        : 'Completed with Errors'}
+                    </span>
                   </div>
-                  <div className="result-timestamp">
-                    {formatTimestamp(lastResult.timestamp)}
-                  </div>
+                  <div className="result-timestamp">{formatTimestamp(lastResult.timestamp)}</div>
                 </div>
 
                 <div className="result-metrics">
@@ -342,46 +323,32 @@ function App() {
                     <div className="metric-label">Processed</div>
                   </div>
                   <div className="metric-item">
-                    <div className="metric-value" style={{ color: 'var(--success)' }}>
-                      {lastResult.result.posted_count}
-                    </div>
+                    <div className="metric-value success">{lastResult.result.posted_count}</div>
                     <div className="metric-label">Posted</div>
                   </div>
                   <div className="metric-item">
-                    <div className="metric-value" style={{ color: 'var(--error)' }}>
-                      {lastResult.result.failed_count}
-                    </div>
+                    <div className="metric-value error">{lastResult.result.failed_count}</div>
                     <div className="metric-label">Failed</div>
                   </div>
                   <div className="metric-item">
-                    <div className="metric-value" style={{ color: 'var(--warning)' }}>
-                      {lastResult.result.skipped_count}
-                    </div>
+                    <div className="metric-value warning">{lastResult.result.skipped_count}</div>
                     <div className="metric-label">Skipped</div>
                   </div>
                 </div>
 
                 {lastResult.result.errors.length > 0 && (
-                  <div className="mt-4">
-                    <div style={{ 
-                      fontSize: '0.875rem', 
-                      fontWeight: 600, 
-                      color: 'var(--error)',
-                      marginBottom: 'var(--space-2)'
-                    }}>
-                      Errors ({lastResult.result.errors.length}):
+                  <div className="result-errors">
+                    <div className="result-errors-title">
+                      Errors ({lastResult.result.errors.length})
                     </div>
-                    {lastResult.result.errors.map((error: Record<string, string>, index: number) => (
-                      <div key={index} style={{
-                        padding: 'var(--space-3)',
-                        background: 'var(--error-light)',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: 'var(--space-2)',
-                        fontSize: '0.875rem'
-                      }}>
-                        {error.draft_id && <strong>Draft {error.draft_id}:</strong>} {error.error}
-                      </div>
-                    ))}
+                    {lastResult.result.errors.map(
+                      (error: Record<string, string>, index: number) => (
+                        <div key={index} className="result-error-item">
+                          {error.draft_id && <strong>Draft {error.draft_id}: </strong>}
+                          {error.error}
+                        </div>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -392,13 +359,16 @@ function App() {
                 <div className="empty-state-icon">📭</div>
                 <h3 className="empty-state-title">No Results Yet</h3>
                 <p className="empty-state-description">
-                  Run your first scheduled post to see results here. {selectedPage ? 'Start with a test run to verify everything works.' : 'Connect a Facebook page first.'}
+                  Run your first scheduled post to see results here.{' '}
+                  {selectedPage
+                    ? 'Start with a test run to verify everything works.'
+                    : 'Connect a Facebook page first.'}
                 </p>
                 {selectedPage && (
-                  <button 
+                  <button
                     className="btn btn-primary btn-lg"
                     onClick={() => handleRunScheduledPost(true)}
-                    disabled={postingStatus.kind === 'loading'}
+                    disabled={isPosting}
                   >
                     <span>🧪</span>
                     Run First Test
@@ -408,27 +378,29 @@ function App() {
             </div>
           )}
 
-          <div className="card mt-6">
+          <div className="card">
             <div className="card-header">
               <h3 className="card-title">
                 <span>⚡</span>
                 System Status
               </h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              <div className="flex justify-between items-center">
-                <span style={{ fontSize: '0.875rem' }}>Backend API</span>
-                <span className={`badge ${backendStatus.kind === 'ok' ? 'badge-success' : 'badge-error'}`}>
-                  {backendStatus.kind === 'ok' ? 'Online' : 'Offline'}
+            <div className="status-list">
+              <div className="status-row">
+                <span className="status-row-label">Backend API</span>
+                <span className={`badge ${backendOnline ? 'badge-success' : 'badge-error'}`}>
+                  {backendOnline ? 'Online' : 'Offline'}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span style={{ fontSize: '0.875rem' }}>Connected Pages</span>
-                <span className="badge badge-neutral">{pages.length} page{pages.length !== 1 ? 's' : ''}</span>
+              <div className="status-row">
+                <span className="status-row-label">Connected Pages</span>
+                <span className="badge badge-neutral">
+                  {pages.length} page{pages.length !== 1 ? 's' : ''}
+                </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span style={{ fontSize: '0.875rem' }}>Selected Page</span>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+              <div className="status-row">
+                <span className="status-row-label">Selected Page</span>
+                <span className="status-row-value">
                   {selectedPage ? selectedPage.page_name : 'None'}
                 </span>
               </div>
