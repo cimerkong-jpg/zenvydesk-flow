@@ -7,6 +7,28 @@
 
 ## Completed Tasks
 
+### 7. GitHub Actions CI Baseline for Backend Tests ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `.github/workflows/backend-tests.yml` to run backend pytest automatically on `push` and `pull_request`
+- Scoped workflow triggers to `services/api/**` and the workflow file itself
+- Set the job working directory to `services/api`
+- Configured Python 3.11 with pip caching against `services/api/requirements.txt`
+- Installed backend requirements and ran the backend pytest targets used by the current suite
+- Added conditional support for `tests/test_prompt_quality_controls.py` when that file exists in the repo
+
+**Files Changed:**
+- `.github/workflows/backend-tests.yml` [NEW]
+
+**Verification Notes:**
+- Local command mirrored the CI job from `services/api`
+- `tests/test_gemini_provider.py` passes locally under `DEBUG=false`
+- `tests/test_automation_workflow.py` still fails on this branch because of existing database setup issues in that test file
+
+---
+
 ### 1. Prompt System with Content-Type Templates ✓
 **Date:** 2026-04-21
 **Status:** Complete
