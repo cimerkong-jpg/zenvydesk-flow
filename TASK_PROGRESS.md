@@ -2,10 +2,61 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** main
+- **Branch:** cline/facebook-posting-slice-1
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 17. Build First Facebook Posting Integration Slice ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/facebook-posting-slice-1
+
+**What was done:**
+- Created FacebookPoster service with safe API boundary
+- Implemented mock mode for testing without real API
+- Added structured FacebookPostResult for success/failure handling
+- Created 7 comprehensive tests for posting service
+- All regression tests pass (32/32 total)
+
+**Files Changed:**
+- `services/api/app/services/facebook_poster.py` [NEW - Facebook posting service]
+- `services/api/tests/test_facebook_posting.py` [NEW - 7 tests]
+- `TASK_PROGRESS.md` [MODIFIED - added task #17]
+
+**Test Results:**
+```
+python3 -m pytest tests/test_facebook_posting.py tests/test_worker_integration.py tests/test_schedule_model.py tests/test_grok_provider.py tests/test_claude_provider.py tests/test_gemini_provider.py tests/test_automation_workflow.py tests/test_output_validation.py -v
+
+32 passed in 1.28s ✓
+```
+
+**Breakdown:**
+- test_facebook_posting.py: 7/7 PASSED (NEW)
+- test_worker_integration.py: 4/4 PASSED
+- test_schedule_model.py: 3/3 PASSED
+- test_grok_provider.py: 3/3 PASSED
+- test_claude_provider.py: 3/3 PASSED
+- test_gemini_provider.py: 3/3 PASSED
+- test_automation_workflow.py: 4/4 PASSED
+- test_output_validation.py: 5/5 PASSED
+
+**Architecture:**
+- FacebookPoster class with mock_mode support
+- FacebookPostResult dataclass for structured results
+- Input validation (page_id, access_token, message)
+- Safe failure handling (timeout, connection errors, API errors)
+- Optional link parameter support
+- Real API boundary ready (Graph API v18.0)
+
+**Verified:**
+- Mock posting works correctly
+- Input validation prevents bad requests
+- Failure scenarios handled safely
+- No regression in existing tests
+- Clean API boundary for future OAuth integration
+
+---
 
 ### 16. Merge Worker Slice Into Main ✓
 **Date:** 2026-04-21
@@ -43,25 +94,6 @@ python3 -m pytest tests/test_worker_integration.py tests/test_schedule_model.py 
 - Worker slice preserved through merge
 - No provider regression
 - All assertions intact
-
----
-
-### 15. Worker Slice Support Docs And CI Awareness ✓
-**Date:** 2026-04-21
-**Status:** Complete
-
-**What was done:**
-- Added a worker support note describing how docs and CI should recognize the worker slice when present
-- Extended the backend test matrix to include worker-related optional test files
-- Updated backend CI discovery so worker-related tests run automatically if they exist on the branch
-- Added a short README reference to the worker support note
-
-**Files Changed:**
-- `.github/workflows/backend-tests.yml` [MODIFIED]
-- `README.md` [MODIFIED]
-- `TASK_PROGRESS.md` [MODIFIED]
-- `services/api/BACKEND_TEST_MATRIX.md` [MODIFIED]
-- `services/worker/WORKER_SLICE_SUPPORT.md` [NEW]
 
 ---
 
