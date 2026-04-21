@@ -130,7 +130,7 @@ python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.p
 - Frontend can target `http://localhost:8000` via `VITE_API_BASE_URL`
 - Facebook login entry wiring points to `/api/v1/auth/facebook/login`
 - Scheduled worker trigger wiring points to `/api/v1/test/run-scheduled`
-- Backend health wiring points to `/health`
+- Backend health wiring points to `/api/v1/health`
 - Frontend build passes and backend regression packs pass on the finalized merge branch
 
 ---

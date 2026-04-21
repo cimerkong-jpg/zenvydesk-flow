@@ -145,7 +145,7 @@ pytest tests/test_gemini_provider.py
 Run the backend on `http://localhost:8000` and the web app on `http://localhost:3000`.
 
 Use the web app support screen to verify:
-- backend health via `GET /health`
+- backend health via `GET /api/v1/health`
 - Facebook OAuth entry via `GET /api/v1/auth/facebook/login`
 - scheduled worker smoke via `POST /api/v1/test/run-scheduled?mock_mode=true`
 

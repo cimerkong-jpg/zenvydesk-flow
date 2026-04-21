@@ -5,7 +5,7 @@ export const apiBaseUrl = trimTrailingSlash(
 )
 
 export const endpointPaths = {
-  health: '/health',
+  health: '/api/v1/health',
   facebookLogin: '/api/v1/auth/facebook/login',
   facebookCallback: '/api/v1/auth/facebook/callback',
   scheduledRun: '/api/v1/test/run-scheduled',
