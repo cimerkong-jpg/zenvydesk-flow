@@ -7,6 +7,22 @@
 
 ## Completed Tasks
 
+### 15. Local Workspace Cleanup And Consolidation Plan ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Inventoried the local ZenvyDesk standalone repo folders and internal worktrees
+- Mapped each folder to its current branch and task context
+- Classified each workspace as `active`, `safe_to_delete`, or `archive_if_needed`
+- Added `LOCAL_WORKSPACE_CLEANUP_PLAN.md` with a recommended two-repo-plus-worktrees model
+
+**Files Changed:**
+- `LOCAL_WORKSPACE_CLEANUP_PLAN.md` [NEW]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
+
 ### 14. Merge Support Branches Into Main ✓
 **Date:** 2026-04-21
 **Status:** Complete
