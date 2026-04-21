@@ -48,8 +48,23 @@ def get_ai_provider(provider_name: str, api_key: Optional[str] = None, base_url:
             logger.error(f"[Registry] {error_msg}")
             raise NotImplementedError(error_msg)
     
+    if provider_name == "gemini":
+        if not api_key:
+            logger.error("[Registry] Gemini provider requested but no API key configured")
+            raise ValueError("Gemini provider requires AI_API_KEY to be configured")
+        
+        # Lazy import to handle missing dependencies gracefully
+        try:
+            from .gemini_provider import GeminiProvider
+            logger.info("[Registry] Gemini provider loaded successfully")
+            return GeminiProvider(api_key=api_key, base_url=base_url)
+        except ImportError as e:
+            error_msg = f"Gemini provider dependencies not installed: {str(e)}. Install 'requests' package."
+            logger.error(f"[Registry] {error_msg}")
+            raise NotImplementedError(error_msg)
+    
     # Other providers not yet implemented
-    if provider_name in ["gemini", "claude", "grok"]:
+    if provider_name in ["claude", "grok"]:
         logger.warning(f"[Registry] Provider '{provider_name}' not implemented yet")
         raise NotImplementedError(f"{provider_name} provider not implemented yet")
     
