@@ -2,10 +2,84 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/ai-output-validation
+- **Branch:** cline/claude-provider
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 11. Claude AI Provider Integration ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added Claude (Anthropic) as a new AI provider in the provider architecture
+- Implemented `claude_provider.py` with lazy import and safe failure behavior
+- Registered Claude in provider registry with missing key validation
+- Created comprehensive test suite (`test_claude_provider.py`) with 3 tests
+- All tests passing: mock regression, missing key safe failure, provider wiring
+
+**Files Changed:**
+- `services/api/app/services/ai_providers/claude_provider.py` [NEW - 150 lines]
+- `services/api/app/services/ai_providers/registry.py` [MODIFIED - added Claude registration]
+- `services/api/tests/test_claude_provider.py` [NEW - 207 lines, 3 tests]
+- `TASK_PROGRESS.md` [MODIFIED - added task #11]
+
+**Test Results:**
+- test_mock_provider_still_works: PASSED
+- test_claude_missing_key_safe_failure: PASSED
+- test_claude_provider_wiring: PASSED
+Total: 3/3 tests passing
+
+**Provider Configuration:**
+- `AI_PROVIDER=claude`
+- `AI_API_KEY` (required)
+- `AI_MODEL` (e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229)
+- `AI_BASE_URL` (optional, defaults to https://api.anthropic.com/v1)
+
+**Safe Failure Behavior:**
+- Missing API key: ValueError with clear message, no crash
+- Import failure: NotImplementedError with dependency info
+- API failure: Returns AIGenerationResult with success=False, no bad data created
+- No Draft/PostHistory created on generation failure
+
+---
+
+### 10. Merge Backend Test Matrix Docs Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged `codex/test-matrix-docs` into the current `main` baseline on `codex/merge-test-matrix-docs`
+- Preserved `services/api/BACKEND_TEST_MATRIX.md` without conflicts
+- Re-ran the current backend baseline on the merged branch
+- Confirmed the documentation still matches the current test state on main-derived code
+- Confirmed `tests/test_prompt_quality_controls.py` is still not present on this branch baseline
+
+**Files Changed:**
+- `README.md` [MERGED]
+- `services/api/BACKEND_TEST_MATRIX.md` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
+
+### 9. Backend Test Matrix And Branch Audit Guide ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/BACKEND_TEST_MATRIX.md` for team handoff on backend test expectations
+- Documented which backend tests are baseline-required versus feature-branch-dependent
+- Documented required environment and common failure meaning for each test file
+- Added merge-ready guidance for backend branches
+- Added a short audit guide for the required 10-item delivery bundle
+- Added a quick failure-classification guide for fixture, routing, provider contract, and CI-only issues
+- Added a short README link to the new matrix doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/BACKEND_TEST_MATRIX.md` [NEW]
+
+---
 
 ### 8. AI Output Validation and Sanitization Layer ✓
 **Date:** 2026-04-21
