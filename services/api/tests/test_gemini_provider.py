@@ -98,7 +98,7 @@ def test_mock_provider_still_works(test_db, test_user, test_page, test_product):
     try:
         drafts_before = test_db.query(Draft).count()
         
-        response = client.post(f"/automation/run/{rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         assert response.status_code == 200
         data = response.json()
@@ -140,7 +140,7 @@ def test_gemini_missing_key_safe_failure(test_db, test_user, test_page, test_pro
         drafts_before = test_db.query(Draft).count()
         posts_before = test_db.query(PostHistory).count()
         
-        response = client.post(f"/automation/run/{rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         assert response.status_code == 200
         data = response.json()
@@ -183,7 +183,7 @@ def test_gemini_provider_wiring(test_db, test_user, test_page, test_product):
     settings.ai_api_key = "test_fake_key_for_wiring_test"
     
     try:
-        response = client.post(f"/automation/run/{rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         assert response.status_code == 200
         data = response.json()

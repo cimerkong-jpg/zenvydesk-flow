@@ -8,7 +8,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
 from app.core.database import Base, get_db
 from app.models.user import User
 from app.models.facebook_page import FacebookPage
@@ -17,6 +16,7 @@ from app.models.automation_rule import AutomationRule
 from app.models.draft import Draft
 from app.models.post_history import PostHistory
 from app.core.config import settings
+from app.main import app
 
 
 # Test database setup
@@ -42,15 +42,30 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
+# Create tables after app is initialized
+Base.metadata.create_all(bind=engine)
 
-@pytest.fixture(scope="function")
+
+@pytest.fixture(scope="function", autouse=True)
 def test_db():
-    """Create test database for each test"""
-    Base.metadata.create_all(bind=engine)
+    """Provide database session for each test and clean up after"""
     db = TestingSessionLocal()
     yield db
+    db.rollback()  # Rollback any uncommitted changes
     db.close()
-    Base.metadata.drop_all(bind=engine)
+    
+    # Clean up all data after each test
+    db = TestingSessionLocal()
+    try:
+        db.query(PostHistory).delete()
+        db.query(Draft).delete()
+        db.query(AutomationRule).delete()
+        db.query(Product).delete()
+        db.query(FacebookPage).delete()
+        db.query(User).delete()
+        db.commit()
+    finally:
+        db.close()
 
 
 @pytest.fixture
@@ -100,9 +115,15 @@ def test_product(test_db, test_user):
     return product
 
 
-@pytest.fixture
-def test_automation_rule(test_db, test_user, test_page):
-    """Create test automation rule"""
+# TEST 1: Mock Provider Success
+def test_automation_mock_provider_success(test_db, test_user, test_page, test_product):
+    """
+    TEST 1: Mock provider success path
+    - Automation run succeeds
+    - Draft is created
+    - Generated content comes from mock provider
+    """
+    # Create automation rule
     rule = AutomationRule(
         id=1,
         user_id=test_user.id,
@@ -115,18 +136,7 @@ def test_automation_rule(test_db, test_user, test_page):
     )
     test_db.add(rule)
     test_db.commit()
-    test_db.refresh(rule)
-    return rule
-
-
-# TEST 1: Mock Provider Success
-def test_automation_mock_provider_success(test_db, test_automation_rule, test_product):
-    """
-    TEST 1: Mock provider success path
-    - Automation run succeeds
-    - Draft is created
-    - Generated content comes from mock provider
-    """
+    
     # Override config to use mock provider
     original_provider = settings.ai_provider
     settings.ai_provider = "mock"
@@ -136,7 +146,7 @@ def test_automation_mock_provider_success(test_db, test_automation_rule, test_pr
         drafts_before = test_db.query(Draft).count()
         
         # Run automation
-        response = client.post(f"/automation/run/{test_automation_rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         # Assert response
         assert response.status_code == 200
@@ -168,13 +178,27 @@ def test_automation_mock_provider_success(test_db, test_automation_rule, test_pr
 
 
 # TEST 2: OpenAI Missing Key Failure
-def test_automation_openai_missing_key_failure(test_db, test_automation_rule, test_product):
+def test_automation_openai_missing_key_failure(test_db, test_user, test_page, test_product):
     """
     TEST 2: OpenAI provider with missing API key
     - Returns structured failure
     - No draft created
     - No post_history created
     """
+    # Create automation rule
+    rule = AutomationRule(
+        id=2,
+        user_id=test_user.id,
+        page_id=test_page.id,
+        name="OpenAI Test Rule",
+        content_type="promotion",
+        auto_post=False,
+        scheduled_time="daily",
+        is_active=True
+    )
+    test_db.add(rule)
+    test_db.commit()
+    
     # Override config to use openai without key
     original_provider = settings.ai_provider
     original_key = settings.ai_api_key
@@ -187,7 +211,7 @@ def test_automation_openai_missing_key_failure(test_db, test_automation_rule, te
         posts_before = test_db.query(PostHistory).count()
         
         # Run automation
-        response = client.post(f"/automation/run/{test_automation_rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         # Assert response
         assert response.status_code == 200
@@ -243,7 +267,7 @@ def test_automation_unknown_content_type_fallback(test_db, test_user, test_page,
     
     try:
         # Run automation
-        response = client.post(f"/automation/run/{rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         # Assert response
         assert response.status_code == 200
@@ -297,7 +321,7 @@ def test_automation_auto_post_enabled(test_db, test_user, test_page, test_produc
         posts_before = test_db.query(PostHistory).count()
         
         # Run automation
-        response = client.post(f"/automation/run/{rule.id}")
+        response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
         # Assert response
         assert response.status_code == 200

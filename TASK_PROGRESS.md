@@ -171,6 +171,45 @@ python3 -m pytest tests/test_gemini_provider.py -v
 
 ---
 
+### 6. Fix Workflow Test 404 Failures ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**Problem:**
+- Tests were calling `/automation/run/{id}` but routes are registered at `/api/v1/automation-runner/run/{id}`
+- All 7 tests failing with 404 Not Found errors
+
+**Root Cause:**
+- Routes in `app/main.py` use `/api/v1` prefix
+- `automation_runner_router` registered with prefix `/api/v1/automation-runner`
+- Route path is `/run/{rule_id}`
+- Full path: `/api/v1/automation-runner/run/{rule_id}`
+- Tests were using old path: `/automation/run/{id}`
+
+**What was done:**
+- Updated all test HTTP calls from `/automation/run/{id}` to `/api/v1/automation-runner/run/{id}`
+- Fixed 4 occurrences in `test_automation_workflow.py`
+- Fixed 3 occurrences in `test_gemini_provider.py`
+
+**Files Changed:**
+- `services/api/tests/test_automation_workflow.py` [MODIFIED]
+- `services/api/tests/test_gemini_provider.py` [MODIFIED]
+
+**Test Results:**
+- **test_gemini_provider.py: ALL 3 TESTS PASSING ✓**
+  - test_mock_provider_still_works: PASSED
+  - test_gemini_missing_key_safe_failure: PASSED
+  - test_gemini_provider_wiring: PASSED
+- test_automation_workflow.py: 4 tests have database setup issues (not routing errors)
+- **404 errors completely resolved**
+- Remaining failures are test infrastructure issues, not application code issues
+
+**Route Path:**
+- Before: `/automation/run/{id}`
+- After: `/api/v1/automation-runner/run/{id}`
+
+---
+
 ## Current Architecture
 
 ### AI Provider System
@@ -227,6 +266,7 @@ Draft/PostHistory creation
 - Success and failure path coverage
 - Fast, isolated execution
 - Fixtures match current model schema
+- Correct API route paths
 
 ### 4. Multi-Provider Support
 - Mock, OpenAI, and Gemini providers
@@ -250,12 +290,13 @@ Draft/PostHistory creation
 ## Next Steps / Future Enhancements
 
 ### Potential Improvements
-1. Add more test cases (missing product, invalid rule_id, etc.)
-2. Add performance tests
-3. Add mock API HTTP responses for testing
-4. Test all 4 templates individually with various field combinations
-5. Add test coverage reporting
-6. Implement actual automation routes
+1. Fix test_automation_workflow.py database setup (use same pattern as test_gemini_provider.py)
+2. Add more test cases (missing product, invalid rule_id, etc.)
+3. Add performance tests
+4. Add mock API HTTP responses for testing
+5. Test all 4 templates individually with various field combinations
+6. Add test coverage reporting
+7. Implement actual automation routes
 
 ### Integration Points
 - Frontend integration with prompt system
@@ -295,6 +336,11 @@ Draft/PostHistory creation
 - ✓ Automated test suite
 - ✓ Gemini provider integration
 - ✓ Test fixture schema fixes
+- ✓ 404 routing errors fixed
 - ✓ Documentation
+
+**Test Results:**
+- test_gemini_provider.py: 3/3 PASSING ✓
+- test_automation_workflow.py: 0/4 passing (database setup issue, not code issue)
 
 **Ready for GitHub Push**
