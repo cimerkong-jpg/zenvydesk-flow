@@ -2,10 +2,43 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/scheduled-posting-slice-1
+- **Branch:** codex/merge-scheduled-posting-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 22. Merge Scheduled Posting Worker Slice Into Main And Verify
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/merge-scheduled-posting-main
+
+**What was done:**
+- Merged `cline/scheduled-posting-slice-1` into the current `main` baseline on a dedicated merge branch
+- Verified the scheduled posting worker file exists after merge
+- Verified the test endpoint `/api/v1/test/run-scheduled` is registered after merge
+- Kept the scheduled posting slice logic unchanged
+
+**Files Changed:**
+- `services/api/app/services/scheduled_posting_worker.py` [MERGED]
+- `services/api/app/api/routes/test_scheduled_posting.py` [MERGED]
+- `services/api/app/api/routes/__init__.py` [MERGED]
+- `services/api/app/main.py` [MERGED]
+- `services/api/tests/test_scheduled_posting.py` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+**Verification Commands:**
+```
+python -m pytest tests/test_scheduled_posting.py -v
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py -v
+```
+
+**Verified:**
+- The scheduled posting worker slice merges cleanly into `main`
+- `/api/v1/test/run-scheduled` is present on the merged branch and on `main`
+- `services/api/app/services/scheduled_posting_worker.py` exists on the merged branch and on `main`
+- Targeted scheduled-posting and regression tests pass with shell env overrides only
+
+---
 
 ### 21. Scheduled Posting Execution - First Slice ✓
 **Date:** 2026-04-21
