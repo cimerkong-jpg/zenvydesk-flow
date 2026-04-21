@@ -2,10 +2,32 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/fix-workflow-tests
+- **Branch:** codex/prompt-quality-tests
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 8. Automated Tests for Prompt Quality Controls ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added automated prompt quality control coverage in `services/api/tests/test_prompt_quality_controls.py`
+- Verified supported tone, length, and emoji preset lists
+- Verified fallback preset behavior for unsupported values
+- Verified CTA optional behavior for both provided and missing CTA values
+- Verified the OpenAI path uses the compiled prompt without requiring a real API key
+
+**Files Changed:**
+- `services/api/tests/test_prompt_quality_controls.py` [NEW]
+
+**Guardrails Kept:**
+- No route file changes
+- No AI output validation file changes
+- No CI workflow changes
+- No README or `.env.example` changes
+
+---
 
 ### 7. Prompt Quality Controls for GPT/OpenAI Path ✓
 **Date:** 2026-04-21

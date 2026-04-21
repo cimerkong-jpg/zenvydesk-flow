@@ -6,6 +6,23 @@ from app.services.prompt_builder import PromptBuilder, PromptContext
 from app.services.ai_providers.openai_provider import OpenAIProvider
 
 
+def test_supported_tone_presets_are_exposed():
+    assert PromptBuilder.get_supported_tone_presets() == [
+        "friendly",
+        "professional",
+        "urgent",
+        "playful",
+    ]
+
+
+def test_supported_length_presets_are_exposed():
+    assert PromptBuilder.get_supported_length_presets() == ["short", "medium", "long"]
+
+
+def test_supported_emoji_presets_are_exposed():
+    assert PromptBuilder.get_supported_emoji_presets() == ["none", "light", "moderate"]
+
+
 def test_prompt_builder_applies_supported_quality_presets():
     context = PromptContext(
         product_name="Zenvy Flow",
@@ -28,7 +45,7 @@ def test_prompt_builder_applies_supported_quality_presets():
     assert "Target Audience: Operations teams at growing startups" in prompt
 
 
-def test_prompt_builder_uses_fallback_presets_and_optional_cta_rule():
+def test_prompt_builder_uses_fallback_presets():
     context = PromptContext(
         product_name="Zenvy Flow",
         tone="unsupported-tone",
@@ -42,18 +59,25 @@ def test_prompt_builder_uses_fallback_presets_and_optional_cta_rule():
     assert "Tone preset (friendly)" in prompt
     assert "Output length (medium)" in prompt
     assert "Emoji use (light)" in prompt
+
+
+def test_cta_is_optional_when_missing():
+    context = PromptContext(product_name="Zenvy Flow")
+
+    prompt, _ = PromptBuilder.build_prompt("general_post", context)
+
     assert "CTA: Do not force a call to action if one is not provided." in prompt
 
 
-def test_prompt_builder_reports_supported_presets():
-    assert PromptBuilder.get_supported_tone_presets() == [
-        "friendly",
-        "professional",
-        "urgent",
-        "playful",
-    ]
-    assert PromptBuilder.get_supported_length_presets() == ["short", "medium", "long"]
-    assert PromptBuilder.get_supported_emoji_presets() == ["none", "light", "moderate"]
+def test_cta_is_included_naturally_when_provided():
+    context = PromptContext(
+        product_name="Zenvy Flow",
+        cta="Start your free trial today.",
+    )
+
+    prompt, _ = PromptBuilder.build_prompt("promotion", context)
+
+    assert 'CTA: Include this call to action naturally if it fits: "Start your free trial today."' in prompt
 
 
 def test_openai_provider_uses_compiled_prompt(monkeypatch):
