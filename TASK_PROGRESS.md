@@ -2,10 +2,47 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-test-matrix-docs
+- **Branch:** cline/claude-provider
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 11. Claude AI Provider Integration ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added Claude (Anthropic) as a new AI provider in the provider architecture
+- Implemented `claude_provider.py` with lazy import and safe failure behavior
+- Registered Claude in provider registry with missing key validation
+- Created comprehensive test suite (`test_claude_provider.py`) with 3 tests
+- All tests passing: mock regression, missing key safe failure, provider wiring
+
+**Files Changed:**
+- `services/api/app/services/ai_providers/claude_provider.py` [NEW - 150 lines]
+- `services/api/app/services/ai_providers/registry.py` [MODIFIED - added Claude registration]
+- `services/api/tests/test_claude_provider.py` [NEW - 207 lines, 3 tests]
+- `TASK_PROGRESS.md` [MODIFIED - added task #11]
+
+**Test Results:**
+- test_mock_provider_still_works: PASSED
+- test_claude_missing_key_safe_failure: PASSED
+- test_claude_provider_wiring: PASSED
+Total: 3/3 tests passing
+
+**Provider Configuration:**
+- `AI_PROVIDER=claude`
+- `AI_API_KEY` (required)
+- `AI_MODEL` (e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229)
+- `AI_BASE_URL` (optional, defaults to https://api.anthropic.com/v1)
+
+**Safe Failure Behavior:**
+- Missing API key: ValueError with clear message, no crash
+- Import failure: NotImplementedError with dependency info
+- API failure: Returns AIGenerationResult with success=False, no bad data created
+- No Draft/PostHistory created on generation failure
+
+---
 
 ### 10. Merge Backend Test Matrix Docs Into Main ✓
 **Date:** 2026-04-21
