@@ -2,10 +2,28 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/claude-provider
+- **Branch:** codex/ci-test-discovery
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 12. Backend CI Test Discovery Expansion ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Updated `.github/workflows/backend-tests.yml` to always run the backend baseline tests
+- Added `tests/test_output_validation.py` to the mandatory CI baseline
+- Added optional test discovery for `tests/test_prompt_quality_controls.py`
+- Added optional test discovery for `tests/test_claude_provider.py`
+- Kept the workflow on Python 3.11 with backend requirements installation under `services/api`
+- Added a short inline workflow comment explaining the baseline-plus-optional logic
+
+**Files Changed:**
+- `.github/workflows/backend-tests.yml` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 11. Claude AI Provider Integration ✓
 **Date:** 2026-04-21

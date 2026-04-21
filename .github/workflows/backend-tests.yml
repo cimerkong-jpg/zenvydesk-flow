@@ -35,13 +35,19 @@ jobs:
       - name: Run backend pytest suite
         shell: bash
         run: |
+          # Keep the backend baseline mandatory, then pick up optional suites if they exist.
           tests=(
             tests/test_automation_workflow.py
             tests/test_gemini_provider.py
+            tests/test_output_validation.py
           )
 
           if [[ -f tests/test_prompt_quality_controls.py ]]; then
             tests+=(tests/test_prompt_quality_controls.py)
+          fi
+
+          if [[ -f tests/test_claude_provider.py ]]; then
+            tests+=(tests/test_claude_provider.py)
           fi
 
           for test_file in "${tests[@]}"; do
