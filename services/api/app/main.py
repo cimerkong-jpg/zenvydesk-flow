@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import health_router, products_router, content_library_router, drafts_router, post_history_router, posting_router, schedules_router, automation_rules_router, automation_runner_router, test_scheduled_posting_router
+from app.api.routes import health_router, products_router, content_library_router, drafts_router, post_history_router, posting_router, schedules_router, automation_rules_router, automation_runner_router, test_scheduled_posting_router, auth_facebook_lite_router
 
 app = FastAPI(title="ZenvyDesk API", version="0.1.0")
 
@@ -24,6 +24,7 @@ app.include_router(schedules_router, prefix="/api/v1/schedules", tags=["schedule
 app.include_router(automation_rules_router, prefix="/api/v1/automation-rules", tags=["automation-rules"])
 app.include_router(automation_runner_router, prefix="/api/v1/automation-runner", tags=["automation-runner"])
 app.include_router(test_scheduled_posting_router)
+app.include_router(auth_facebook_lite_router)
 
 
 @app.get("/")
