@@ -78,10 +78,20 @@ def get_ai_provider(provider_name: str, api_key: Optional[str] = None, base_url:
             logger.error(f"[Registry] {error_msg}")
             raise NotImplementedError(error_msg)
     
-    # Other providers not yet implemented
-    if provider_name in ["grok"]:
-        logger.warning(f"[Registry] Provider '{provider_name}' not implemented yet")
-        raise NotImplementedError(f"{provider_name} provider not implemented yet")
+    if provider_name == "grok":
+        if not api_key:
+            logger.error("[Registry] Grok provider requested but no API key configured")
+            raise ValueError("Grok provider requires AI_API_KEY to be configured")
+        
+        # Lazy import to handle missing dependencies gracefully
+        try:
+            from .grok_provider import GrokProvider
+            logger.info("[Registry] Grok provider loaded successfully")
+            return GrokProvider(api_key=api_key, base_url=base_url)
+        except ImportError as e:
+            error_msg = f"Grok provider dependencies not installed: {str(e)}. Install 'requests' package."
+            logger.error(f"[Registry] {error_msg}")
+            raise NotImplementedError(error_msg)
     
     logger.error(f"[Registry] Unknown provider: {provider_name}")
     raise ValueError(f"Unknown provider: {provider_name}")
