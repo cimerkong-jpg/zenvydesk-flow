@@ -2,10 +2,28 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/ai-output-validation
+- **Branch:** codex/ai-provider-docs
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 9. AI Provider And Testing Handoff Docs ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/AI_PROVIDER_HANDOFF.md` for team handoff
+- Documented the current `mock`, `openai`, and `gemini` provider stack
+- Documented env/config expectations, lazy import behavior, safe failure behavior, output validation status, and prompt quality control status
+- Added a backend test map and local baseline test commands
+- Added guidance for how to add the next provider
+- Added a short README pointer to the new handoff doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/AI_PROVIDER_HANDOFF.md` [NEW]
+
+---
 
 ### 8. AI Output Validation and Sanitization Layer ✓
 **Date:** 2026-04-21
