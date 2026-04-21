@@ -33,7 +33,14 @@ class OpenAIProvider(BaseAIProvider):
         self.api_key = api_key
         self.base_url = base_url or "https://api.openai.com/v1"
     
-    def generate_post_content(self, content_type: str, product_name: str, model: str) -> AIGenerationResult:
+    def generate_post_content(
+        self,
+        content_type: str,
+        product_name: str,
+        model: str,
+        prompt: str = None,
+        template_used: str = None,
+    ) -> AIGenerationResult:
         """
         Generate post content using OpenAI API
         
@@ -41,13 +48,16 @@ class OpenAIProvider(BaseAIProvider):
             content_type: Type of content (morning, sale, evening, etc.)
             product_name: Name of the product
             model: OpenAI model to use (e.g., gpt-4, gpt-3.5-turbo)
+            prompt: Compiled prompt from prompt builder
+            template_used: Template name that was used
         
         Returns:
             AIGenerationResult with generated content or error
         """
         try:
-            # Construct prompt
-            prompt = f"Create a {content_type} social media post for the product: {product_name}. Make it engaging and concise."
+            # Use provided prompt or fall back to a simple baseline prompt.
+            if not prompt:
+                prompt = f"Create a {content_type} social media post for the product: {product_name}. Make it engaging and concise."
             
             # Prepare request
             url = f"{self.base_url}/chat/completions"
@@ -62,10 +72,12 @@ class OpenAIProvider(BaseAIProvider):
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.7,
-                "max_tokens": 150
+                "max_tokens": 300
             }
             
-            logger.info(f"OpenAI API request: model={model}, content_type={content_type}, product={product_name}")
+            logger.info(
+                f"OpenAI API request: model={model}, content_type={content_type}, product={product_name}, template={template_used}"
+            )
             
             # Make API call
             response = requests.post(url, headers=headers, json=payload, timeout=30)

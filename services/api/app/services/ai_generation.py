@@ -20,6 +20,8 @@ def generate_post_content(
     product_description: Optional[str] = None,
     selling_points: Optional[list] = None,
     tone: Optional[str] = None,
+    output_length: Optional[str] = None,
+    emoji_level: Optional[str] = None,
     target_audience: Optional[str] = None,
     cta: Optional[str] = None,
     provider: Optional[str] = None,
@@ -33,7 +35,9 @@ def generate_post_content(
         product_name: Name of the product
         product_description: Optional product description
         selling_points: Optional list of key selling points
-        tone: Optional tone/style (e.g., "professional", "casual", "enthusiastic")
+        tone: Optional tone preset (friendly, professional, urgent, playful)
+        output_length: Optional output length preset (short, medium, long)
+        emoji_level: Optional emoji preset (none, light, moderate)
         target_audience: Optional target audience description
         cta: Optional call to action
         provider: AI provider to use (defaults to config)
@@ -55,6 +59,8 @@ def generate_post_content(
             product_description=product_description,
             selling_points=selling_points,
             tone=tone,
+            output_length=output_length,
+            emoji_level=emoji_level,
             target_audience=target_audience,
             cta=cta
         )
