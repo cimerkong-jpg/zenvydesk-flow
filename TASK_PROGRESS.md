@@ -7,6 +7,45 @@
 
 ## Completed Tasks
 
+### 16. Merge Worker Slice Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/merge-worker-slice-1
+
+**What was done:**
+- Merged `cline/worker-slice-1` into main baseline
+- Resolved TASK_PROGRESS.md conflict using ours strategy
+- Verified all 25 tests pass on merged main
+- No test_prompt_quality_controls.py on main (as expected)
+
+**Files Changed:**
+- All worker slice files from cline/worker-slice-1 [MERGED]
+- `TASK_PROGRESS.md` [MERGED with conflict resolution]
+
+**Test Results on Merged Main:**
+```
+python3 -m pytest tests/test_worker_integration.py tests/test_schedule_model.py tests/test_automation_workflow.py tests/test_output_validation.py tests/test_gemini_provider.py tests/test_claude_provider.py tests/test_grok_provider.py -v
+
+25 passed in 4.55s ✓
+```
+
+**Breakdown:**
+- test_worker_integration.py: 4/4 PASSED
+- test_schedule_model.py: 3/3 PASSED
+- test_automation_workflow.py: 4/4 PASSED
+- test_output_validation.py: 5/5 PASSED
+- test_gemini_provider.py: 3/3 PASSED
+- test_claude_provider.py: 3/3 PASSED
+- test_grok_provider.py: 3/3 PASSED
+
+**Verified:**
+- Full backend regression pack runs green on merged main
+- Worker slice preserved through merge
+- No provider regression
+- All assertions intact
+
+---
+
 ### 15. Worker Slice Support Docs And CI Awareness ✓
 **Date:** 2026-04-21
 **Status:** Complete
@@ -23,6 +62,29 @@
 - `TASK_PROGRESS.md` [MODIFIED]
 - `services/api/BACKEND_TEST_MATRIX.md` [MODIFIED]
 - `services/worker/WORKER_SLICE_SUPPORT.md` [NEW]
+
+---
+
+### 15. Build First Worker/Scheduled Execution Slice ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/worker-slice-1
+
+**What was done:**
+- Created Schedule model for tracking automation rule execution times
+- Built minimal worker service with schedule checking loop
+- Implemented ScheduleChecker class to query and execute due schedules
+- Added 7 tests (4 integration + 3 model tests)
+- Worker checks for due schedules every 60 seconds
+
+**Files Changed:**
+- `services/api/app/models/schedule.py` [NEW]
+- `services/api/app/models/__init__.py` [MODIFIED]
+- `services/worker/app/scheduler.py` [NEW]
+- `services/worker/app/main.py` [MODIFIED]
+- `services/api/tests/test_schedule_model.py` [NEW - 3 tests]
+- `services/api/tests/test_worker_integration.py` [NEW - 4 tests]
+- `TASK_PROGRESS.md` [MODIFIED]
 
 ---
 
