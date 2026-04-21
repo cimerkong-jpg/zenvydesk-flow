@@ -2,10 +2,73 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/fix-workflow-tests
+- **Branch:** codex/prompt-quality-tests
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 8. Automated Tests for Prompt Quality Controls ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added automated prompt quality control coverage in `services/api/tests/test_prompt_quality_controls.py`
+- Verified supported tone, length, and emoji preset lists
+- Verified fallback preset behavior for unsupported values
+- Verified CTA optional behavior for both provided and missing CTA values
+- Verified the OpenAI path uses the compiled prompt without requiring a real API key
+
+**Files Changed:**
+- `services/api/tests/test_prompt_quality_controls.py` [NEW]
+
+**Guardrails Kept:**
+- No route file changes
+- No AI output validation file changes
+- No CI workflow changes
+- No README or `.env.example` changes
+
+---
+
+### 7. Prompt Quality Controls for GPT/OpenAI Path ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added reusable prompt-layer quality controls for tone, output length, emoji use, and CTA handling
+- Added supported tone presets: `friendly`, `professional`, `urgent`, `playful`
+- Added supported length presets: `short`, `medium`, `long`
+- Added supported emoji presets: `none`, `light`, `moderate`
+- Added fallback behavior in the prompt layer:
+  - tone → `friendly`
+  - length → `medium`
+  - emoji → `light`
+- CTA instructions now stay natural:
+  - include CTA when provided
+  - avoid forcing CTA text when missing
+- Updated the OpenAI provider boundary to send the compiled prompt to the GPT chat completion request
+
+**Files Changed:**
+- `services/api/app/services/prompt_templates.py` [MODIFIED]
+- `services/api/app/services/prompt_builder.py` [MODIFIED]
+- `services/api/app/services/ai_generation.py` [MODIFIED]
+- `services/api/app/services/ai_providers/base.py` [MODIFIED]
+- `services/api/app/services/ai_providers/openai_provider.py` [MODIFIED]
+- `services/api/tests/test_prompt_quality_controls.py` [NEW]
+
+**Verification:**
+- Scoped unit tests passed for:
+  - prompt preset application
+  - fallback behavior
+  - supported preset lists
+  - OpenAI compiled prompt forwarding
+
+**Guardrails Kept:**
+- No changes to `app/main.py`
+- No router registration changes
+- No route path definition changes
+- No workflow test routing logic changes
+
+---
 
 ### 1. Prompt System with Content-Type Templates ✓
 **Date:** 2026-04-21
