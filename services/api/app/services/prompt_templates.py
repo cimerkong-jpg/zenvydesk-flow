@@ -3,7 +3,31 @@ Prompt Templates for AI Content Generation
 Reusable templates for different content types
 """
 
-from typing import Dict, Optional
+from typing import Dict
+
+
+TONE_PRESETS: Dict[str, str] = {
+    "friendly": "Use a warm, approachable voice that feels human and easy to trust.",
+    "professional": "Use a polished, credible voice with clear business-friendly phrasing.",
+    "urgent": "Use high-energy, time-sensitive language without sounding panicked or spammy.",
+    "playful": "Use light, witty language that feels clever and upbeat without losing clarity.",
+}
+
+LENGTH_PRESETS: Dict[str, str] = {
+    "short": "Keep the final response brief: 1 to 2 short paragraphs or 3 to 5 concise lines.",
+    "medium": "Keep the final response balanced: around 2 short paragraphs or 5 to 8 concise lines.",
+    "long": "Keep the final response more developed: 3 to 4 short paragraphs or 8 to 12 concise lines.",
+}
+
+EMOJI_PRESETS: Dict[str, str] = {
+    "none": "Do not use emojis.",
+    "light": "Use at most 1 emoji if it fits naturally.",
+    "moderate": "Use 2 to 4 well-placed emojis at most, and avoid overloading the post.",
+}
+
+DEFAULT_TONE_PRESET = "friendly"
+DEFAULT_LENGTH_PRESET = "medium"
+DEFAULT_EMOJI_PRESET = "light"
 
 
 # Template definitions
@@ -18,9 +42,8 @@ Requirements:
 - Highlight what makes this product special
 - Create excitement and curiosity
 - Keep it concise and engaging
-- {tone}
+- {quality_controls}
 {target_audience}
-{cta}
 
 Generate a compelling product introduction post.""",
 
@@ -34,9 +57,8 @@ Requirements:
 - Emphasize the value and urgency
 - Include promotional language
 - Make it action-oriented
-- {tone}
+- {quality_controls}
 {target_audience}
-{cta}
 
 Generate an effective promotional post.""",
 
@@ -50,9 +72,8 @@ Requirements:
 - Encourage audience interaction
 - Ask questions or invite opinions
 - Be relatable and conversational
-- {tone}
+- {quality_controls}
 {target_audience}
-{cta}
 
 Generate an engaging post that encourages interaction.""",
 
@@ -66,9 +87,8 @@ Requirements:
 - Be clear and engaging
 - Match the brand voice
 - Keep it appropriate for social media
-- {tone}
+- {quality_controls}
 {target_audience}
-{cta}
 
 Generate a well-crafted social media post."""
 }
@@ -94,3 +114,18 @@ def get_template(content_type: str) -> str:
 def get_supported_types() -> list:
     """Get list of supported content types."""
     return list(TEMPLATES.keys())
+
+
+def get_supported_tone_presets() -> list:
+    """Get supported tone presets."""
+    return list(TONE_PRESETS.keys())
+
+
+def get_supported_length_presets() -> list:
+    """Get supported length presets."""
+    return list(LENGTH_PRESETS.keys())
+
+
+def get_supported_emoji_presets() -> list:
+    """Get supported emoji presets."""
+    return list(EMOJI_PRESETS.keys())
