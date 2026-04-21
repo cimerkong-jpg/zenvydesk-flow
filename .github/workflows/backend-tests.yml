@@ -1,0 +1,49 @@
+name: Backend Tests
+
+on:
+  push:
+    paths:
+      - "services/api/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    paths:
+      - "services/api/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    env:
+      DEBUG: "false"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: services/api/requirements.txt
+
+      - name: Install backend requirements
+        run: python -m pip install -r requirements.txt
+
+      - name: Run backend pytest suite
+        shell: bash
+        run: |
+          tests=(
+            tests/test_automation_workflow.py
+            tests/test_gemini_provider.py
+          )
+
+          if [[ -f tests/test_prompt_quality_controls.py ]]; then
+            tests+=(tests/test_prompt_quality_controls.py)
+          fi
+
+          for test_file in "${tests[@]}"; do
+            python -m pytest "$test_file"
+          done
