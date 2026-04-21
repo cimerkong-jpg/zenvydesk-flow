@@ -34,4 +34,12 @@ export const runScheduledSmoke = async (): Promise<ScheduledRunResponse> => {
   return parseJson<ScheduledRunResponse>(response)
 }
 
+export const runScheduledPost = async (mockMode: boolean): Promise<ScheduledRunResponse> => {
+  const response = await fetch(`${endpointUrls.scheduledRun}?mock_mode=${mockMode}`, {
+    method: 'POST',
+  })
+
+  return parseJson<ScheduledRunResponse>(response)
+}
+
 export const getFacebookLoginUrl = (): string => endpointUrls.facebookLogin
