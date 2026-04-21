@@ -2,10 +2,41 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-cleanup-policy-main
+- **Branch:** codex/merge-oauth-slice-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 21. Merge OAuth Slice Into Main And Verify Readiness
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/merge-oauth-slice-main
+
+**What was done:**
+- Merged `cline/oauth-slice-1` into the main baseline on a dedicated merge branch
+- Verified the OAuth slice files are present and merge cleanly into `main`
+- Confirmed the OAuth token manager slice is ready for mainline use without additional code changes
+- Preserved the main cleanup-policy README wording during merge
+
+**Files Changed:**
+- `services/api/OAUTH_TOKEN_SLICE_IMPLEMENTATION.md` [MERGED]
+- `services/api/app/services/facebook_token_manager.py` [MERGED]
+- `services/api/tests/test_token_manager.py` [MERGED]
+- `TASK_PROGRESS.md` [MERGED with conflict resolution]
+
+**Verification Commands:**
+```
+python -m pytest tests/test_token_manager.py -v
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py -v
+```
+
+**Verified:**
+- OAuth slice files exist on the merged branch and on `main` after push
+- No additional merge conflicts beyond `TASK_PROGRESS.md`
+- OAuth token tests and targeted regression tests pass
+- Remote `main` was updated to the merge commit
+
+---
 
 ### 20. Merge Cleanup Policy Docs Into Main ✓
 **Date:** 2026-04-21
