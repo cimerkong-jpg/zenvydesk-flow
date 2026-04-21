@@ -2,10 +2,138 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/commercial-ui-v1
+- **Branch:** cline/commercial-ui-v2-polish
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 24. Commercial UI v2 - Polish & Usability Upgrade ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/commercial-ui-v2-polish
+
+**What was done:**
+- Removed raw JSON-first UX, replaced with readable result cards
+- Added prominent selected page section with gradient background
+- Improved CTA hierarchy (primary vs secondary clear distinction)
+- Polished loading, empty, success, and error states
+- Enhanced responsive behavior for mobile/tablet
+- Better visual hierarchy and spacing throughout
+
+**Files Changed:**
+- `apps/web/src/index.css` [MODIFIED - added result cards, selected page section, improved states]
+- `apps/web/src/App.tsx` [MODIFIED - readable results, selected page UI, better UX]
+- `apps/web/src/lib/api.ts` [COPIED from v1]
+- `apps/web/src/config.ts` [COPIED from v1]
+
+**Build Results:**
+```
+npm run build
+
+✓ 33 modules transformed.
+dist/index.html                   0.41 kB │ gzip:  0.28 kB
+dist/assets/index-D_xMOnAq.css    9.55 kB │ gzip:  2.38 kB
+dist/assets/index-CNjdRg52.js   151.15 kB │ gzip: 48.15 kB
+✓ built in 569ms
+```
+
+**Key Improvements Over v1:**
+
+**1. Selected Page Section (NEW)**
+- Prominent gradient background (purple)
+- Large page avatar (64px)
+- Page name and ID display
+- Connection status badge
+- Replaces generic connection card when connected
+
+**2. Result Cards - No More Raw JSON**
+- Readable format with clear status indicator
+- 4 metric cards (Processed, Posted, Failed, Skipped)
+- Color-coded values (green for success, red for errors)
+- Formatted timestamp
+- Error details in readable format (not JSON)
+- Clean card layout with proper spacing
+
+**3. Stronger CTA Hierarchy**
+- Primary button: White on gradient (Test Run)
+- Secondary button: Transparent with border (Post to Facebook)
+- Larger buttons (btn-lg) with bold text
+- Clear disabled states
+- Better loading states with spinner
+
+**4. Polished States**
+- Empty state: Gradient icon background, better copy
+- Loading: Spinner animation, disabled buttons
+- Success alert: Green with icon and title
+- Error alert: Red with icon and detailed message
+- Better visual feedback throughout
+
+**5. Improved Responsive**
+- Mobile (<768px): Hidden sidebar, single column, smaller page avatar
+- Tablet (768-1024px): Narrower sidebar, 2-column metrics
+- Desktop (>1024px): Full layout
+- Touch-friendly button sizes
+- Proper padding adjustments
+
+**Design Changes:**
+- Selected page section uses purple gradient (vs blue action panel)
+- Connection card larger icon (56px vs 48px)
+- Result metrics in 4-column grid (vs raw JSON)
+- Alert with icon, title, and message structure
+- Empty state icon with gradient background
+- Stronger font weights on CTAs (700 vs 600)
+
+**Verified:**
+- TypeScript compilation successful
+- Vite build successful (569ms)
+- No console errors
+- All imports resolved
+- Responsive CSS working
+- Better UX than v1 for real usage
+
+---
+
+
+### 25. Finalize Commercial UI Support Slice And Verify Localhost Flow
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/finalize-commercial-ui-support-main
+
+**What was done:**
+- Merged the commercial UI branch onto the current `main` baseline
+- Preserved the support wiring for frontend env/config and backend endpoint contracts
+- Excluded the generated local SQLite database from the finalized result
+- Verified localhost-oriented support flow for health, Facebook login entry, and scheduled run trigger
+- Kept ownership limited to integration wiring, docs, and merge readiness rather than visual redesign
+
+**Files Changed:**
+- `README.md` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+- `apps/web/.env.example` [MERGED]
+- `apps/web/src/config.ts` [MERGED]
+- `apps/web/src/lib/api.ts` [MERGED]
+- `apps/web/src/vite-env.d.ts` [MERGED]
+- `apps/web/src/App.tsx` [MERGED]
+- `apps/web/src/index.css` [MERGED from UI branch]
+
+**Verification Commands:**
+```
+cd apps/web
+npm.cmd install
+npm.cmd run build
+
+cd services/api
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- Frontend can target `http://localhost:8000` via `VITE_API_BASE_URL`
+- Facebook login entry wiring points to `/api/v1/auth/facebook/login`
+- Scheduled worker trigger wiring points to `/api/v1/test/run-scheduled`
+- Backend health wiring points to `/health`
+- Frontend build passes and backend regression packs pass on the finalized merge branch
+
+---
 
 ### 23. Commercial-Grade Frontend UI ✓
 **Date:** 2026-04-21
