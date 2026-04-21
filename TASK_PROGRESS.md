@@ -23,6 +23,24 @@
 
 ---
 
+### 12. AI Provider And Testing Handoff Docs ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/AI_PROVIDER_HANDOFF.md` for team handoff
+- Documented the current `mock`, `openai`, and `gemini` provider stack
+- Documented env/config expectations, lazy import behavior, safe failure behavior, output validation status, and prompt quality control status
+- Added a backend test map and local baseline test commands
+- Added guidance for how to add the next provider
+- Added a short README pointer to the new handoff doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/AI_PROVIDER_HANDOFF.md` [NEW]
+
+---
+
 ### 12. Developer Bootstrap Docs and Environment Example ✓
 **Date:** 2026-04-21
 **Status:** Complete
@@ -178,6 +196,18 @@ Total: 3/3 tests passing
 **Files Changed:**
 - `README.md` [MODIFIED]
 - `services/api/BACKEND_TEST_MATRIX.md` [NEW]
+=======
+- Added `services/api/AI_PROVIDER_HANDOFF.md` for team handoff
+- Documented the current `mock`, `openai`, and `gemini` provider stack
+- Documented env/config expectations, lazy import behavior, safe failure behavior, output validation status, and prompt quality control status
+- Added a backend test map and local baseline test commands
+- Added guidance for how to add the next provider
+- Added a short README pointer to the new handoff doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/AI_PROVIDER_HANDOFF.md` [NEW]
+>>>>>>> codex/ai-provider-docs
 
 ---
 

@@ -133,6 +133,8 @@ See `TASK_PROGRESS.md` for detailed task history and `services/api/` documentati
 
 For backend test scope, merge-readiness, and bundle audit guidance, see `services/api/BACKEND_TEST_MATRIX.md`.
 
+For backend AI handoff details, see `services/api/AI_PROVIDER_HANDOFF.md`.
+
 ## Tech Stack
 
 - **Backend:** FastAPI, SQLAlchemy, Pydantic
