@@ -7,6 +7,25 @@
 
 ## Completed Tasks
 
+### 15. Worker Slice Support Docs And CI Awareness ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added a worker support note describing how docs and CI should recognize the worker slice when present
+- Extended the backend test matrix to include worker-related optional test files
+- Updated backend CI discovery so worker-related tests run automatically if they exist on the branch
+- Added a short README reference to the worker support note
+
+**Files Changed:**
+- `.github/workflows/backend-tests.yml` [MODIFIED]
+- `README.md` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/BACKEND_TEST_MATRIX.md` [MODIFIED]
+- `services/worker/WORKER_SLICE_SUPPORT.md` [NEW]
+
+---
+
 ### 14. Merge Support Branches Into Main ✓
 **Date:** 2026-04-21
 **Status:** Complete

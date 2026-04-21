@@ -76,6 +76,7 @@ zenvydesk/
 - 4 integration tests for automation workflow
 - In-memory SQLite for fast execution
 - Success and failure path coverage
+- Optional worker/schedule tests can be discovered by CI when those files exist on the branch
 
 ## Quick Start
 
@@ -134,6 +135,8 @@ See `TASK_PROGRESS.md` for detailed task history and `services/api/` documentati
 For backend test scope, merge-readiness, and bundle audit guidance, see `services/api/BACKEND_TEST_MATRIX.md`.
 
 For backend AI handoff details, see `services/api/AI_PROVIDER_HANDOFF.md`.
+
+For worker-slice support notes covering docs and CI awareness, see `services/worker/WORKER_SLICE_SUPPORT.md`.
 
 ## Tech Stack
 
