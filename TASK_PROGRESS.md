@@ -2,10 +2,41 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/facebook-pages-minimal-support
+- **Branch:** main
 - **Last Updated:** 2026-04-22
 
 ## Completed Tasks
+
+### 25. Merge Minimal Facebook Pages Backend Support Into Main And Verify
+**Date:** 2026-04-22
+**Status:** Complete
+**Branch:** main
+
+**What was done:**
+- Merged `codex/facebook-pages-minimal-support` into the current `main` baseline
+- Verified `GET /api/v1/facebook/pages` exists on `main`
+- Re-ran the related backend pytest pack after the merge
+- Kept the merge scoped to the minimal Facebook pages backend support only
+
+**Files Changed:**
+- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/app/api/routes/__init__.py` [MERGED]
+- `services/api/app/api/routes/pages.py` [MERGED]
+- `services/api/app/main.py` [MERGED]
+- `services/api/tests/test_facebook_pages.py` [MERGED]
+
+**Verification Commands:**
+```
+python -m pytest tests/test_facebook_pages.py tests/test_facebook_posting.py tests/test_automation_workflow.py tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- `GET /api/v1/facebook/pages` is present on `main`
+- The endpoint returns only active pages with the minimal response contract
+- The related backend pytest pack passes on `main`
+- `main` is ready to push with the merged backend support slice
+
+---
 
 ### 24. Add Minimal Facebook Pages Backend Support
 **Date:** 2026-04-22
