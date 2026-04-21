@@ -7,7 +7,13 @@ app = FastAPI(title="ZenvyDesk API", version="0.1.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://zenvydesk.onrender.com",
+        "https://zenvydesk.site",
+        "https://www.zenvydesk.site",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
