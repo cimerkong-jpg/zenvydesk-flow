@@ -131,6 +131,8 @@ pytest tests/test_gemini_provider.py
 
 See `TASK_PROGRESS.md` for detailed task history and `services/api/` documentation files for technical details.
 
+For backend AI handoff details, see `services/api/AI_PROVIDER_HANDOFF.md`.
+
 ## Tech Stack
 
 - **Backend:** FastAPI, SQLAlchemy, Pydantic
