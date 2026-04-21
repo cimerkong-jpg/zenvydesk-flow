@@ -26,6 +26,25 @@
 
 ---
 
+### 11. Backend Test Matrix And Branch Audit Guide ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/BACKEND_TEST_MATRIX.md` for team handoff on backend test expectations
+- Documented which backend tests are baseline-required versus feature-branch-dependent
+- Documented required environment and common failure meaning for each test file
+- Added merge-ready guidance for backend branches
+- Added a short audit guide for the required 10-item delivery bundle
+- Added a quick failure-classification guide for fixture, routing, provider contract, and CI-only issues
+- Added a short README link to the new matrix doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/BACKEND_TEST_MATRIX.md` [NEW]
+
+---
+
 ### 10. AI Provider And Testing Handoff Docs ✓
 **Date:** 2026-04-21
 **Status:** Complete
