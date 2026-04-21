@@ -2,10 +2,26 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/merge-facebook-posting-slice-1
+- **Branch:** codex/merge-cleanup-policy-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 20. Merge Cleanup Policy Docs Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/merge-cleanup-policy-main
+
+**What was done:**
+- Confirmed the cleanup policy docs are present on the main baseline
+- Updated README wording so the cleanup policy pointer clearly describes main-branch cleanup guidance
+- Updated task tracking metadata to reflect this merge-docs branch
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 19. Main Cleanup Policy For Merged Branches And Worktrees ✓
 **Date:** 2026-04-21
