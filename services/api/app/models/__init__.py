@@ -6,5 +6,6 @@ from .draft import Draft
 from .media_library import MediaLibrary
 from .post_history import PostHistory
 from .automation_rule import AutomationRule
+from .schedule import Schedule
 
-__all__ = ["User", "FacebookPage", "Product", "ContentLibrary", "Draft", "MediaLibrary", "PostHistory", "AutomationRule"]
+__all__ = ["User", "FacebookPage", "Product", "ContentLibrary", "Draft", "MediaLibrary", "PostHistory", "AutomationRule", "Schedule"]

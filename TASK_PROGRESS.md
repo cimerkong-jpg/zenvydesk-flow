@@ -2,10 +2,55 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/merge-full-pack-isolation
+- **Branch:** cline/worker-slice-1
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 15. Build First Worker/Scheduled Execution Slice ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/worker-slice-1
+
+**What was done:**
+- Created Schedule model for tracking automation rule execution times
+- Built minimal worker service with schedule checking loop
+- Implemented ScheduleChecker class to query and execute due schedules
+- Added tests for Schedule model functionality
+- Worker checks for due schedules every 60 seconds
+
+**Files Changed:**
+- `services/api/app/models/schedule.py` [NEW - Schedule model]
+- `services/api/app/models/__init__.py` [MODIFIED - added Schedule import]
+- `services/worker/app/scheduler.py` [NEW - ScheduleChecker class]
+- `services/worker/app/main.py` [MODIFIED - integrated scheduler]
+- `services/api/tests/test_schedule_model.py` [NEW - 3 tests]
+- `TASK_PROGRESS.md` [MODIFIED - added task #15]
+
+**Test Results:**
+```
+python3 -m pytest tests/test_schedule_model.py -v
+
+3 passed in 0.05s ✓
+```
+
+**Tests:**
+- test_schedule_creation: PASSED
+- test_schedule_query_due: PASSED
+- test_schedule_status_update: PASSED
+
+**Architecture:**
+- Schedule model tracks next_run_at, last_run_at, status
+- Worker loop checks database every 60 seconds
+- ScheduleChecker queries due schedules and updates status
+- Simple daily increment for next_run_at (placeholder for future cron logic)
+
+**Next Steps:**
+- Integrate worker with automation runner API
+- Add proper scheduling logic (cron expressions)
+- Implement retry logic for failed executions
+
+---
 
 ### 14. Merge Full Pack Isolation Fix Into Main ✓
 **Date:** 2026-04-21
