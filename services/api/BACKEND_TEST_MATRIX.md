@@ -79,6 +79,45 @@ What failure usually means:
 - Prompt compilation fallback behavior regressed
 - OpenAI compiled prompt contract drifted from the prompt builder layer
 
+### `tests/test_schedule_model.py`
+
+Purpose:
+- Verifies the schedule model can be created, queried for due work, and updated through its basic status transitions.
+
+Required environment:
+- Run from `services/api`
+- Use `DEBUG=false`
+- No real API key required
+
+Status:
+- Feature-branch dependent
+- Required only on branches where the worker/schedule slice is present
+
+What failure usually means:
+- Schedule model schema drift
+- Schedule persistence or timestamp behavior changed
+- Worker-support data model assumptions no longer match the API-side test fixtures
+
+### `tests/test_worker_integration.py`
+
+Purpose:
+- Verifies worker-driven schedule execution behavior from due schedule lookup into automation execution expectations.
+
+Required environment:
+- Run from `services/api`
+- Use `DEBUG=false`
+- No real API key required
+- Requires the worker slice files to be present on the branch
+
+Status:
+- Feature-branch dependent
+- Required only on branches where the worker slice is present
+
+What failure usually means:
+- Worker import path drift
+- Worker scheduler contract changed
+- Schedule execution expectations no longer match backend automation behavior
+
 ## How To Run The Backend Baseline Locally
 
 From `services/api`:
@@ -93,6 +132,13 @@ If the branch includes prompt quality controls:
 
 ```bash
 DEBUG=false python3 -m pytest tests/test_prompt_quality_controls.py -v
+```
+
+If the branch includes the worker slice:
+
+```bash
+DEBUG=false python3 -m pytest tests/test_schedule_model.py -v
+DEBUG=false python3 -m pytest tests/test_worker_integration.py -v
 ```
 
 ## When A Branch Is Merge-Ready

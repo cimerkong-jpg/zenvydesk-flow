@@ -54,6 +54,14 @@ jobs:
             tests+=(tests/test_grok_provider.py)
           fi
 
+          if [[ -f tests/test_schedule_model.py ]]; then
+            tests+=(tests/test_schedule_model.py)
+          fi
+
+          if [[ -f tests/test_worker_integration.py ]]; then
+            tests+=(tests/test_worker_integration.py)
+          fi
+
           for test_file in "${tests[@]}"; do
             python -m pytest "$test_file"
           done
