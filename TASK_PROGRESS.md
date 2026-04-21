@@ -2,10 +2,28 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/test-matrix-docs
+- **Branch:** codex/merge-test-matrix-docs
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 10. Merge Backend Test Matrix Docs Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged `codex/test-matrix-docs` into the current `main` baseline on `codex/merge-test-matrix-docs`
+- Preserved `services/api/BACKEND_TEST_MATRIX.md` without conflicts
+- Re-ran the current backend baseline on the merged branch
+- Confirmed the documentation still matches the current test state on main-derived code
+- Confirmed `tests/test_prompt_quality_controls.py` is still not present on this branch baseline
+
+**Files Changed:**
+- `README.md` [MERGED]
+- `services/api/BACKEND_TEST_MATRIX.md` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 9. Backend Test Matrix And Branch Audit Guide ✓
 **Date:** 2026-04-21
