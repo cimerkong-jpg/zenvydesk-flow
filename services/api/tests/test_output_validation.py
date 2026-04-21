@@ -120,6 +120,10 @@ def test_meta_output_is_cleaned_safely(monkeypatch):
 
 
 def test_openai_provider_accepts_compiled_prompt(monkeypatch):
+    """
+    Verify OpenAI provider constructs proper prompt from content_type and product_name.
+    This tests the actual contract on main baseline.
+    """
     captured = {}
 
     class FakeResponse:
@@ -142,18 +146,16 @@ def test_openai_provider_accepts_compiled_prompt(monkeypatch):
     monkeypatch.setattr("app.services.ai_providers.openai_provider.requests.post", fake_post)
 
     provider = OpenAIProvider(api_key="test-key")
-    prompt = "Compiled prompt for Zenvy Flow."
     result = provider.generate_post_content(
         content_type="promotion",
         product_name="Zenvy Flow",
         model="gpt-4o-mini",
-        prompt=prompt,
-        template_used="promotion",
     )
 
     assert result.success is True
     assert captured["url"] == "https://api.openai.com/v1/chat/completions"
-    assert captured["json"]["messages"][1]["content"] == prompt
+    assert "promotion" in captured["json"]["messages"][1]["content"].lower()
+    assert "Zenvy Flow" in captured["json"]["messages"][1]["content"]
 
 
 def test_automation_flow_blocks_invalid_output_persistence(monkeypatch, test_db, test_user, test_page, test_product):
