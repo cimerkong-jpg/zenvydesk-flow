@@ -2,10 +2,32 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/claude-provider
+- **Branch:** codex/test-helpers-consolidation
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 12. Backend Test Helper Consolidation ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added shared backend test fixtures in `services/api/tests/conftest.py`
+- Added reusable helper utilities in `services/api/tests/helpers.py`
+- Consolidated in-memory DB setup, FastAPI `TestClient`, and shared entity fixtures
+- Consolidated reusable automation rule creation and temporary AI settings overrides
+- Refactored backend test files to use shared helpers without changing test intent
+
+**Files Changed:**
+- `services/api/tests/conftest.py` [NEW]
+- `services/api/tests/helpers.py` [NEW]
+- `services/api/tests/test_automation_workflow.py` [MODIFIED]
+- `services/api/tests/test_gemini_provider.py` [MODIFIED]
+- `services/api/tests/test_claude_provider.py` [MODIFIED]
+- `services/api/tests/test_output_validation.py` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 11. Claude AI Provider Integration ✓
 **Date:** 2026-04-21
