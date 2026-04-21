@@ -2,7 +2,7 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-ci-discovery-main
+- **Branch:** codex/merge-support-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
@@ -20,6 +20,22 @@
 **Files Changed:**
 - `.github/workflows/backend-tests.yml` [MERGED]
 - `TASK_PROGRESS.md` [MODIFIED]
+
+---
+
+### 12. Developer Bootstrap Docs and Environment Example ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/.env.example` with safe placeholder values for local backend setup
+- Updated `README.md` with a first-time machine bootstrap flow
+- Documented virtualenv creation, dependency installation, local config setup, database initialization, backend startup, and test commands
+- Added notes for recommended Python version and `.env` handling
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/.env.example` [NEW]
 
 ---
 
@@ -210,6 +226,16 @@ Total: 3/3 tests passing
 - test_automation_workflow.py: 4/4 PASSED
 - test_gemini_provider.py: 3/3 PASSED
 - **No regression detected**
+=======
+- Added `services/api/.env.example` with safe placeholder values for local backend setup
+- Updated `README.md` with a first-time machine bootstrap flow
+- Documented virtualenv creation, dependency installation, local config setup, database initialization, backend startup, and test commands
+- Added notes for recommended Python version and `.env` handling
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/.env.example` [NEW]
+>>>>>>> codex/dev-bootstrap
 
 ---
 

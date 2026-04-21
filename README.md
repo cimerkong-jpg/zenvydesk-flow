@@ -2,6 +2,30 @@
 
 AI-powered social media automation platform for Facebook business pages.
 
+## First-time Setup On A New Machine
+
+Recommended Python version: `3.11`.
+
+```bash
+git clone https://github.com/cimerkong-jpg/zenvydesk-flow.git
+cd zenvydesk-flow
+
+python3.11 -m venv .venv
+source .venv/bin/activate
+
+cd services/api
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+cp .env.example .env
+python create_tables.py
+uvicorn app.main:app --reload
+```
+
+The local development database is `services/api/zenvydesk.db`.
+
+Do not commit `.env`. The repo already ignores it.
+
 ## Repository Structure
 
 ```
@@ -60,11 +84,19 @@ zenvydesk/
 ```bash
 cd services/api
 
-# Install dependencies
-pip install -r requirements.txt
+# Create and activate a virtual environment if needed
+python3.11 -m venv .venv
+source .venv/bin/activate
 
-# Run tests
-pytest
+# Install dependencies
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+# Copy local config
+cp .env.example .env
+
+# Initialize local SQLite tables
+python create_tables.py
 
 # Start development server
 uvicorn app.main:app --reload
@@ -72,13 +104,27 @@ uvicorn app.main:app --reload
 
 ### Configuration
 
-Create `.env` file in `services/api/`:
+Use `services/api/.env.example` as the starting point for `services/api/.env`:
 
 ```env
+DEBUG=true
 AI_PROVIDER=mock
 AI_MODEL=mock-v1
-AI_API_KEY=your_key_here
-DATABASE_URL=sqlite:///./zenvydesk.db
+AI_API_KEY=replace_with_your_api_key
+AI_BASE_URL=
+```
+
+Notes:
+- `AI_PROVIDER=mock` is the easiest local default and does not require a real API key.
+- Leave `AI_BASE_URL` empty unless you are using a custom compatible endpoint.
+- The current backend database path is configured in code as `sqlite:///./zenvydesk.db`.
+
+### Run Tests
+
+```bash
+cd services/api
+pytest tests/test_automation_workflow.py
+pytest tests/test_gemini_provider.py
 ```
 
 ## Documentation
