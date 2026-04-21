@@ -2,10 +2,40 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-facebook-oauth-lite-main
-- **Last Updated:** 2026-04-21
+- **Branch:** codex/facebook-pages-minimal-support
+- **Last Updated:** 2026-04-22
 
 ## Completed Tasks
+
+### 24. Add Minimal Facebook Pages Backend Support
+**Date:** 2026-04-22
+**Status:** Complete
+**Branch:** codex/facebook-pages-minimal-support
+
+**What was done:**
+- Added a minimal backend endpoint for the real-user-flow UI at `GET /api/v1/facebook/pages`
+- Limited the response shape to `page_id`, `page_name`, and `is_active`
+- Filtered the query to active pages only without changing the schema or service architecture
+- Added a focused test to lock the endpoint contract and active-page filtering
+
+**Files Changed:**
+- `services/api/app/api/routes/pages.py` [NEW]
+- `services/api/app/api/routes/__init__.py` [MODIFIED]
+- `services/api/app/main.py` [MODIFIED]
+- `services/api/tests/test_facebook_pages.py` [NEW]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+**Verification Commands:**
+```
+python -m pytest tests/test_facebook_pages.py tests/test_facebook_posting.py tests/test_automation_workflow.py tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- `GET /api/v1/facebook/pages` returns only active pages
+- Response items include only `page_id`, `page_name`, and `is_active`
+- Existing posting, automation, and scheduled posting tests still pass
+
+---
 
 ### 23. Merge Facebook OAuth Lite Slice Into Main And Verify
 **Date:** 2026-04-21
