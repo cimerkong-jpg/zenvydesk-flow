@@ -43,9 +43,9 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def test_db():
-    """Create test database for each test"""
+    """Provide database session for each test and clean up after"""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     yield db

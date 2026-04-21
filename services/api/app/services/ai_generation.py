@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.services.ai_providers.registry import get_ai_provider
 from app.services.ai_providers.types import AIGenerationResult
 from app.services.prompt_builder import PromptBuilder, PromptContext
+from app.services.output_validator import OutputValidator
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +82,31 @@ def generate_post_content(
             template_used=template_used
         )
         
-        if result.success:
-            logger.info(f"AI generation success: provider={result.provider}, model={result.model}, template={template_used}")
-        else:
+        # If generation failed, return immediately
+        if not result.success:
             logger.error(f"AI generation failed: provider={result.provider}, error={result.error}")
+            return result
+        
+        # Validate and sanitize output
+        validation_result = OutputValidator.validate_and_clean(result.content)
+        
+        if not validation_result.success:
+            # Output validation failed - return safe failure
+            error_msg = f"AI output validation failed: {validation_result.error}"
+            logger.warning(f"{error_msg} (provider={result.provider}, model={result.model})")
+            return AIGenerationResult(
+                success=False,
+                content=None,
+                provider=result.provider,
+                model=result.model,
+                usage=result.usage,
+                provider_response=result.provider_response,
+                error=error_msg
+            )
+        
+        # Update result with cleaned content
+        result.content = validation_result.cleaned_content
+        logger.info(f"AI generation success with validated output: provider={result.provider}, model={result.model}, template={template_used}")
         
         return result
         
