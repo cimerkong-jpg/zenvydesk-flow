@@ -7,7 +7,6 @@ from app.models.automation_rule import AutomationRule
 def create_automation_rule(
     db,
     *,
-    rule_id,
     user_id,
     page_id,
     name,
@@ -17,7 +16,6 @@ def create_automation_rule(
     is_active=True,
 ):
     rule = AutomationRule(
-        id=rule_id,
         user_id=user_id,
         page_id=page_id,
         name=name,

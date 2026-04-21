@@ -1,3 +1,5 @@
+"""Shared test configuration and fixtures for backend test files."""
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -22,6 +24,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
+    """Override database dependency for tests."""
     db = TestingSessionLocal()
     try:
         yield db
@@ -34,6 +37,7 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(scope="function")
 def test_db():
+    """Create a fresh in-memory database for each test."""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -45,6 +49,7 @@ def test_db():
 
 @pytest.fixture
 def client():
+    """Provide a FastAPI test client."""
     return TestClient(app)
 
 

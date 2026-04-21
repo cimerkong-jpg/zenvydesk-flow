@@ -5,11 +5,10 @@ Tests for AI output validation and sanitization.
 import pytest
 
 from app.api.routes.automation_runner import run_automation
-from app.core.config import settings
 from app.models.draft import Draft
 from app.models.post_history import PostHistory
-from app.services.ai_providers.openai_provider import OpenAIProvider
 from app.services.ai_generation import generate_post_content
+from app.services.ai_providers.openai_provider import OpenAIProvider
 from app.services.ai_providers.types import AIGenerationResult
 from tests.helpers import create_automation_rule, override_ai_settings
 
@@ -32,6 +31,7 @@ class FakeProvider:
             provider_response={"template_used": template_used, "prompt": prompt},
             error=None,
         )
+
 
 def test_valid_ai_output_is_cleaned_and_accepted(monkeypatch):
     provider = FakeProvider("  Launch faster with Zenvy Flow.\n\n\nKeep shared workflows clear.  ")
@@ -65,10 +65,7 @@ def test_meta_output_is_cleaned_safely(monkeypatch):
 
 
 def test_openai_provider_accepts_compiled_prompt(monkeypatch):
-    """
-    Verify OpenAI provider constructs proper prompt from content_type and product_name.
-    This tests the actual contract on main baseline.
-    """
+    """Verify the OpenAI provider builds the expected prompt on the main baseline."""
     captured = {}
 
     class FakeResponse:
@@ -106,7 +103,6 @@ def test_openai_provider_accepts_compiled_prompt(monkeypatch):
 def test_automation_flow_blocks_invalid_output_persistence(monkeypatch, test_db, test_user, test_page, test_product):
     rule = create_automation_rule(
         test_db,
-        rule_id=7,
         user_id=test_user.id,
         page_id=test_page.id,
         name="Validation Failure Rule",
