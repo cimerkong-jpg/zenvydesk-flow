@@ -29,15 +29,26 @@
 
 **Test Results:**
 ```
-python3 -m pytest tests/test_schedule_model.py -v
+python3 -m pytest tests/test_worker_integration.py tests/test_schedule_model.py -v
 
-3 passed in 0.05s ✓
+7 passed in 0.10s ✓
 ```
 
 **Tests:**
+- test_worker_executes_due_schedule_creates_draft: PASSED
+- test_worker_handles_failed_execution_safely: PASSED
+- test_worker_skips_future_schedules: PASSED
+- test_worker_skips_inactive_schedules: PASSED
 - test_schedule_creation: PASSED
 - test_schedule_query_due: PASSED
 - test_schedule_status_update: PASSED
+
+**Regression Pack (25 tests total):**
+```
+python3 -m pytest tests/test_worker_integration.py tests/test_schedule_model.py tests/test_automation_workflow.py tests/test_output_validation.py tests/test_gemini_provider.py tests/test_claude_provider.py tests/test_grok_provider.py -v
+
+25 passed in 4.55s ✓
+```
 
 **Architecture:**
 - Schedule model tracks next_run_at, last_run_at, status
