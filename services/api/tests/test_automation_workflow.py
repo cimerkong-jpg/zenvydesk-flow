@@ -1,132 +1,32 @@
 """
-Automated tests for ZenvyDesk AI Automation Workflow
-Tests the actual workflow: AutomationRule -> AutomationRunner -> AI Generation -> Draft -> PostHistory
+Automated tests for ZenvyDesk AI Automation Workflow.
+Tests the actual workflow: AutomationRule -> AutomationRunner -> AI Generation -> Draft -> PostHistory.
 """
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from app.core.database import Base, get_db
-from app.models.user import User
-from app.models.facebook_page import FacebookPage
-from app.models.product import Product
-from app.models.automation_rule import AutomationRule
 from app.models.draft import Draft
 from app.models.post_history import PostHistory
-from app.core.config import settings
-from app.main import app
-
-
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    """Override database dependency for testing"""
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-client = TestClient(app)
-
-
-@pytest.fixture(scope="function", autouse=True)
-def test_db():
-    """Provide database session for each test and clean up after"""
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def test_user(test_db):
-    """Create test user"""
-    user = User(
-        id=1,
-        email="test@example.com",
-        name="Test User"
-    )
-    test_db.add(user)
-    test_db.commit()
-    test_db.refresh(user)
-    return user
-
-
-@pytest.fixture
-def test_page(test_db, test_user):
-    """Create test Facebook page"""
-    page = FacebookPage(
-        id=1,
-        user_id=test_user.id,
-        page_id="987654321",
-        page_name="Test Page",
-        access_token="test_token"
-    )
-    test_db.add(page)
-    test_db.commit()
-    test_db.refresh(page)
-    return page
-
-
-@pytest.fixture
-def test_product(test_db, test_user):
-    """Create test product"""
-    product = Product(
-        id=1,
-        user_id=test_user.id,
-        name="Test Product",
-        description="A test product for automation",
-        price=99.99,
-        image_url="https://example.com/image.jpg"
-    )
-    test_db.add(product)
-    test_db.commit()
-    test_db.refresh(product)
-    return product
+from tests.helpers import create_automation_rule, override_ai_settings
 
 
 # TEST 1: Mock Provider Success
-def test_automation_mock_provider_success(test_db, test_user, test_page, test_product):
+def test_automation_mock_provider_success(client, test_db, test_user, test_page, test_product):
     """
     TEST 1: Mock provider success path
     - Automation run succeeds
     - Draft is created
     - Generated content comes from mock provider
     """
-    # Create automation rule
-    rule = AutomationRule(
-        id=1,
+    rule = create_automation_rule(
+        test_db,
+        rule_id=1,
         user_id=test_user.id,
         page_id=test_page.id,
         name="Test Automation Rule",
         content_type="promotion",
-        auto_post=False,
-        scheduled_time="daily",
-        is_active=True
     )
-    test_db.add(rule)
-    test_db.commit()
-    
-    # Override config to use mock provider
-    original_provider = settings.ai_provider
-    settings.ai_provider = "mock"
-    
-    try:
+
+    with override_ai_settings(ai_provider="mock"):
         # Count drafts before
         drafts_before = test_db.query(Draft).count()
         
@@ -158,39 +58,26 @@ def test_automation_mock_provider_success(test_db, test_user, test_page, test_pr
         print(f"  Content: {draft.content}")
         print(f"  Provider: {data['provider']}")
         
-    finally:
-        settings.ai_provider = original_provider
 
 
 # TEST 2: OpenAI Missing Key Failure
-def test_automation_openai_missing_key_failure(test_db, test_user, test_page, test_product):
+def test_automation_openai_missing_key_failure(client, test_db, test_user, test_page, test_product):
     """
     TEST 2: OpenAI provider with missing API key
     - Returns structured failure
     - No draft created
     - No post_history created
     """
-    # Create automation rule
-    rule = AutomationRule(
-        id=2,
+    rule = create_automation_rule(
+        test_db,
+        rule_id=2,
         user_id=test_user.id,
         page_id=test_page.id,
         name="OpenAI Test Rule",
         content_type="promotion",
-        auto_post=False,
-        scheduled_time="daily",
-        is_active=True
     )
-    test_db.add(rule)
-    test_db.commit()
-    
-    # Override config to use openai without key
-    original_provider = settings.ai_provider
-    original_key = settings.ai_api_key
-    settings.ai_provider = "openai"
-    settings.ai_api_key = None
-    
-    try:
+
+    with override_ai_settings(ai_provider="openai", ai_api_key=None):
         # Count records before
         drafts_before = test_db.query(Draft).count()
         posts_before = test_db.query(PostHistory).count()
@@ -221,36 +108,25 @@ def test_automation_openai_missing_key_failure(test_db, test_user, test_page, te
         print(f"  Drafts before: {drafts_before}, after: {drafts_after}")
         print(f"  Posts before: {posts_before}, after: {posts_after}")
         
-    finally:
-        settings.ai_provider = original_provider
-        settings.ai_api_key = original_key
 
 
 # TEST 3: Unknown Content Type Fallback
-def test_automation_unknown_content_type_fallback(test_db, test_user, test_page, test_product):
+def test_automation_unknown_content_type_fallback(client, test_db, test_user, test_page, test_product):
     """
     TEST 3: Unknown content_type falls back to general_post
     - Prompt system uses fallback template
     - Generation still succeeds with mock
     """
-    # Create rule with unknown content_type
-    rule = AutomationRule(
-        id=999,
+    rule = create_automation_rule(
+        test_db,
+        rule_id=999,
         user_id=test_user.id,
         page_id=test_page.id,
         name="Unknown Type Test Rule",
         content_type="unknown_type_xyz",
-        auto_post=False,
-        scheduled_time="daily",
-        is_active=True
     )
-    test_db.add(rule)
-    test_db.commit()
-    
-    original_provider = settings.ai_provider
-    settings.ai_provider = "mock"
-    
-    try:
+
+    with override_ai_settings(ai_provider="mock"):
         # Run automation
         response = client.post(f"/api/v1/automation-runner/run/{rule.id}")
         
@@ -271,36 +147,27 @@ def test_automation_unknown_content_type_fallback(test_db, test_user, test_page,
         print(f"  Draft created: {draft.id}")
         print(f"  Content: {draft.content}")
         
-    finally:
-        settings.ai_provider = original_provider
 
 
 # TEST 4: Auto-Post Enabled
-def test_automation_auto_post_enabled(test_db, test_user, test_page, test_product):
+def test_automation_auto_post_enabled(client, test_db, test_user, test_page, test_product):
     """
     TEST 4: Auto-post enabled creates post_history
     - Draft created
     - PostHistory created
     - Draft status updated to 'posted'
     """
-    # Create rule with auto_post=True
-    rule = AutomationRule(
-        id=998,
+    rule = create_automation_rule(
+        test_db,
+        rule_id=998,
         user_id=test_user.id,
         page_id=test_page.id,
         name="Auto Post Test Rule",
         content_type="engagement",
         auto_post=True,
-        scheduled_time="daily",
-        is_active=True
     )
-    test_db.add(rule)
-    test_db.commit()
-    
-    original_provider = settings.ai_provider
-    settings.ai_provider = "mock"
-    
-    try:
+
+    with override_ai_settings(ai_provider="mock"):
         # Count records before
         drafts_before = test_db.query(Draft).count()
         posts_before = test_db.query(PostHistory).count()
@@ -337,9 +204,3 @@ def test_automation_auto_post_enabled(test_db, test_user, test_page, test_produc
         print(f"  Draft ID: {draft.id}, Status: {draft.status}")
         print(f"  PostHistory ID: {post.id}")
         
-    finally:
-        settings.ai_provider = original_provider
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "-s"])

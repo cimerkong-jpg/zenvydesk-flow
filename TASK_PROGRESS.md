@@ -2,10 +2,53 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/grok-provider
+- **Branch:** codex/merge-test-helpers
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 13. Merge Test Helper Consolidation Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged `codex/test-helpers-consolidation` into the current `main` baseline on `codex/merge-test-helpers`
+- Preserved shared backend fixtures and helper utilities during merge
+- Re-ran the backend regression baseline after the test plumbing refactor
+- Kept all changes out of Grok provider implementation files
+
+**Files Changed:**
+- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/tests/conftest.py` [MERGED]
+- `services/api/tests/helpers.py` [MERGED]
+- `services/api/tests/test_automation_workflow.py` [MERGED]
+- `services/api/tests/test_gemini_provider.py` [MERGED]
+- `services/api/tests/test_claude_provider.py` [MERGED]
+- `services/api/tests/test_output_validation.py` [MERGED]
+
+---
+
+### 12. Backend Test Helper Consolidation ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added shared backend test fixtures in `services/api/tests/conftest.py`
+- Added reusable helper utilities in `services/api/tests/helpers.py`
+- Consolidated in-memory DB setup, FastAPI `TestClient`, and shared entity fixtures
+- Consolidated reusable automation rule creation and temporary AI settings overrides
+- Refactored backend test files to use shared helpers without changing test intent
+
+**Files Changed:**
+- `services/api/tests/conftest.py` [NEW]
+- `services/api/tests/helpers.py` [NEW]
+- `services/api/tests/test_automation_workflow.py` [MODIFIED]
+- `services/api/tests/test_gemini_provider.py` [MODIFIED]
+- `services/api/tests/test_claude_provider.py` [MODIFIED]
+- `services/api/tests/test_output_validation.py` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+---
 
 ### 12. Grok AI Provider Integration ✓
 **Date:** 2026-04-21
