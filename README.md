@@ -103,6 +103,18 @@ python create_tables.py
 uvicorn app.main:app --reload
 ```
 
+### Web App
+
+```bash
+cd apps/web
+npm install
+cp .env.example .env
+npm run dev
+```
+
+The default frontend dev server is `http://localhost:3000`.
+Set `VITE_API_BASE_URL=http://localhost:8000` in `apps/web/.env` for local backend integration.
+
 ### Configuration
 
 Use `services/api/.env.example` as the starting point for `services/api/.env`:
@@ -127,6 +139,15 @@ cd services/api
 pytest tests/test_automation_workflow.py
 pytest tests/test_gemini_provider.py
 ```
+
+### Local Smoke Flow
+
+Run the backend on `http://localhost:8000` and the web app on `http://localhost:3000`.
+
+Use the web app support screen to verify:
+- backend health via `GET /health`
+- Facebook OAuth entry via `GET /api/v1/auth/facebook/login`
+- scheduled worker smoke via `POST /api/v1/test/run-scheduled?mock_mode=true`
 
 ## Documentation
 

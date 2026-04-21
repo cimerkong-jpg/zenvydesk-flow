@@ -7,6 +7,44 @@
 
 ## Completed Tasks
 
+### 24. Support Commercial UI Slice With Backend Integration Wiring
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** codex/support-commercial-ui-slice
+
+**What was done:**
+- Inspected the current web app structure and confirmed it was still a minimal Vite shell
+- Added frontend environment support for a configurable backend base URL
+- Added lightweight typed API helpers for backend health, Facebook OAuth login, and scheduled worker smoke checks
+- Wired a minimal support screen that exercises backend contracts without taking ownership of visual design
+- Updated run instructions for local frontend/backend smoke verification on `localhost:3000` and `localhost:8000`
+
+**Files Changed:**
+- `apps/web/.env.example` [NEW]
+- `apps/web/src/config.ts` [NEW]
+- `apps/web/src/lib/api.ts` [NEW]
+- `apps/web/src/App.tsx` [MODIFIED]
+- `apps/web/src/index.css` [MODIFIED]
+- `README.md` [MODIFIED]
+- `TASK_PROGRESS.md` [MODIFIED]
+
+**Verification Commands:**
+```
+cd apps/web
+npm run build
+
+cd services/api
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py tests/test_scheduled_posting.py -v
+```
+
+**Verified:**
+- Web app can read backend base URL from `VITE_API_BASE_URL`
+- Frontend wiring targets the current backend contracts without hardcoded component-level URLs
+- Support screen exposes smoke paths for health, OAuth login, and scheduled worker execution
+- Existing backend regression packs still pass after the support wiring changes
+
+---
+
 ### 23. Merge Facebook OAuth Lite Slice Into Main And Verify
 **Date:** 2026-04-21
 **Status:** Complete
