@@ -7,5 +7,6 @@ from .posting import router as posting_router
 from .schedules import router as schedules_router
 from .automation_rules import router as automation_rules_router
 from .automation_runner import router as automation_runner_router
+from .test_scheduled_posting import router as test_scheduled_posting_router
 
-__all__ = ["health_router", "products_router", "content_library_router", "drafts_router", "post_history_router", "posting_router", "schedules_router", "automation_rules_router", "automation_runner_router"]
+__all__ = ["health_router", "products_router", "content_library_router", "drafts_router", "post_history_router", "posting_router", "schedules_router", "automation_rules_router", "automation_runner_router", "test_scheduled_posting_router"]

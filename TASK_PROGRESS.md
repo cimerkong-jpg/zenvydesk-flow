@@ -2,10 +2,74 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-oauth-slice-main
+- **Branch:** cline/scheduled-posting-slice-1
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 21. Scheduled Posting Execution - First Slice ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/scheduled-posting-slice-1
+
+**What was done:**
+- Created ScheduledPostingWorker service for processing scheduled drafts
+- Implemented process_due_drafts() with query, post, and update logic
+- Added basic double-processing prevention (checks existing post_history)
+- Created test endpoint POST /api/v1/test/run-scheduled with mock mode support
+- Added comprehensive test suite with 7 test cases
+- No queue system - simple direct processing
+- Mock mode enabled for testing without real Facebook API
+
+**Files Changed:**
+- `services/api/app/services/scheduled_posting_worker.py` [NEW - 213 lines]
+- `services/api/app/api/routes/test_scheduled_posting.py` [NEW - 56 lines]
+- `services/api/app/api/routes/__init__.py` [MODIFIED - added test router]
+- `services/api/app/main.py` [MODIFIED - registered test endpoint]
+- `services/api/tests/test_scheduled_posting.py` [NEW - 7 tests]
+- `TASK_PROGRESS.md` [MODIFIED - added task #21]
+
+**Test Results:**
+```
+python -m pytest tests/test_scheduled_posting.py -v
+
+7 passed, 7 warnings in 0.13s ✓
+```
+
+**Regression Tests:**
+```
+python -m pytest tests/test_facebook_posting.py tests/test_automation_workflow.py -v
+
+11 passed, 7 warnings in 0.14s ✓
+```
+
+**Architecture:**
+- ScheduledPostingResult dataclass for execution summary
+- Query criteria: status='scheduled', scheduled_time <= now, is_active=True
+- Double-processing prevention: checks post_history for existing success
+- Integrates with FacebookPoster for actual posting
+- Updates draft status (posted/failed) and creates post_history records
+- Handles missing pages and tokens gracefully (skips)
+
+**Test Coverage:**
+- ✅ Due draft processed successfully
+- ✅ Not-due draft not processed
+- ✅ Already-posted draft not processed again (double-processing prevention)
+- ✅ Multiple due drafts processed
+- ✅ Mixed drafts (due/not-due/already-posted) handled correctly
+- ✅ Draft without page skipped
+- ✅ Draft without token skipped
+
+**Verified:**
+- All 7 new tests pass
+- All 11 existing tests pass (no regression)
+- Worker processes only due drafts
+- Double-processing prevention works
+- Mock mode works for testing
+- Test endpoint accessible at POST /api/v1/test/run-scheduled
+
+---
+
 
 ### 21. Merge OAuth Slice Into Main And Verify Readiness
 **Date:** 2026-04-21
