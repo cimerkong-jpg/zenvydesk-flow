@@ -2,7 +2,7 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/fix-workflow-tests
+- **Branch:** codex/backend-ci-baseline
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
@@ -18,14 +18,18 @@
 - Configured Python 3.11 with pip caching against `services/api/requirements.txt`
 - Installed backend requirements and ran the backend pytest targets used by the current suite
 - Added conditional support for `tests/test_prompt_quality_controls.py` when that file exists in the repo
+- Synced in Cline's workflow-test baseline via commit `8edebe8`
+- Updated the CI test step to execute each backend target file in an isolated pytest invocation so module-level FastAPI dependency overrides do not leak across test files
 
 **Files Changed:**
 - `.github/workflows/backend-tests.yml` [NEW]
+- `services/api/tests/test_automation_workflow.py` [MODIFIED]
 
 **Verification Notes:**
 - Local command mirrored the CI job from `services/api`
+- `tests/test_automation_workflow.py` passes locally under `DEBUG=false`
 - `tests/test_gemini_provider.py` passes locally under `DEBUG=false`
-- `tests/test_automation_workflow.py` still fails on this branch because of existing database setup issues in that test file
+- `tests/test_prompt_quality_controls.py` was not present on this branch, and the workflow skips it cleanly
 
 ---
 

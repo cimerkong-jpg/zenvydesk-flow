@@ -44,4 +44,6 @@ jobs:
             tests+=(tests/test_prompt_quality_controls.py)
           fi
 
-          python -m pytest "${tests[@]}"
+          for test_file in "${tests[@]}"; do
+            python -m pytest "$test_file"
+          done
