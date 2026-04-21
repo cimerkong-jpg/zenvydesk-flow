@@ -2,10 +2,82 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/ai-output-validation
+- **Branch:** codex/merge-docs-main
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 12. Merge Documentation Branches Into Main ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged accepted docs branches into the current `main` baseline on `codex/merge-docs-main`
+- Preserved bootstrap docs, AI provider handoff docs, and backend test matrix docs
+- Rechecked backend baseline after the docs merges
+- Kept all changes out of provider logic, route files, CI workflow, prompt builder/templates, and Claude provider work
+
+**Files Changed:**
+- `README.md` [MERGED]
+- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/.env.example` [MERGED]
+- `services/api/AI_PROVIDER_HANDOFF.md` [MERGED]
+- `services/api/BACKEND_TEST_MATRIX.md` [MERGED]
+
+---
+
+### 11. Backend Test Matrix And Branch Audit Guide ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/BACKEND_TEST_MATRIX.md` for team handoff on backend test expectations
+- Documented which backend tests are baseline-required versus feature-branch-dependent
+- Documented required environment and common failure meaning for each test file
+- Added merge-ready guidance for backend branches
+- Added a short audit guide for the required 10-item delivery bundle
+- Added a quick failure-classification guide for fixture, routing, provider contract, and CI-only issues
+- Added a short README link to the new matrix doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/BACKEND_TEST_MATRIX.md` [NEW]
+
+---
+
+### 10. AI Provider And Testing Handoff Docs ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/AI_PROVIDER_HANDOFF.md` for team handoff
+- Documented the current `mock`, `openai`, and `gemini` provider stack
+- Documented env/config expectations, lazy import behavior, safe failure behavior, output validation status, and prompt quality control status
+- Added a backend test map and local baseline test commands
+- Added guidance for how to add the next provider
+- Added a short README pointer to the new handoff doc
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/AI_PROVIDER_HANDOFF.md` [NEW]
+
+---
+
+### 9. Developer Bootstrap Docs and Environment Example ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Added `services/api/.env.example` with safe placeholder values for local backend setup
+- Updated `README.md` with a first-time machine bootstrap flow
+- Documented virtualenv creation, dependency installation, local config setup, database initialization, backend startup, and test commands
+- Added notes for recommended Python version and `.env` handling
+
+**Files Changed:**
+- `README.md` [MODIFIED]
+- `services/api/.env.example` [NEW]
+
+---
 
 ### 8. AI Output Validation and Sanitization Layer ✓
 **Date:** 2026-04-21
