@@ -3,94 +3,22 @@ Tests for Gemini Provider Integration
 Verifies Gemini provider works correctly and doesn't break existing providers
 """
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from app.main import app
-from app.core.database import Base, get_db
-from app.models.user import User
-from app.models.facebook_page import FacebookPage
-from app.models.product import Product
 from app.models.automation_rule import AutomationRule
 from app.models.draft import Draft
 from app.models.post_history import PostHistory
 from app.core.config import settings
 
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    """Override database dependency for testing"""
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-client = TestClient(app)
-
-
-@pytest.fixture(scope="function")
-def test_db():
-    """Create test database for each test"""
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def test_user(test_db):
-    """Create test user"""
-    user = User(id=1, email="test@example.com", name="Test User")
-    test_db.add(user)
-    test_db.commit()
-    test_db.refresh(user)
-    return user
-
-
-@pytest.fixture
-def test_page(test_db, test_user):
-    """Create test Facebook page"""
-    page = FacebookPage(id=1, user_id=test_user.id, page_id="987654321", page_name="Test Page", access_token="test_token")
-    test_db.add(page)
-    test_db.commit()
-    test_db.refresh(page)
-    return page
-
-
-@pytest.fixture
-def test_product(test_db, test_user):
-    """Create test product"""
-    product = Product(id=1, user_id=test_user.id, name="Test Product", description="A test product", price=99.99)
-    test_db.add(product)
-    test_db.commit()
-    test_db.refresh(product)
-    return product
-
-
 # TEST 1: Mock Provider Regression
-def test_mock_provider_still_works(test_db, test_user, test_page, test_product):
+def test_mock_provider_still_works(client, test_db, test_user, test_page, test_product):
     """
     TEST 1: Verify mock provider still works after adding Gemini
     """
-    rule = AutomationRule(id=1, user_id=test_user.id, page_id=test_page.id, name="Mock Test Rule", content_type="promotion", auto_post=False, scheduled_time="daily", is_active=True)
+    rule = AutomationRule(user_id=test_user.id, page_id=test_page.id, name="Mock Test Rule", content_type="promotion", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
+    test_db.refresh(rule)
     
     original_provider = settings.ai_provider
     settings.ai_provider = "mock"
@@ -123,13 +51,14 @@ def test_mock_provider_still_works(test_db, test_user, test_page, test_product):
 
 
 # TEST 2: Gemini Missing Key Failure
-def test_gemini_missing_key_safe_failure(test_db, test_user, test_page, test_product):
+def test_gemini_missing_key_safe_failure(client, test_db, test_user, test_page, test_product):
     """
     TEST 2: Gemini with missing API key fails safely
     """
-    rule = AutomationRule(id=2, user_id=test_user.id, page_id=test_page.id, name="Gemini Missing Key Test", content_type="engagement", auto_post=False, scheduled_time="daily", is_active=True)
+    rule = AutomationRule(user_id=test_user.id, page_id=test_page.id, name="Gemini Missing Key Test", content_type="engagement", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
+    test_db.refresh(rule)
     
     original_provider = settings.ai_provider
     original_key = settings.ai_api_key
@@ -169,13 +98,14 @@ def test_gemini_missing_key_safe_failure(test_db, test_user, test_page, test_pro
 
 
 # TEST 3: Gemini Provider Wiring
-def test_gemini_provider_wiring(test_db, test_user, test_page, test_product):
+def test_gemini_provider_wiring(client, test_db, test_user, test_page, test_product):
     """
     TEST 3: Gemini provider selection and wiring
     """
-    rule = AutomationRule(id=3, user_id=test_user.id, page_id=test_page.id, name="Gemini Wiring Test", content_type="product_intro", auto_post=False, scheduled_time="daily", is_active=True)
+    rule = AutomationRule(user_id=test_user.id, page_id=test_page.id, name="Gemini Wiring Test", content_type="product_intro", auto_post=False, scheduled_time="daily", is_active=True)
     test_db.add(rule)
     test_db.commit()
+    test_db.refresh(rule)
     
     original_provider = settings.ai_provider
     original_key = settings.ai_api_key

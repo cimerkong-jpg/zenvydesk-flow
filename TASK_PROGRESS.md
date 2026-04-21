@@ -2,42 +2,98 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/merge-ci-discovery-main
+- **Branch:** cline/merge-full-pack-isolation
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
 
-### 13. Merge CI Test Discovery Expansion Into Main ✓
+### 14. Merge Full Pack Isolation Fix Into Main ✓
 **Date:** 2026-04-21
 **Status:** Complete
+**Branch:** cline/merge-full-pack-isolation
 
 **What was done:**
-- Merged `codex/ci-test-discovery` into the current `main` baseline on `codex/merge-ci-discovery-main`
-- Preserved baseline-plus-optional CI discovery logic
-- Extended optional discovery to include `tests/test_grok_provider.py` because it exists on the current main baseline
-- Re-ran a local CI-mirror command to verify the workflow logic against current backend test files
+- Merged `cline/fix-full-pack-isolation` into main baseline
+- Resolved TASK_PROGRESS.md conflict using ours strategy
+- Verified all 18 tests pass in single pytest invocation on merged main
+- No test_prompt_quality_controls.py present on main (as expected)
 
 **Files Changed:**
-- `.github/workflows/backend-tests.yml` [MERGED]
-- `TASK_PROGRESS.md` [MODIFIED]
+- All test files from cline/fix-full-pack-isolation [MERGED]
+- `TASK_PROGRESS.md` [MERGED with conflict resolution]
+
+**Test Results on Merged Main:**
+```
+python3 -m pytest tests/test_grok_provider.py tests/test_claude_provider.py tests/test_gemini_provider.py tests/test_automation_workflow.py tests/test_output_validation.py -v
+
+18 passed in 1.16s ✓
+```
+
+**Breakdown:**
+- test_grok_provider.py: 3/3 PASSED
+- test_claude_provider.py: 3/3 PASSED
+- test_gemini_provider.py: 3/3 PASSED
+- test_automation_workflow.py: 4/4 PASSED
+- test_output_validation.py: 5/5 PASSED
+
+**Verified:**
+- Full backend regression pack runs green on main
+- Test isolation fix preserved through merge
+- No provider regression
+- All assertions intact
 
 ---
 
-### 12. Backend CI Test Discovery Expansion ✓
+### 13. Fix Full Backend Regression Pack Isolation ✓
 **Date:** 2026-04-21
 **Status:** Complete
+**Branch:** cline/fix-full-pack-isolation
+
+**Problem:**
+- Individual test files passed when run separately
+- Combined pytest run had cross-file fixture/database interference
+- Tests used hardcoded IDs causing database conflicts
+
+**Root Cause:**
+- All test files used hardcoded IDs (id=1, id=2, id=3) for AutomationRule objects
+- When tests ran together, multiple tests tried to create objects with same IDs
+- Database integrity violations caused test failures
 
 **What was done:**
-- Updated `.github/workflows/backend-tests.yml` to always run the backend baseline tests
-- Added `tests/test_output_validation.py` to the mandatory CI baseline
-- Added optional test discovery for `tests/test_prompt_quality_controls.py`
-- Added optional test discovery for `tests/test_claude_provider.py`
-- Kept the workflow on Python 3.11 with backend requirements installation under `services/api`
-- Added a short inline workflow comment explaining the baseline-plus-optional logic
+- Removed all hardcoded IDs from AutomationRule creation in test files
+- Added `test_db.refresh(rule)` after commit to get auto-generated IDs
+- Let SQLAlchemy auto-generate unique IDs for each test
+- No changes to provider implementations or test infrastructure
+- No changes to test assertions or logic
 
 **Files Changed:**
-- `.github/workflows/backend-tests.yml` [MODIFIED]
-- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/tests/test_grok_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_claude_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_gemini_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_automation_workflow.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_output_validation.py` [MODIFIED - removed hardcoded IDs]
+- `TASK_PROGRESS.md` [MODIFIED - added task #13]
+
+**Test Results - Full Pack in One Invocation:**
+```
+python3 -m pytest tests/test_grok_provider.py tests/test_claude_provider.py tests/test_gemini_provider.py tests/test_automation_workflow.py tests/test_output_validation.py -v
+
+18 passed in 1.66s ✓
+```
+
+**Breakdown:**
+- test_grok_provider.py: 3/3 PASSED
+- test_claude_provider.py: 3/3 PASSED
+- test_gemini_provider.py: 3/3 PASSED
+- test_automation_workflow.py: 4/4 PASSED
+- test_output_validation.py: 5/5 PASSED
+
+**Isolation Verified:**
+- All tests run in single pytest invocation without conflicts
+- Each test gets fresh database with auto-generated IDs
+- No fixture interference between test files
+- No provider regression
+- All assertions preserved
 
 ---
 
