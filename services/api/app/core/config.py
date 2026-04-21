@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     facebook_app_secret: Optional[str] = None
     facebook_redirect_uri: str = "http://localhost:8000/api/v1/auth/facebook/callback"
     facebook_scopes: str = "pages_show_list,pages_manage_posts"
+
+    # Frontend URL — where OAuth callback redirects the browser back to
+    frontend_base_url: str = "https://zenvydesk.onrender.com"
     
     class Config:
         env_file = ".env"
