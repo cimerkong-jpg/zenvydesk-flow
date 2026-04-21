@@ -2,10 +2,47 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/commercial-ui-v3-real-flow
+- **Branch:** codex/verify-commercial-ui-v3-main
 - **Last Updated:** 2026-04-22
 
 ## Completed Tasks
+
+### 26. Verify Commercial UI v3 Real User Flow And Prepare Main Merge
+**Date:** 2026-04-22
+**Status:** Complete
+**Branch:** codex/verify-commercial-ui-v3-main
+
+**What was done:**
+- Verified the commercial UI real-user-flow output against the current `main` backend
+- Fixed frontend support wiring for health, Facebook pages loading, and selected page persistence
+- Ran a production frontend build after the support fixes
+- Smoke-verified localhost flow for health, page loading, login entry, and scheduled trigger
+- Prepared the commercial UI slice for merge back into `main`
+
+**Files Changed:**
+- `TASK_PROGRESS.md` [MODIFIED]
+- `apps/web/src/App.tsx` [MODIFIED]
+- `apps/web/src/config.ts` [MODIFIED]
+- `apps/web/src/lib/api.ts` [MODIFIED]
+
+**Verification Commands:**
+```
+npm.cmd run build
+GET http://localhost:8000/api/v1/health
+GET http://localhost:8000/api/v1/facebook/pages
+GET http://localhost:8000/api/v1/auth/facebook/login
+POST http://localhost:8000/api/v1/test/run-scheduled?mock_mode=true
+msedge.exe --headless --dump-dom http://localhost:3000
+```
+
+**Verified:**
+- Frontend now targets `GET /api/v1/health`
+- Frontend now loads pages from `GET /api/v1/facebook/pages`
+- The selected page persistence uses `page_id`, which matches the backend response
+- Localhost DOM smoke showed `Smoke Test Page` selected in the UI with post actions enabled
+- Facebook login entry and scheduled trigger both still work during localhost smoke verification
+
+---
 
 ### 25. Commercial UI v3 - Real User Flow ✓
 **Date:** 2026-04-22
@@ -13,7 +50,7 @@
 **Branch:** cline/commercial-ui-v3-real-flow
 
 **What was done:**
-- Added GET /api/v1/pages backend endpoint to fetch Facebook pages
+- Added frontend support for GET /api/v1/facebook/pages
 - Implemented multi-page loading from real backend
 - Built page selection UI with dropdown
 - Added localStorage persistence for selected page
@@ -45,7 +82,7 @@ dist/assets/index-CmouzuvS.js   153.25 kB │ gzip: 48.71 kB
 **Key Features:**
 
 **1. Real Page Loading**
-- Fetches pages from GET /api/v1/pages
+- Fetches pages from GET /api/v1/facebook/pages
 - Loads on app mount
 - Displays page count in system status
 

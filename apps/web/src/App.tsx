@@ -53,16 +53,16 @@ function App() {
           
           const savedPageId = localStorage.getItem(SELECTED_PAGE_KEY)
           if (savedPageId) {
-            const savedPage = pagesData.find((p: PageResponse) => p.id.toString() === savedPageId)
+            const savedPage = pagesData.find((p: PageResponse) => p.page_id === savedPageId)
             if (savedPage) {
               setSelectedPage(savedPage)
             } else {
               setSelectedPage(pagesData[0])
-              localStorage.setItem(SELECTED_PAGE_KEY, pagesData[0].id.toString())
+              localStorage.setItem(SELECTED_PAGE_KEY, pagesData[0].page_id)
             }
           } else {
             setSelectedPage(pagesData[0])
-            localStorage.setItem(SELECTED_PAGE_KEY, pagesData[0].id.toString())
+            localStorage.setItem(SELECTED_PAGE_KEY, pagesData[0].page_id)
           }
         }
       } catch (error) {
@@ -79,7 +79,7 @@ function App() {
 
   const handlePageSelect = (page: PageResponse) => {
     setSelectedPage(page)
-    localStorage.setItem(SELECTED_PAGE_KEY, page.id.toString())
+    localStorage.setItem(SELECTED_PAGE_KEY, page.page_id)
     setShowPageSelector(false)
   }
 
@@ -198,7 +198,7 @@ function App() {
                   </div>
                   {pages.map(page => (
                     <button
-                      key={page.id}
+                      key={page.page_id}
                       onClick={() => handlePageSelect(page)}
                       style={{
                         display: 'flex',
@@ -206,8 +206,8 @@ function App() {
                         gap: 'var(--space-3)',
                         padding: 'var(--space-3)',
                         width: '100%',
-                        background: page.id === selectedPage.id ? 'var(--primary-light)' : 'transparent',
-                        border: page.id === selectedPage.id ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
+                        background: page.page_id === selectedPage.page_id ? 'var(--primary-light)' : 'transparent',
+                        border: page.page_id === selectedPage.page_id ? '2px solid var(--primary)' : '1px solid var(--gray-200)',
                         borderRadius: 'var(--radius-md)',
                         marginBottom: 'var(--space-2)',
                         cursor: 'pointer',
@@ -217,15 +217,15 @@ function App() {
                       <div style={{
                         width: '32px',
                         height: '32px',
-                        background: page.id === selectedPage.id ? 'var(--primary)' : 'var(--gray-200)',
-                        color: page.id === selectedPage.id ? 'white' : 'var(--gray-600)',
+                        background: page.page_id === selectedPage.page_id ? 'var(--primary)' : 'var(--gray-200)',
+                        color: page.page_id === selectedPage.page_id ? 'white' : 'var(--gray-600)',
                         borderRadius: 'var(--radius-md)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '1.25rem'
                       }}>
-                        {page.id === selectedPage.id ? '✓' : 'f'}
+                        {page.page_id === selectedPage.page_id ? '✓' : 'f'}
                       </div>
                       <div style={{ flex: 1, textAlign: 'left' }}>
                         <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{page.page_name}</div>

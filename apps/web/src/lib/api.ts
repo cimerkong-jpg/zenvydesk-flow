@@ -14,7 +14,6 @@ export type ScheduledRunResponse = {
 }
 
 export type PageResponse = {
-  id: number
   page_id: string
   page_name: string
   is_active: boolean
@@ -42,7 +41,7 @@ export const runScheduledPost = async (mockMode: boolean): Promise<ScheduledRunR
 }
 
 export const fetchPages = async (): Promise<PageResponse[]> => {
-  const response = await fetch(`${endpointUrls.health.replace('/health', '')}/pages`)
+  const response = await fetch(endpointUrls.facebookPages)
   return parseJson<PageResponse[]>(response)
 }
 
