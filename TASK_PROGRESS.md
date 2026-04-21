@@ -2,10 +2,63 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** cline/grok-provider
+- **Branch:** cline/fix-full-pack-isolation
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 13. Fix Full Backend Regression Pack Isolation ✓
+**Date:** 2026-04-21
+**Status:** Complete
+**Branch:** cline/fix-full-pack-isolation
+
+**Problem:**
+- Individual test files passed when run separately
+- Combined pytest run had cross-file fixture/database interference
+- Tests used hardcoded IDs causing database conflicts
+
+**Root Cause:**
+- All test files used hardcoded IDs (id=1, id=2, id=3) for AutomationRule objects
+- When tests ran together, multiple tests tried to create objects with same IDs
+- Database integrity violations caused test failures
+
+**What was done:**
+- Removed all hardcoded IDs from AutomationRule creation in test files
+- Added `test_db.refresh(rule)` after commit to get auto-generated IDs
+- Let SQLAlchemy auto-generate unique IDs for each test
+- No changes to provider implementations or test infrastructure
+- No changes to test assertions or logic
+
+**Files Changed:**
+- `services/api/tests/test_grok_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_claude_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_gemini_provider.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_automation_workflow.py` [MODIFIED - removed hardcoded IDs]
+- `services/api/tests/test_output_validation.py` [MODIFIED - removed hardcoded IDs]
+- `TASK_PROGRESS.md` [MODIFIED - added task #13]
+
+**Test Results - Full Pack in One Invocation:**
+```
+python3 -m pytest tests/test_grok_provider.py tests/test_claude_provider.py tests/test_gemini_provider.py tests/test_automation_workflow.py tests/test_output_validation.py -v
+
+18 passed in 1.66s ✓
+```
+
+**Breakdown:**
+- test_grok_provider.py: 3/3 PASSED
+- test_claude_provider.py: 3/3 PASSED
+- test_gemini_provider.py: 3/3 PASSED
+- test_automation_workflow.py: 4/4 PASSED
+- test_output_validation.py: 5/5 PASSED
+
+**Isolation Verified:**
+- All tests run in single pytest invocation without conflicts
+- Each test gets fresh database with auto-generated IDs
+- No fixture interference between test files
+- No provider regression
+- All assertions preserved
+
+---
 
 ### 12. Grok AI Provider Integration ✓
 **Date:** 2026-04-21

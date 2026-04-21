@@ -3,32 +3,15 @@ Tests for AI output validation and sanitization.
 """
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.api.routes.automation_runner import run_automation
 from app.core.config import settings
-from app.core.database import Base
 from app.models.automation_rule import AutomationRule
 from app.models.draft import Draft
-from app.models.facebook_page import FacebookPage
 from app.models.post_history import PostHistory
-from app.models.product import Product
-from app.models.user import User
-from app.services.ai_providers.openai_provider import OpenAIProvider
 from app.services.ai_generation import generate_post_content
+from app.services.ai_providers.openai_provider import OpenAIProvider
 from app.services.ai_providers.types import AIGenerationResult
-
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class FakeProvider:
@@ -49,43 +32,6 @@ class FakeProvider:
             provider_response={"template_used": template_used, "prompt": prompt},
             error=None,
         )
-
-
-@pytest.fixture(scope="function")
-def test_db():
-    """Provide a clean test database session for each test."""
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture
-def test_user(test_db):
-    user = User(id=1, email="test@example.com", name="Test User")
-    test_db.add(user)
-    test_db.commit()
-    test_db.refresh(user)
-    return user
-
-
-@pytest.fixture
-def test_page(test_db, test_user):
-    page = FacebookPage(id=1, user_id=test_user.id, page_id="987654321", page_name="Test Page", access_token="test_token")
-    test_db.add(page)
-    test_db.commit()
-    test_db.refresh(page)
-    return page
-
-
-@pytest.fixture
-def test_product(test_db, test_user):
-    product = Product(id=1, user_id=test_user.id, name="Test Product", description="A test product", price=99.99)
-    test_db.add(product)
-    test_db.commit()
-    test_db.refresh(product)
-    return product
 
 
 def test_valid_ai_output_is_cleaned_and_accepted(monkeypatch):
@@ -160,7 +106,6 @@ def test_openai_provider_accepts_compiled_prompt(monkeypatch):
 
 def test_automation_flow_blocks_invalid_output_persistence(monkeypatch, test_db, test_user, test_page, test_product):
     rule = AutomationRule(
-        id=7,
         user_id=test_user.id,
         page_id=test_page.id,
         name="Validation Failure Rule",
@@ -171,6 +116,7 @@ def test_automation_flow_blocks_invalid_output_persistence(monkeypatch, test_db,
     )
     test_db.add(rule)
     test_db.commit()
+    test_db.refresh(rule)
 
     provider = FakeProvider("Generate a social media post.\nRequirements:\n- Be clear and engaging")
     monkeypatch.setattr("app.services.ai_generation.get_ai_provider", lambda **kwargs: provider)

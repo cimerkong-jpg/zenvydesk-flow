@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../zenvydesk-flow-backend-ci"
+		},
+		{
+			"path": "../zenvydesk-flow-prompt-quality"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "zenvydesk-flow"
+	}
+}
