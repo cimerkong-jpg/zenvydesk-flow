@@ -42,30 +42,15 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
-# Create tables after app is initialized
-Base.metadata.create_all(bind=engine)
 
-
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def test_db():
-    """Provide database session for each test and clean up after"""
+    """Create test database for each test"""
+    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     yield db
-    db.rollback()  # Rollback any uncommitted changes
     db.close()
-    
-    # Clean up all data after each test
-    db = TestingSessionLocal()
-    try:
-        db.query(PostHistory).delete()
-        db.query(Draft).delete()
-        db.query(AutomationRule).delete()
-        db.query(Product).delete()
-        db.query(FacebookPage).delete()
-        db.query(User).delete()
-        db.commit()
-    finally:
-        db.close()
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
