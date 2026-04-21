@@ -2,10 +2,34 @@
 
 ## Repository Information
 - **GitHub Repo:** https://github.com/cimerkong-jpg/zenvydesk-flow
-- **Branch:** codex/prompt-quality-tests
+- **Branch:** codex/merge-prompt-quality-tests
 - **Last Updated:** 2026-04-21
 
 ## Completed Tasks
+
+### 9. Merge Prompt Quality Tests Into Main Baseline ✓
+**Date:** 2026-04-21
+**Status:** Complete
+
+**What was done:**
+- Merged `codex/prompt-quality-tests` into the current `main` baseline on `codex/merge-prompt-quality-tests`
+- Kept the new automated prompt quality test file during merge
+- Rechecked the backend baseline with automation, Gemini, and prompt quality test files
+- Confirmed the merged backend baseline is green when test commands run with `DEBUG=false` to avoid a bad local environment value
+
+**Files Changed:**
+- `TASK_PROGRESS.md` [MODIFIED]
+- `services/api/app/services/prompt_templates.py` [MODIFIED]
+- `services/api/app/services/prompt_builder.py` [MODIFIED]
+- `services/api/app/services/ai_generation.py` [MODIFIED]
+- `services/api/app/services/ai_providers/base.py` [MODIFIED]
+- `services/api/app/services/ai_providers/openai_provider.py` [MODIFIED]
+- `services/api/tests/test_prompt_quality_controls.py` [NEW]
+
+**Conflict Resolution:**
+- No manual merge conflict resolution was required
+
+---
 
 ### 8. Automated Tests for Prompt Quality Controls ✓
 **Date:** 2026-04-21
