@@ -209,6 +209,7 @@ export function DraftsPage() {
       <CreateDraftModal
         open={showCreate}
         products={products.data ?? []}
+        contentLibrary={contentLibrary.data ?? []}
         pageId={selectedPage ? Number(selectedPage.page_id) : null}
         onClose={() => setShowCreate(false)}
         submitting={submitting}
@@ -225,6 +226,7 @@ export function DraftsPage() {
         open={!!editingDraft}
         draft={editingDraft}
         products={products.data ?? []}
+        contentLibrary={contentLibrary.data ?? []}
         pageId={selectedPage ? Number(selectedPage.page_id) : null}
         onClose={() => setEditingDraft(null)}
         submitting={submitting}
@@ -272,6 +274,7 @@ function CreateDraftModal({
   open,
   draft,
   products,
+  contentLibrary,
   pageId,
   onClose,
   onCreated,
@@ -282,6 +285,7 @@ function CreateDraftModal({
   open: boolean
   draft?: Draft | null
   products: Product[]
+  contentLibrary: ContentLibraryItem[]
   pageId: number | null
   onClose: () => void
   onCreated: () => void
@@ -292,6 +296,7 @@ function CreateDraftModal({
   const isEdit = !!draft
   const [content, setContent] = useState(draft?.content ?? '')
   const [productId, setProductId] = useState<string>(draft?.product_id?.toString() ?? '')
+  const [contentLibraryId, setContentLibraryId] = useState<string>(draft?.content_library_id?.toString() ?? '')
   const [mediaUrl, setMediaUrl] = useState(draft?.media_url ?? '')
   const [scheduledTime, setScheduledTime] = useState(draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '')
 
@@ -300,6 +305,7 @@ function CreateDraftModal({
     if (draft) {
       setContent(draft.content)
       setProductId(draft.product_id?.toString() ?? '')
+      setContentLibraryId(draft.content_library_id?.toString() ?? '')
       setMediaUrl(draft.media_url ?? '')
       setScheduledTime(draft.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '')
     }
@@ -308,6 +314,7 @@ function CreateDraftModal({
   const reset = () => {
     setContent('')
     setProductId('')
+    setContentLibraryId('')
     setMediaUrl('')
     setScheduledTime('')
   }
@@ -327,6 +334,7 @@ function CreateDraftModal({
         content: content.trim(),
         page_id: pageId,
         product_id: productId ? Number(productId) : null,
+        content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
         media_url: mediaUrl.trim() || null,
         scheduled_time: scheduledTime ? fromDateTimeLocalValue(scheduledTime) : null,
       }
@@ -401,6 +409,20 @@ function CreateDraftModal({
           {products.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
+            </option>
+          ))}
+        </FormField>
+        <FormField
+          label="Content Library"
+          as="select"
+          value={contentLibraryId}
+          onChange={(e) => setContentLibraryId(e.target.value)}
+          hint="Optional — attach content from library."
+        >
+          <option value="">(none)</option>
+          {contentLibrary.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.title || truncate(item.content, 50)}
             </option>
           ))}
         </FormField>
