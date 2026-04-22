@@ -5,12 +5,10 @@ import {
   deleteDraft,
   fetchDrafts,
   fetchProducts,
-  fetchContentLibrary,
   postFromDraft,
   scheduleDraft,
   type Draft,
   type Product,
-  type ContentLibraryItem,
 } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { useAsync } from '../hooks/useAsync'
@@ -220,6 +218,39 @@ export function DraftsPage() {
         onError={(msg) => toast.error(msg)}
       />
 
+      <CreateDraftModal
+        open={!!editingDraft}
+        draft={editingDraft}
+        products={products.data ?? []}
+        pageId={selectedPage ? Number(selectedPage.page_id) : null}
+        onClose={() => setEditingDraft(null)}
+        submitting={submitting}
+        setSubmitting={setSubmitting}
+        onCreated={() => {
+          setEditingDraft(null)
+          refreshAll()
+          toast.success('Draft updated')
+        }}
+        onError={(msg) => toast.error(msg)}
+      />
+
+      <DeleteDraftModal
+        open={!!deletingDraft}
+        draftContent={deletingDraft?.content ?? ''}
+        onClose={() => setDeletingDraft(null)}
+        onConfirm={async () => {
+          if (!deletingDraft) return
+          try {
+            await deleteDraft(deletingDraft.id)
+            setDeletingDraft(null)
+            refreshAll()
+            toast.success('Draft deleted')
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : String(err))
+          }
+        }}
+      />
+
       <ScheduleModal
         draft={scheduleFor}
         onClose={() => setScheduleFor(null)}
@@ -236,6 +267,7 @@ export function DraftsPage() {
 
 function CreateDraftModal({
   open,
+  draft,
   products,
   pageId,
   onClose,
@@ -245,6 +277,7 @@ function CreateDraftModal({
   setSubmitting,
 }: {
   open: boolean
+  draft?: Draft | null
   products: Product[]
   pageId: number | null
   onClose: () => void
@@ -253,10 +286,21 @@ function CreateDraftModal({
   submitting: boolean
   setSubmitting: (v: boolean) => void
 }) {
-  const [content, setContent] = useState('')
-  const [productId, setProductId] = useState<string>('')
-  const [mediaUrl, setMediaUrl] = useState('')
-  const [scheduledTime, setScheduledTime] = useState('')
+  const isEdit = !!draft
+  const [content, setContent] = useState(draft?.content ?? '')
+  const [productId, setProductId] = useState<string>(draft?.product_id?.toString() ?? '')
+  const [mediaUrl, setMediaUrl] = useState(draft?.media_url ?? '')
+  const [scheduledTime, setScheduledTime] = useState(draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '')
+
+  // Update form when draft changes
+  useState(() => {
+    if (draft) {
+      setContent(draft.content)
+      setProductId(draft.product_id?.toString() ?? '')
+      setMediaUrl(draft.media_url ?? '')
+      setScheduledTime(draft.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '')
+    }
+  })
 
   const reset = () => {
     setContent('')
@@ -276,13 +320,20 @@ function CreateDraftModal({
     }
     setSubmitting(true)
     try {
-      await createDraft({
+      const input = {
         content: content.trim(),
         page_id: pageId,
         product_id: productId ? Number(productId) : null,
         media_url: mediaUrl.trim() || null,
         scheduled_time: scheduledTime ? fromDateTimeLocalValue(scheduledTime) : null,
-      })
+      }
+
+      if (isEdit && draft) {
+        await updateDraft(draft.id, input)
+      } else {
+        await createDraft(input)
+      }
+
       reset()
       onCreated()
     } catch (err) {
@@ -295,8 +346,8 @@ function CreateDraftModal({
   return (
     <Modal
       open={open}
-      title="New Draft"
-      description="Compose post content and attach an optional product or media."
+      title={isEdit ? 'Edit Draft' : 'New Draft'}
+      description={isEdit ? 'Update draft content and settings.' : 'Compose post content and attach an optional product or media.'}
       size="lg"
       onClose={() => {
         reset()
@@ -321,7 +372,7 @@ function CreateDraftModal({
             onClick={handleSubmit}
             disabled={submitting || !content.trim()}
           >
-            {submitting ? 'Creating…' : 'Create Draft'}
+            {submitting ? (isEdit ? 'Updating…' : 'Creating…') : (isEdit ? 'Update Draft' : 'Create Draft')}
           </button>
         </>
       }
@@ -436,6 +487,66 @@ function ScheduleModal({
         onChange={(e) => setValue(e.target.value)}
         required
       />
+    </Modal>
+  )
+}
+
+function DeleteDraftModal({
+  open,
+  draftContent,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean
+  draftContent: string
+  onClose: () => void
+  onConfirm: () => Promise<void>
+}) {
+  const [deleting, setDeleting] = useState(false)
+
+  const handleConfirm = async () => {
+    setDeleting(true)
+    try {
+      await onConfirm()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      title="Delete Draft"
+      description="This action cannot be undone."
+      size="sm"
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={onClose}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={handleConfirm}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete Draft'}
+          </button>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to delete this draft?
+      </p>
+      <p className="text-muted text-sm" style={{ marginTop: '8px' }}>
+        {truncate(draftContent, 100)}
+      </p>
     </Modal>
   )
 }
