@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import {
   createContentLibraryItem,
+  updateContentLibraryItem,
+  deleteContentLibraryItem,
   fetchContentLibrary,
   type ContentLibraryItem,
 } from '../lib/api'
@@ -18,6 +20,8 @@ export function ContentLibraryPage() {
   const toast = useToast()
   const items = useAsync(fetchContentLibrary, [])
   const [showCreate, setShowCreate] = useState(false)
+  const [editingItem, setEditingItem] = useState<ContentLibraryItem | null>(null)
+  const [deletingItem, setDeletingItem] = useState<ContentLibraryItem | null>(null)
 
   const columns: Column<ContentLibraryItem>[] = [
     {
@@ -61,6 +65,27 @@ export function ContentLibraryPage() {
       header: 'Created',
       width: '140px',
       render: (row) => formatRelative(row.created_at),
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: '180px',
+      render: (row) => (
+        <div className="row-actions">
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setEditingItem(row)}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-ghost btn-sm text-danger"
+            onClick={() => setDeletingItem(row)}
+          >
+            Delete
+          </button>
+        </div>
+      ),
     },
   ]
 
@@ -106,35 +131,76 @@ export function ContentLibraryPage() {
         </div>
       )}
 
-      <CreateItemModal
+      <ContentFormModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={() => {
+        onSuccess={() => {
           setShowCreate(false)
           items.refresh()
           toast.success('Content item created')
         }}
         onError={(msg) => toast.error(msg)}
       />
+
+      <ContentFormModal
+        open={!!editingItem}
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSuccess={() => {
+          setEditingItem(null)
+          items.refresh()
+          toast.success('Content item updated')
+        }}
+        onError={(msg) => toast.error(msg)}
+      />
+
+      <DeleteConfirmModal
+        open={!!deletingItem}
+        itemTitle={deletingItem?.title || 'Untitled'}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={async () => {
+          if (!deletingItem) return
+          try {
+            await deleteContentLibraryItem(deletingItem.id)
+            setDeletingItem(null)
+            items.refresh()
+            toast.success('Content item deleted')
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : String(err))
+          }
+        }}
+      />
     </div>
   )
 }
 
-function CreateItemModal({
+function ContentFormModal({
   open,
+  item,
   onClose,
-  onCreated,
+  onSuccess,
   onError,
 }: {
   open: boolean
+  item?: ContentLibraryItem | null
   onClose: () => void
-  onCreated: () => void
+  onSuccess: () => void
   onError: (msg: string) => void
 }) {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [contentType, setContentType] = useState('')
+  const isEdit = !!item
+  const [title, setTitle] = useState(item?.title ?? '')
+  const [content, setContent] = useState(item?.content ?? '')
+  const [contentType, setContentType] = useState(item?.content_type ?? '')
   const [submitting, setSubmitting] = useState(false)
+
+  // Update form when item changes
+  useState(() => {
+    if (item) {
+      setTitle(item.title ?? '')
+      setContent(item.content)
+      setContentType(item.content_type ?? '')
+    }
+  })
 
   const reset = () => {
     setTitle('')
@@ -149,13 +215,20 @@ function CreateItemModal({
     }
     setSubmitting(true)
     try {
-      await createContentLibraryItem({
+      const input = {
         title: title.trim() || null,
         content: content.trim(),
         content_type: contentType.trim() || null,
-      })
+      }
+
+      if (isEdit && item) {
+        await updateContentLibraryItem(item.id, input)
+      } else {
+        await createContentLibraryItem(input)
+      }
+
       reset()
-      onCreated()
+      onSuccess()
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -166,8 +239,8 @@ function CreateItemModal({
   return (
     <Modal
       open={open}
-      title="New Content Item"
-      description="Save snippet or template for reuse."
+      title={isEdit ? 'Edit Content Item' : 'New Content Item'}
+      description={isEdit ? 'Update content details.' : 'Save snippet or template for reuse.'}
       size="lg"
       onClose={() => {
         reset()
@@ -192,7 +265,7 @@ function CreateItemModal({
             onClick={handleSubmit}
             disabled={submitting || !content.trim()}
           >
-            {submitting ? 'Saving…' : 'Save Item'}
+            {submitting ? (isEdit ? 'Updating…' : 'Saving…') : (isEdit ? 'Update Item' : 'Save Item')}
           </button>
         </>
       }
@@ -228,6 +301,63 @@ function CreateItemModal({
           <option value="snippet">snippet</option>
         </FormField>
       </div>
+    </Modal>
+  )
+}
+
+function DeleteConfirmModal({
+  open,
+  itemTitle,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean
+  itemTitle: string
+  onClose: () => void
+  onConfirm: () => Promise<void>
+}) {
+  const [deleting, setDeleting] = useState(false)
+
+  const handleConfirm = async () => {
+    setDeleting(true)
+    try {
+      await onConfirm()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      title="Delete Content Item"
+      description="This action cannot be undone."
+      size="sm"
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={onClose}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={handleConfirm}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete Item'}
+          </button>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to delete <strong>{itemTitle}</strong>?
+      </p>
     </Modal>
   )
 }

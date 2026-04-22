@@ -29,3 +29,33 @@ def get_content(db: Session = Depends(get_db)):
     """Get all content"""
     content = db.query(ContentLibrary).all()
     return content
+
+
+@router.put("/{content_id}", response_model=ContentLibraryResponse)
+def update_content(content_id: int, content: ContentLibraryCreate, db: Session = Depends(get_db)):
+    """Update content item"""
+    db_content = db.query(ContentLibrary).filter(ContentLibrary.id == content_id).first()
+    if not db_content:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    db_content.title = content.title
+    db_content.content = content.content
+    db_content.content_type = content.content_type
+    
+    db.commit()
+    db.refresh(db_content)
+    return db_content
+
+
+@router.delete("/{content_id}")
+def delete_content(content_id: int, db: Session = Depends(get_db)):
+    """Delete content item"""
+    db_content = db.query(ContentLibrary).filter(ContentLibrary.id == content_id).first()
+    if not db_content:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    db.delete(db_content)
+    db.commit()
+    return {"message": "Content deleted successfully"}

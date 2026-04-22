@@ -213,6 +213,21 @@ export const createContentLibraryItem = (
   input: ContentLibraryInput,
 ): Promise<ContentLibraryItem> => postJson<ContentLibraryItem>(endpointUrls.contentLibrary, input)
 
+export const updateContentLibraryItem = (
+  id: number,
+  input: ContentLibraryInput,
+): Promise<ContentLibraryItem> =>
+  fetch(`${endpointUrls.contentLibrary}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(parseJson<ContentLibraryItem>)
+
+export const deleteContentLibraryItem = (id: number): Promise<void> =>
+  fetch(`${endpointUrls.contentLibrary}/${id}`, {
+    method: 'DELETE',
+  }).then(parseJson<void>)
+
 /* ================================
    Drafts
    ================================ */
