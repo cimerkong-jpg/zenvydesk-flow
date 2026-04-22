@@ -189,6 +189,7 @@ function ProductFormModal({
   const [description, setDescription] = useState(product?.description ?? '')
   const [price, setPrice] = useState(product?.price ?? '')
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? '')
+  const [imagePreview, setImagePreview] = useState(product?.image_url ?? '')
   const [submitting, setSubmitting] = useState(false)
 
   // Update form when product changes
@@ -198,6 +199,7 @@ function ProductFormModal({
       setDescription(product.description ?? '')
       setPrice(product.price ?? '')
       setImageUrl(product.image_url ?? '')
+      setImagePreview(product.image_url ?? '')
     }
   })
 
@@ -206,6 +208,33 @@ function ProductFormModal({
     setDescription('')
     setPrice('')
     setImageUrl('')
+    setImagePreview('')
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      onError('Please select an image file')
+      return
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      onError('Image size must be less than 2MB')
+      return
+    }
+
+    // Convert to base64 for preview and storage
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64 = reader.result as string
+      setImageUrl(base64)
+      setImagePreview(base64)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async () => {
@@ -294,13 +323,53 @@ function ProductFormModal({
           placeholder="e.g. 19.99 USD"
           hint="Freeform text — include currency if needed."
         />
-        <FormField
-          label="Image URL"
-          type="url"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="https://…"
-        />
+        
+        <div className="form-field">
+          <label className="form-label">Product Image</label>
+          <div className="image-upload-section">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="file-input"
+              id="product-image-upload"
+            />
+            <label htmlFor="product-image-upload" className="btn btn-secondary btn-sm">
+              📁 Choose Image
+            </label>
+            <span className="text-sm text-muted" style={{ marginLeft: '12px' }}>
+              or enter URL below (max 2MB)
+            </span>
+          </div>
+          
+          {imagePreview && (
+            <div className="image-preview" style={{ marginTop: '12px' }}>
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                style={{ 
+                  maxWidth: '200px', 
+                  maxHeight: '200px', 
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }} 
+              />
+            </div>
+          )}
+          
+          <FormField
+            label="Or Image URL"
+            type="url"
+            value={imageUrl.startsWith('data:') ? '' : imageUrl}
+            onChange={(e) => {
+              setImageUrl(e.target.value)
+              setImagePreview(e.target.value)
+            }}
+            placeholder="https://example.com/image.jpg"
+            hint="Leave empty if uploading file above"
+            style={{ marginTop: '12px' }}
+          />
+        </div>
       </div>
     </Modal>
   )
