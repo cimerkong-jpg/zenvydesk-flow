@@ -9,4 +9,12 @@ export const endpointUrls = {
   facebookPages: `${apiBaseUrl}/api/v1/facebook/pages`,
   scheduledRun: `${apiBaseUrl}/api/v1/test/run-scheduled`,
   facebookLogin: `${apiBaseUrl}/api/v1/auth/facebook/login`,
+  products: `${apiBaseUrl}/api/v1/products`,
+  contentLibrary: `${apiBaseUrl}/api/v1/content-library`,
+  drafts: `${apiBaseUrl}/api/v1/drafts`,
+  postHistory: `${apiBaseUrl}/api/v1/post-history`,
+  posting: `${apiBaseUrl}/api/v1/posting`,
+  schedules: `${apiBaseUrl}/api/v1/schedules`,
+  automationRules: `${apiBaseUrl}/api/v1/automation-rules`,
+  automationRunner: `${apiBaseUrl}/api/v1/automation-runner`,
 }
