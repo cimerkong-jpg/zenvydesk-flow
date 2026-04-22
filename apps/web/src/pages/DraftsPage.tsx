@@ -158,7 +158,6 @@ export function DraftsPage() {
           <button
             className="btn btn-primary"
             onClick={() => setShowCreate(true)}
-            disabled={!selectedPage}
           >
             + New Draft
           </button>
@@ -197,7 +196,6 @@ export function DraftsPage() {
               <button
                 className="btn btn-primary"
                 onClick={() => setShowCreate(true)}
-                disabled={!selectedPage}
               >
                 + Create Draft
               </button>
