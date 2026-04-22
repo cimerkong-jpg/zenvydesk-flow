@@ -1,10 +1,49 @@
 from typing import Optional
+from urllib.parse import urlparse
 
 from pydantic_settings import BaseSettings
 
 
+KNOWN_AI_PROVIDERS = {"mock", "openai", "gemini", "claude", "grok"}
+KNOWN_IMAGE_PROVIDERS = {"mock", "openai", "stable_diffusion"}
+LOCAL_HOST_MARKERS = ("localhost", "127.0.0.1", "testserver")
+STAGING_FRONTEND_URL = "https://zenvydesk-staging.onrender.com"
+STAGING_BACKEND_URL = "https://zenvydesk-api-staging.onrender.com"
+PRODUCTION_FRONTEND_URL = "https://zenvydesk.site"
+PRODUCTION_BACKEND_URL = "https://api.zenvydesk.site"
+
+
+def _normalize_url(value: Optional[str]) -> str:
+    return (value or "").strip().rstrip("/")
+
+
+def _extract_origin(value: Optional[str]) -> str:
+    normalized = _normalize_url(value)
+    if not normalized:
+        return ""
+    parsed = urlparse(normalized)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return normalized
+
+
+def _normalize_provider(value: Optional[str], *, allowed: set[str], default: str) -> str:
+    raw = (value or "").strip().lower()
+    if not raw:
+        return default
+    if raw in allowed:
+        return raw
+
+    candidates = [part.strip().lower() for part in raw.replace(";", ",").split(",") if part.strip()]
+    valid = [candidate for candidate in candidates if candidate in allowed]
+    if valid:
+        non_mock = [candidate for candidate in valid if candidate != "mock"]
+        return non_mock[-1] if non_mock else valid[-1]
+    return default
+
+
 class Settings(BaseSettings):
-    """Application settings"""
+    """Application settings."""
 
     app_name: str = "ZenvyDesk API"
     app_env: str = "development"
@@ -12,14 +51,11 @@ class Settings(BaseSettings):
     version: str = "v1"
     debug: bool = True
 
-    # Security
     secret_key: str = "dev_secret_key_change_in_production"
     session_expiry_minutes: int = 60
 
-    # Database
     database_url: str = "sqlite:///./zenvydesk.db"
 
-    # AI Provider Configuration
     ai_provider: str = "mock"
     ai_model: str = "mock-v1"
     ai_api_key: Optional[str] = None
@@ -30,35 +66,92 @@ class Settings(BaseSettings):
     image_api_key: Optional[str] = None
     image_base_url: Optional[str] = None
 
-    # Facebook OAuth Lite Configuration
     facebook_app_id: Optional[str] = None
     facebook_app_secret: Optional[str] = None
     facebook_redirect_uri: str = "http://localhost:8000/api/v1/auth/facebook/callback"
     facebook_scopes: str = "pages_show_list,pages_manage_posts"
 
-    # Explicit override when needed; otherwise resolve from environment.
     frontend_base_url: Optional[str] = None
+
+    def infer_app_env(self, request_base_url: Optional[str] = None) -> str:
+        env = (self.app_env or "").strip().lower()
+        request_origin = _extract_origin(request_base_url).lower()
+        frontend_origin = _extract_origin(self.frontend_base_url).lower()
+        app_origin = _extract_origin(self.app_base_url).lower()
+        redirect_origin = _extract_origin(self.facebook_redirect_uri).lower()
+
+        signals = [request_origin, frontend_origin, app_origin, redirect_origin]
+        if any("staging" in signal for signal in signals if signal):
+            return "staging"
+        if any(
+            "zenvydesk.site" in signal or "api.zenvydesk.site" in signal
+            for signal in signals
+            if signal
+        ):
+            return "production"
+        if env in {"staging", "production", "prod", "development", "dev"}:
+            return "production" if env in {"production", "prod"} else ("staging" if env == "staging" else "development")
+        return "development"
+
+    def resolve_app_base_url(self, request_base_url: Optional[str] = None) -> str:
+        request_origin = _extract_origin(request_base_url)
+        if request_origin and not any(marker in request_origin.lower() for marker in LOCAL_HOST_MARKERS):
+            return request_origin
+
+        configured_origin = _extract_origin(self.app_base_url)
+        if configured_origin and not any(marker in configured_origin.lower() for marker in LOCAL_HOST_MARKERS):
+            return configured_origin
+
+        redirect_origin = _extract_origin(self.facebook_redirect_uri)
+        if redirect_origin and not any(marker in redirect_origin.lower() for marker in LOCAL_HOST_MARKERS):
+            return redirect_origin
+
+        env = self.infer_app_env(request_base_url)
+        if env == "staging":
+            return STAGING_BACKEND_URL
+        if env == "production":
+            return PRODUCTION_BACKEND_URL
+        return "http://localhost:8000"
+
+    @property
+    def resolved_app_env(self) -> str:
+        return self.infer_app_env()
+
+    @property
+    def resolved_app_base_url(self) -> str:
+        return self.resolve_app_base_url()
 
     @property
     def resolved_frontend_base_url(self) -> str:
-        """Resolve the frontend redirect target for the current environment."""
-        if self.frontend_base_url:
-            return self.frontend_base_url
+        explicit = _normalize_url(self.frontend_base_url)
+        if explicit:
+            return explicit
 
-        env = (self.app_env or "").lower()
-        base_url = (self.app_base_url or "").lower()
-
-        if "staging" in env or "staging" in base_url:
-            return "https://zenvydesk-staging.onrender.com"
-
-        if env in {"production", "prod"} or "api.zenvydesk.site" in base_url:
-            return "https://zenvydesk.site"
-
+        env = self.infer_app_env()
+        if env == "staging":
+            return STAGING_FRONTEND_URL
+        if env == "production":
+            return PRODUCTION_FRONTEND_URL
         return "http://localhost:5173"
 
     @property
+    def resolved_ai_provider(self) -> str:
+        return _normalize_provider(
+            self.ai_provider,
+            allowed=KNOWN_AI_PROVIDERS,
+            default="mock",
+        )
+
+    @property
+    def resolved_image_provider(self) -> str:
+        return _normalize_provider(
+            self.image_provider,
+            allowed=KNOWN_IMAGE_PROVIDERS,
+            default="mock",
+        )
+
+    @property
     def resolved_ai_api_key(self) -> Optional[str]:
-        """Prefer explicit AI_API_KEY but fall back to OPENAI_API_KEY for OpenAI-backed flows."""
         return self.ai_api_key or self.openai_api_key
 
     class Config:

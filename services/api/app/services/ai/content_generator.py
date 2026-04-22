@@ -32,7 +32,7 @@ def generate_content(
         selling_points=[content_library.content] if content_library and content_library.content else None,
         tone=tone,
         target_audience="Thai market" if language.lower() == "th" else f"{language} market",
-        provider=settings.ai_provider,
+        provider=settings.resolved_ai_provider,
         model=settings.ai_model,
         prompt_override=prompt,
     )

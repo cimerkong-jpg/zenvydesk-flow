@@ -45,7 +45,7 @@ def generate_post_content(
         AIGenerationResult with generated content or error
     """
     # Use config defaults if not provided
-    provider = provider or settings.ai_provider
+    provider = provider or settings.resolved_ai_provider
     model = model or settings.ai_model
     
     logger.info(f"AI generation request: provider={provider}, model={model}, content_type={content_type}, product={product_name}")
