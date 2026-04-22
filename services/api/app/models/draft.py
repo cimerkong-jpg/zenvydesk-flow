@@ -10,6 +10,7 @@ class Draft(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     page_id = Column(Integer, ForeignKey("facebook_pages.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
+    content_library_id = Column(Integer, ForeignKey("content_library.id"), nullable=True)
     content = Column(String, nullable=False)
     media_url = Column(String, nullable=True)
     status = Column(String, default="draft")

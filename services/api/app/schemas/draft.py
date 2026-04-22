@@ -8,6 +8,7 @@ class DraftBase(BaseModel):
     media_url: Optional[str] = None
     page_id: int
     product_id: Optional[int] = None
+    content_library_id: Optional[int] = None
     scheduled_time: Optional[datetime] = None
 
 

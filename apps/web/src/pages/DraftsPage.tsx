@@ -5,10 +5,12 @@ import {
   deleteDraft,
   fetchDrafts,
   fetchProducts,
+  fetchContentLibrary,
   postFromDraft,
   scheduleDraft,
   type Draft,
   type Product,
+  type ContentLibraryItem,
 } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { useAsync } from '../hooks/useAsync'
@@ -33,6 +35,7 @@ export function DraftsPage() {
   const { selectedPage } = useSelectedPage()
   const drafts = useAsync(fetchDrafts, [])
   const products = useAsync(fetchProducts, [])
+  const contentLibrary = useAsync(fetchContentLibrary, [])
 
   const [showCreate, setShowCreate] = useState(false)
   const [editingDraft, setEditingDraft] = useState<Draft | null>(null)

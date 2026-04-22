@@ -16,6 +16,7 @@ def create_draft(draft: DraftCreate, db: Session = Depends(get_db)):
         user_id=1,  # Hardcoded for now
         page_id=draft.page_id,
         product_id=draft.product_id,
+        content_library_id=draft.content_library_id,
         content=draft.content,
         media_url=draft.media_url,
         status="draft",  # Default status
@@ -44,6 +45,7 @@ def update_draft(draft_id: int, draft: DraftCreate, db: Session = Depends(get_db
     
     db_draft.page_id = draft.page_id
     db_draft.product_id = draft.product_id
+    db_draft.content_library_id = draft.content_library_id
     db_draft.content = draft.content
     db_draft.media_url = draft.media_url
     db_draft.scheduled_time = draft.scheduled_time

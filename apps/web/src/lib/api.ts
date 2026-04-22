@@ -63,6 +63,7 @@ export type Draft = {
   content: string
   page_id: number
   product_id: number | null
+  content_library_id: number | null
   media_url: string | null
   status: string
   is_active: boolean
@@ -74,6 +75,7 @@ export type DraftInput = {
   content: string
   page_id: number
   product_id?: number | null
+  content_library_id?: number | null
   media_url?: string | null
   scheduled_time?: string | null
 }
