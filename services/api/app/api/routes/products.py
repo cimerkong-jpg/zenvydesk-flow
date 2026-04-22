@@ -28,7 +28,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[ProductResponse])
 def get_products(db: Session = Depends(get_db)):
     """Get all products"""
-    products = db.query(Product).all()
+    products = db.query(Product).order_by(Product.created_at.desc(), Product.id.desc()).all()
     return products
 
 

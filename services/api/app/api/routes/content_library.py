@@ -27,7 +27,11 @@ def create_content(content: ContentLibraryCreate, db: Session = Depends(get_db))
 @router.get("/", response_model=List[ContentLibraryResponse])
 def get_content(db: Session = Depends(get_db)):
     """Get all content"""
-    content = db.query(ContentLibrary).all()
+    content = (
+        db.query(ContentLibrary)
+        .order_by(ContentLibrary.created_at.desc(), ContentLibrary.id.desc())
+        .all()
+    )
     return content
 
 

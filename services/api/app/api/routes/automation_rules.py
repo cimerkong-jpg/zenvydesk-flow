@@ -35,7 +35,11 @@ def create_automation_rule(rule: AutomationRuleCreate, db: Session = Depends(get
 @router.get("/", response_model=List[AutomationRuleResponse])
 def get_automation_rules(db: Session = Depends(get_db)):
     """Get all automation rules"""
-    rules = db.query(AutomationRule).all()
+    rules = (
+        db.query(AutomationRule)
+        .order_by(AutomationRule.created_at.desc(), AutomationRule.id.desc())
+        .all()
+    )
     return rules
 
 

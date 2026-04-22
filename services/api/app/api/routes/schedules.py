@@ -13,7 +13,12 @@ router = APIRouter()
 @router.get("/", response_model=List[DraftResponse])
 def get_scheduled_drafts(db: Session = Depends(get_db)):
     """Get all drafts with scheduled time"""
-    drafts = db.query(Draft).filter(Draft.scheduled_time.isnot(None)).all()
+    drafts = (
+        db.query(Draft)
+        .filter(Draft.scheduled_time.isnot(None))
+        .order_by(Draft.scheduled_time.desc(), Draft.id.desc())
+        .all()
+    )
     return drafts
 
 

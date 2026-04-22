@@ -36,7 +36,7 @@ def create_draft(draft: DraftCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[DraftResponse])
 def get_drafts(db: Session = Depends(get_db)):
     """Get all drafts"""
-    drafts = db.query(Draft).all()
+    drafts = db.query(Draft).order_by(Draft.created_at.desc(), Draft.id.desc()).all()
     return drafts
 
 
