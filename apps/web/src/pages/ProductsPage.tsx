@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createProduct, updateProduct, deleteProduct, fetchProducts, type Product } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { useAsync } from '../hooks/useAsync'
@@ -192,16 +192,13 @@ function ProductFormModal({
   const [imagePreview, setImagePreview] = useState(product?.image_url ?? '')
   const [submitting, setSubmitting] = useState(false)
 
-  // Update form when product changes
-  useState(() => {
-    if (product) {
-      setName(product.name)
-      setDescription(product.description ?? '')
-      setPrice(product.price ?? '')
-      setImageUrl(product.image_url ?? '')
-      setImagePreview(product.image_url ?? '')
-    }
-  })
+  useEffect(() => {
+    setName(product?.name ?? '')
+    setDescription(product?.description ?? '')
+    setPrice(product?.price ?? '')
+    setImageUrl(product?.image_url ?? '')
+    setImagePreview(product?.image_url ?? '')
+  }, [product, open])
 
   const reset = () => {
     setName('')
