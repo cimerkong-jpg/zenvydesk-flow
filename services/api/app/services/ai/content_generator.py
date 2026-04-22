@@ -20,6 +20,8 @@ def generate_content(
     language: str = "th",
     provider: str | None = None,
     model: str | None = None,
+    api_key: str | None = None,
+    base_url: str | None = None,
 ) -> GeneratedContent:
     prompt = build_prompt(
         product=product,
@@ -36,6 +38,8 @@ def generate_content(
         target_audience="Thai market" if language.lower() == "th" else f"{language} market",
         provider=provider or settings.resolved_ai_provider,
         model=model or settings.ai_model,
+        api_key=api_key,
+        base_url=base_url,
         prompt_override=prompt,
     )
 

@@ -31,6 +31,7 @@ import {
   toDateTimeLocalValue,
   truncate,
 } from '../lib/format'
+import { getProviderKey, loadAiPreferences } from '../lib/aiPreferences'
 
 export function DraftsPage() {
   const toast = useToast()
@@ -336,12 +337,19 @@ function CreateDraftModal({
 
     setGenerating(true)
     try {
+      const preferences = loadAiPreferences()
       const result = await generateDraft({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
         tone,
         language,
         style,
+        ai_provider: preferences.contentProvider,
+        ai_model: preferences.contentModel,
+        ai_api_key: getProviderKey(preferences, preferences.contentProvider),
+        image_provider: preferences.imageProvider,
+        image_model: preferences.imageModel,
+        image_api_key: getProviderKey(preferences, preferences.imageProvider),
       })
       setContent(result.content)
       setMediaUrl(result.media_url ?? '')
@@ -360,12 +368,19 @@ function CreateDraftModal({
 
     setGeneratingImage(true)
     try {
+      const preferences = loadAiPreferences()
       const result = await generateDraftImage({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
         tone,
         language,
         style,
+        ai_provider: preferences.contentProvider,
+        ai_model: preferences.contentModel,
+        ai_api_key: getProviderKey(preferences, preferences.contentProvider),
+        image_provider: preferences.imageProvider,
+        image_model: preferences.imageModel,
+        image_api_key: getProviderKey(preferences, preferences.imageProvider),
       })
       if (!content.trim()) {
         setContent(result.content)
@@ -556,6 +571,9 @@ function CreateDraftModal({
           >
             {generating ? 'Generating...' : 'Generate with AI'}
           </button>
+        </div>
+        <div className="form-hint">
+          AI provider, model, and API keys are taken from Settings and stored in this browser.
         </div>
 
         <FormField

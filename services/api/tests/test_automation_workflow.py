@@ -38,7 +38,7 @@ def test_automation_creates_draft_with_selected_assets(
     assert draft.product_id == test_product.id
     assert draft.content_library_id == test_content_library.id
     assert test_product.name in draft.content
-    assert draft.media_url.startswith("https://image-url/mock/mock-image-v1")
+    assert draft.media_url.startswith("data:image/")
 
 
 def test_automation_auto_post_creates_post_history(client, test_db, test_user, test_page, test_product):

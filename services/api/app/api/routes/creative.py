@@ -43,6 +43,8 @@ def generate_creative(payload: CreativeGenerateRequest, db: Session = Depends(ge
         language=payload.language,
         provider=ai_provider,
         model=ai_model,
+        api_key=payload.ai_api_key,
+        base_url=payload.ai_base_url,
     )
 
     media_url = None
@@ -58,6 +60,8 @@ def generate_creative(payload: CreativeGenerateRequest, db: Session = Depends(ge
             image_prompt,
             provider_name=image_provider,
             model=image_model,
+            api_key=payload.image_api_key or payload.ai_api_key,
+            base_url=payload.image_base_url,
         )
 
     if payload.generation_type == "image":

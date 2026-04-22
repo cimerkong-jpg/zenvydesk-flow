@@ -92,8 +92,12 @@ export type DraftGenerateInput = {
   style?: string
   ai_provider?: string | null
   ai_model?: string | null
+  ai_api_key?: string | null
+  ai_base_url?: string | null
   image_provider?: string | null
   image_model?: string | null
+  image_api_key?: string | null
+  image_base_url?: string | null
 }
 
 export type DraftGenerateResponse = {

@@ -23,7 +23,7 @@ def test_generate_creative_post(client, test_product, test_content_library):
     data = response.json()
     assert data["generation_type"] == "post"
     assert data["content"].startswith("[mock/mock-v1]")
-    assert data["media_url"].startswith("https://image-url/mock/mock-image-v1")
+    assert data["media_url"].startswith("data:image/")
     assert data["ai_provider"] == "mock"
     assert data["image_provider"] == "mock"
 

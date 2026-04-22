@@ -10,35 +10,27 @@ import {
   creativeGenerate,
   fetchContentLibrary,
   fetchProducts,
-  fetchRuntimeSettings,
   postFromDraft,
   scheduleDraft,
   type CreativeGenerateResponse,
 } from '../lib/api'
 import { fromDateTimeLocalValue } from '../lib/format'
+import {
+  CONTENT_MODELS,
+  CONTENT_PROVIDER_OPTIONS,
+  IMAGE_MODELS,
+  IMAGE_PROVIDER_OPTIONS,
+  getProviderKey,
+  loadAiPreferences,
+} from '../lib/aiPreferences'
 
 type GenerationMode = 'post' | 'image' | 'content'
-
-const CONTENT_PROVIDER_OPTIONS = ['mock', 'openai']
-const IMAGE_PROVIDER_OPTIONS = ['mock', 'openai', 'stable_diffusion']
-
-const CONTENT_MODELS: Record<string, string[]> = {
-  mock: ['mock-v1'],
-  openai: ['gpt-4o-mini', 'gpt-4.1-mini'],
-}
-
-const IMAGE_MODELS: Record<string, string[]> = {
-  mock: ['mock-image-v1'],
-  openai: ['gpt-image-1'],
-  stable_diffusion: ['sdxl-1.0'],
-}
 
 export function CreativeWithAIPage() {
   const toast = useToast()
   const { selectedPage } = useSelectedPage()
   const products = useAsync(fetchProducts, [])
   const contentLibrary = useAsync(fetchContentLibrary, [])
-  const runtime = useAsync(fetchRuntimeSettings, [])
 
   const [mode, setMode] = useState<GenerationMode>('post')
   const [productId, setProductId] = useState('')
@@ -46,10 +38,10 @@ export function CreativeWithAIPage() {
   const [tone, setTone] = useState('marketing')
   const [language, setLanguage] = useState('th')
   const [style, setStyle] = useState('social ad creative')
-  const [contentProvider, setContentProvider] = useState('mock')
-  const [contentModel, setContentModel] = useState('mock-v1')
-  const [imageProvider, setImageProvider] = useState('mock')
-  const [imageModel, setImageModel] = useState('mock-image-v1')
+  const [contentProvider, setContentProvider] = useState(loadAiPreferences().contentProvider)
+  const [contentModel, setContentModel] = useState(loadAiPreferences().contentModel)
+  const [imageProvider, setImageProvider] = useState(loadAiPreferences().imageProvider)
+  const [imageModel, setImageModel] = useState(loadAiPreferences().imageModel)
   const [preview, setPreview] = useState<CreativeGenerateResponse | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -57,31 +49,12 @@ export function CreativeWithAIPage() {
   const [scheduleTime, setScheduleTime] = useState('')
 
   useEffect(() => {
-    if (!runtime.data) {
-      return
-    }
-
-    const nextContentProvider = CONTENT_PROVIDER_OPTIONS.includes(runtime.data.ai_provider)
-      ? runtime.data.ai_provider
-      : 'mock'
-    const nextImageProvider = IMAGE_PROVIDER_OPTIONS.includes(runtime.data.image_provider)
-      ? runtime.data.image_provider
-      : 'mock'
-
-    setContentProvider(nextContentProvider)
-    setContentModel(
-      CONTENT_MODELS[nextContentProvider]?.includes(runtime.data.ai_model)
-        ? runtime.data.ai_model
-        : CONTENT_MODELS[nextContentProvider][0],
-    )
-
-    setImageProvider(nextImageProvider)
-    setImageModel(
-      IMAGE_MODELS[nextImageProvider]?.includes(runtime.data.image_model)
-        ? runtime.data.image_model
-        : IMAGE_MODELS[nextImageProvider][0],
-    )
-  }, [runtime.data])
+    const saved = loadAiPreferences()
+    setContentProvider(saved.contentProvider)
+    setContentModel(saved.contentModel)
+    setImageProvider(saved.imageProvider)
+    setImageModel(saved.imageModel)
+  }, [])
 
   useEffect(() => {
     if (!CONTENT_MODELS[contentProvider]?.includes(contentModel)) {
@@ -114,6 +87,7 @@ export function CreativeWithAIPage() {
     setGenerating(true)
     setPreviewError(null)
     try {
+      const preferences = loadAiPreferences()
       const result = await creativeGenerate({
         generation_type: mode,
         product_id: Number(productId),
@@ -123,8 +97,10 @@ export function CreativeWithAIPage() {
         style,
         ai_provider: contentProvider,
         ai_model: contentModel,
+        ai_api_key: getProviderKey(preferences, contentProvider),
         image_provider: imageProvider,
         image_model: imageModel,
+        image_api_key: getProviderKey(preferences, imageProvider),
       })
       setPreview(result)
       toast.success('Preview AI đã sẵn sàng.')
@@ -222,7 +198,7 @@ export function CreativeWithAIPage() {
             <h3 className="card-title">Creative setup</h3>
           </div>
 
-          {products.loading || contentLibrary.loading || runtime.loading ? (
+          {products.loading || contentLibrary.loading ? (
             <LoadingState />
           ) : (
             <div className="form-stack">
@@ -306,7 +282,7 @@ export function CreativeWithAIPage() {
                   label="Content AI"
                   as="select"
                   value={contentProvider}
-                  onChange={(e) => setContentProvider(e.target.value)}
+                  onChange={(e) => setContentProvider(e.target.value as typeof contentProvider)}
                 >
                   {CONTENT_PROVIDER_OPTIONS.map((option) => (
                     <option key={option} value={option}>
@@ -333,7 +309,7 @@ export function CreativeWithAIPage() {
                   label="Image AI"
                   as="select"
                   value={imageProvider}
-                  onChange={(e) => setImageProvider(e.target.value)}
+                  onChange={(e) => setImageProvider(e.target.value as typeof imageProvider)}
                 >
                   {IMAGE_PROVIDER_OPTIONS.map((option) => (
                     <option key={option} value={option}>

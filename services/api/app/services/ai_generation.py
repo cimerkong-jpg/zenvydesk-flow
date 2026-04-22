@@ -25,6 +25,8 @@ def generate_post_content(
     cta: Optional[str] = None,
     provider: Optional[str] = None,
     model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
     prompt_override: Optional[str] = None,
 ) -> AIGenerationResult:
     """
@@ -72,8 +74,8 @@ def generate_post_content(
         # Get provider instance from registry
         ai_provider = get_ai_provider(
             provider_name=provider,
-            api_key=settings.resolved_ai_api_key,
-            base_url=settings.ai_base_url
+            api_key=api_key or settings.resolved_ai_api_key,
+            base_url=base_url or settings.ai_base_url
         )
         
         # Generate content using provider with compiled prompt

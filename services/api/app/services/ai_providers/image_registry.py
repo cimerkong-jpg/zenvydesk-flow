@@ -14,7 +14,7 @@ def get_image_provider(
     if provider_name == "mock":
         return MockImageProvider()
     if provider_name == "openai":
-        return OpenAIImageProvider()
+        return OpenAIImageProvider(api_key=api_key, base_url=base_url)
     if provider_name == "stable_diffusion":
         return StableDiffusionImageProvider()
     raise ValueError(f"Unknown image provider: {provider_name}")

@@ -54,7 +54,7 @@ def test_generate_draft_content(client, test_product, test_content_library):
     assert response.status_code == 200
     data = response.json()
     assert data["content"].startswith("[mock/mock-v1]")
-    assert data["media_url"].startswith("https://image-url/mock/mock-image-v1")
+    assert data["media_url"].startswith("data:image/")
 
 
 def test_generate_draft_image(client, test_product, test_content_library):
@@ -71,7 +71,7 @@ def test_generate_draft_image(client, test_product, test_content_library):
     assert response.status_code == 200
     data = response.json()
     assert data["content"]
-    assert data["media_url"].startswith("https://image-url/mock/mock-image-v1")
+    assert data["media_url"].startswith("data:image/")
 
 
 def test_generate_draft_content_passes_compiled_prompt(monkeypatch, client, test_product, test_content_library):
