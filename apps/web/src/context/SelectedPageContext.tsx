@@ -1,0 +1,99 @@
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { fetchPages, selectFacebookPage, type PageResponse } from '../lib/api'
+
+const SELECTED_PAGE_KEY = 'zenvydesk_selected_page'
+
+type SelectedPageContextValue = {
+  pages: PageResponse[]
+  selectedPage: PageResponse | null
+  loading: boolean
+  error: string | null
+  setSelectedPage: (page: PageResponse) => Promise<void>
+  refresh: () => Promise<void>
+}
+
+const SelectedPageContext = createContext<SelectedPageContextValue | null>(null)
+
+export function SelectedPageProvider({ children }: { children: ReactNode }) {
+  const [pages, setPages] = useState<PageResponse[]>([])
+  const [selectedPage, setSelectedPageState] = useState<PageResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const syncPages = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const pagesData = await fetchPages()
+      setPages(pagesData)
+
+      const serverSelected = pagesData.find((page) => page.is_selected) ?? null
+      const savedId = localStorage.getItem(SELECTED_PAGE_KEY)
+      const savedPage = savedId ? pagesData.find((page) => page.page_id === savedId) ?? null : null
+      const fallbackPage = serverSelected ?? savedPage ?? pagesData[0] ?? null
+
+      setSelectedPageState(fallbackPage)
+      if (fallbackPage) {
+        localStorage.setItem(SELECTED_PAGE_KEY, fallbackPage.page_id)
+        if (!serverSelected || serverSelected.page_id !== fallbackPage.page_id) {
+          const persisted = await selectFacebookPage(fallbackPage.page_id)
+          setPages((current) =>
+            current.map((page) => ({
+              ...page,
+              is_selected: page.page_id === persisted.page_id,
+            })),
+          )
+          setSelectedPageState(persisted)
+        }
+      } else {
+        localStorage.removeItem(SELECTED_PAGE_KEY)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void syncPages()
+  }, [])
+
+  const setSelectedPage = async (page: PageResponse) => {
+    const persisted = await selectFacebookPage(page.page_id)
+    setPages((current) =>
+      current.map((item) => ({
+        ...item,
+        is_selected: item.page_id === persisted.page_id,
+      })),
+    )
+    setSelectedPageState(persisted)
+    localStorage.setItem(SELECTED_PAGE_KEY, persisted.page_id)
+  }
+
+  const value = useMemo(
+    () => ({
+      pages,
+      selectedPage,
+      loading,
+      error,
+      setSelectedPage,
+      refresh: syncPages,
+    }),
+    [pages, selectedPage, loading, error],
+  )
+
+  return (
+    <SelectedPageContext.Provider value={value}>
+      {children}
+    </SelectedPageContext.Provider>
+  )
+}
+
+export function useSelectedPageContext() {
+  const context = useContext(SelectedPageContext)
+  if (!context) {
+    throw new Error('useSelectedPage must be used within SelectedPageProvider')
+  }
+  return context
+}

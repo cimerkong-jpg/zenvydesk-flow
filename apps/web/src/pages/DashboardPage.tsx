@@ -119,7 +119,7 @@ export function DashboardPage() {
                     key={page.page_id}
                     className={`page-option ${active ? 'selected' : ''}`}
                     onClick={() => {
-                      setSelectedPage(page)
+                      void setSelectedPage(page)
                       setShowPageSelector(false)
                     }}
                   >

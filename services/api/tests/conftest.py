@@ -8,6 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base, get_db
 from app.main import app
+from app.models.content_library import ContentLibrary
 from app.models.facebook_page import FacebookPage
 from app.models.product import Product
 from app.models.user import User
@@ -91,3 +92,18 @@ def test_product(test_db, test_user):
     test_db.commit()
     test_db.refresh(product)
     return product
+
+
+@pytest.fixture
+def test_content_library(test_db, test_user):
+    item = ContentLibrary(
+        id=1,
+        user_id=test_user.id,
+        title="Launch Angle",
+        content="Highlight the fastest onboarding path and strong CTA.",
+        content_type="promotion",
+    )
+    test_db.add(item)
+    test_db.commit()
+    test_db.refresh(item)
+    return item

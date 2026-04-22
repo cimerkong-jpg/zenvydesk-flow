@@ -6,7 +6,12 @@ from typing import Optional
 class AutomationRuleBase(BaseModel):
     page_id: int
     name: str
+    product_id: Optional[int] = None
+    content_library_id: Optional[int] = None
     content_type: Optional[str] = None
+    tone: Optional[str] = None
+    language: Optional[str] = None
+    style: Optional[str] = None
     auto_post: bool = True
     scheduled_time: str
     product_selection_mode: Optional[str] = None

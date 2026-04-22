@@ -17,4 +17,5 @@ export const endpointUrls = {
   schedules: `${apiBaseUrl}/api/v1/schedules`,
   automationRules: `${apiBaseUrl}/api/v1/automation-rules`,
   automationRunner: `${apiBaseUrl}/api/v1/automation-runner`,
+  settingsRuntime: `${apiBaseUrl}/api/v1/settings/runtime`,
 }

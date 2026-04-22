@@ -74,18 +74,26 @@ class FacebookOAuthLite:
         Returns:
             List of page dicts with id, name, access_token
         """
-        params = {
-            "fields": "id,name,access_token",
-            "access_token": access_token
-        }
-        
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(self.PAGES_URL, params=params)
-                response.raise_for_status()
-                pages_data = response.json()
-                
-                return pages_data.get("data", [])
+                url = self.PAGES_URL
+                params = {
+                    "fields": "id,name,access_token",
+                    "access_token": access_token
+                }
+                all_pages: List[Dict] = []
+
+                while url:
+                    response = await client.get(url, params=params)
+                    response.raise_for_status()
+                    pages_data = response.json()
+                    all_pages.extend(pages_data.get("data", []))
+
+                    paging = pages_data.get("paging", {})
+                    url = paging.get("next")
+                    params = None
+
+                return all_pages
         
         except Exception as e:
             print(f"Page fetch error: {e}")

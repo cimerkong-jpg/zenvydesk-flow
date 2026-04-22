@@ -12,4 +12,5 @@ class FacebookPage(Base):
     page_name = Column(String, nullable=False)
     access_token = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    is_selected = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

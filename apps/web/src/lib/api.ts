@@ -18,9 +18,13 @@ export type ScheduledRunResponse = {
 }
 
 export type PageResponse = {
+  id: number
   page_id: string
   page_name: string
   is_active: boolean
+  is_selected: boolean
+  has_access_token: boolean
+  connection_status: string
 }
 
 export type Product = {
@@ -61,7 +65,7 @@ export type Draft = {
   id: number
   user_id: number
   content: string
-  page_id: number
+  page_id: number | null
   product_id: number | null
   content_library_id: number | null
   media_url: string | null
@@ -73,11 +77,36 @@ export type Draft = {
 
 export type DraftInput = {
   content: string
-  page_id: number
+  page_id?: number | null
   product_id?: number | null
   content_library_id?: number | null
   media_url?: string | null
   scheduled_time?: string | null
+}
+
+export type DraftGenerateInput = {
+  product_id: number
+  content_library_id?: number | null
+  tone?: string
+  language?: string
+  style?: string
+}
+
+export type DraftGenerateResponse = {
+  content: string
+  media_url: string | null
+}
+
+export type RuntimeSettings = {
+  app_env: string
+  app_base_url: string
+  frontend_base_url: string
+  ai_provider: string
+  ai_model: string
+  ai_configured: boolean
+  image_provider: string
+  image_model: string
+  image_configured: boolean
 }
 
 export type PostHistory = {
@@ -105,8 +134,13 @@ export type AutomationRule = {
   id: number
   user_id: number
   page_id: number
+  product_id: number | null
+  content_library_id: number | null
   name: string
   content_type: string | null
+  tone: string | null
+  language: string | null
+  style: string | null
   auto_post: boolean
   scheduled_time: string
   product_selection_mode: string | null
@@ -117,7 +151,12 @@ export type AutomationRule = {
 export type AutomationRuleInput = {
   page_id: number
   name: string
+  product_id?: number | null
+  content_library_id?: number | null
   content_type?: string | null
+  tone?: string | null
+  language?: string | null
+  style?: string | null
   auto_post?: boolean
   scheduled_time: string
   product_selection_mode?: string | null
@@ -171,12 +210,18 @@ const postJson = <T>(url: string, body?: unknown): Promise<T> =>
 
 export const fetchHealth = (): Promise<HealthResponse> => get<HealthResponse>(endpointUrls.health)
 
+export const fetchRuntimeSettings = (): Promise<RuntimeSettings> =>
+  get<RuntimeSettings>(endpointUrls.settingsRuntime)
+
 /* ================================
    Facebook
    ================================ */
 
 export const fetchPages = (): Promise<PageResponse[]> =>
   get<PageResponse[]>(endpointUrls.facebookPages)
+
+export const selectFacebookPage = (pageId: string): Promise<PageResponse> =>
+  postJson<PageResponse>(`${endpointUrls.facebookPages}/select/${encodeURIComponent(pageId)}`)
 
 export const getFacebookLoginUrl = (): string => endpointUrls.facebookLogin
 
@@ -251,6 +296,12 @@ export const deleteDraft = (id: number): Promise<void> =>
     method: 'DELETE',
   }).then(parseJson<void>)
 
+export const generateDraft = (input: DraftGenerateInput): Promise<DraftGenerateResponse> =>
+  postJson<DraftGenerateResponse>(`${endpointUrls.drafts}/generate`, input)
+
+export const generateDraftImage = (input: DraftGenerateInput): Promise<DraftGenerateResponse> =>
+  postJson<DraftGenerateResponse>(`${endpointUrls.drafts}/generate-image`, input)
+
 /* ================================
    Post History
    ================================ */
@@ -286,6 +337,21 @@ export const fetchAutomationRules = (): Promise<AutomationRule[]> =>
 
 export const createAutomationRule = (input: AutomationRuleInput): Promise<AutomationRule> =>
   postJson<AutomationRule>(endpointUrls.automationRules, input)
+
+export const updateAutomationRule = (
+  ruleId: number,
+  input: AutomationRuleInput,
+): Promise<AutomationRule> =>
+  fetch(`${endpointUrls.automationRules}/${ruleId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(parseJson<AutomationRule>)
+
+export const deleteAutomationRule = (ruleId: number): Promise<void> =>
+  fetch(`${endpointUrls.automationRules}/${ruleId}`, {
+    method: 'DELETE',
+  }).then(parseJson<void>)
 
 export const runAutomation = (ruleId: number): Promise<AutomationRunResult> =>
   postJson<AutomationRunResult>(`${endpointUrls.automationRunner}/run/${ruleId}`)

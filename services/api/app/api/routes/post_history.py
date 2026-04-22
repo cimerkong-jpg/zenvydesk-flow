@@ -30,5 +30,5 @@ def create_post_history(history: PostHistoryCreate, db: Session = Depends(get_db
 @router.get("/", response_model=List[PostHistoryResponse])
 def get_post_history(db: Session = Depends(get_db)):
     """Get all post history"""
-    history = db.query(PostHistory).all()
+    history = db.query(PostHistory).order_by(PostHistory.posted_at.desc()).all()
     return history

@@ -97,7 +97,7 @@ class PostingService:
                 draft_id=draft_id,
                 content=draft.content,
                 media_url=draft.media_url,
-                post_status="posted",
+                post_status="success",
                 error_message=None
             )
             self.db.add(post_history)

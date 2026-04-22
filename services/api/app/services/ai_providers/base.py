@@ -9,7 +9,14 @@ from .types import AIGenerationResult
 class BaseAIProvider:
     """Base class for AI content generation providers"""
     
-    def generate_post_content(self, content_type: str, product_name: str, model: str) -> AIGenerationResult:
+    def generate_post_content(
+        self,
+        content_type: str,
+        product_name: str,
+        model: str,
+        prompt: str = None,
+        template_used: str = None,
+    ) -> AIGenerationResult:
         """
         Generate post content using AI
         

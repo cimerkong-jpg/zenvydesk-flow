@@ -6,7 +6,7 @@ from typing import Optional
 class DraftBase(BaseModel):
     content: str
     media_url: Optional[str] = None
-    page_id: int
+    page_id: Optional[int] = None
     product_id: Optional[int] = None
     content_library_id: Optional[int] = None
     scheduled_time: Optional[datetime] = None

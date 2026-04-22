@@ -2,6 +2,27 @@
 
 This note is the short operational handoff for the backend AI stack in `services/api`.
 
+## Project Structure Important
+
+Frontend staging app to modify:
+- `apps/web`
+
+Backend to modify:
+- `services/api`
+
+Rules:
+- All UI changes must be done in `apps/web/src/`
+- All API/backend changes must be done in `services/api/app/`
+- Do not create new frontend outside `apps/web`
+- Do not create duplicate apps
+- Do not move project structure
+
+Frontend entry points:
+- Main frontend app: `apps/web/src/main.tsx`
+- Main pages folder: `apps/web/src/pages/`
+- Current Draft UI page: `apps/web/src/pages/DraftsPage.tsx`
+- Modify `apps/web/src/pages/DraftsPage.tsx` when working on Draft UI
+
 ## Current Provider Stack
 
 ### `mock`

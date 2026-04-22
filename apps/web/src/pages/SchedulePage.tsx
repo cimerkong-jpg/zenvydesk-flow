@@ -102,7 +102,7 @@ export function SchedulePage() {
                 toast.error(err instanceof Error ? err.message : String(err))
               }
             }}
-            disabled={row.status === 'posted'}
+            disabled={row.status === 'posted' || !selectedPage}
           >
             📤 Post now
           </button>

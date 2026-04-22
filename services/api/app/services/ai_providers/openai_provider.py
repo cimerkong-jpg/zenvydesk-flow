@@ -33,7 +33,14 @@ class OpenAIProvider(BaseAIProvider):
         self.api_key = api_key
         self.base_url = base_url or "https://api.openai.com/v1"
     
-    def generate_post_content(self, content_type: str, product_name: str, model: str) -> AIGenerationResult:
+    def generate_post_content(
+        self,
+        content_type: str,
+        product_name: str,
+        model: str,
+        prompt: str = None,
+        template_used: str = None,
+    ) -> AIGenerationResult:
         """
         Generate post content using OpenAI API
         
@@ -46,8 +53,11 @@ class OpenAIProvider(BaseAIProvider):
             AIGenerationResult with generated content or error
         """
         try:
-            # Construct prompt
-            prompt = f"Create a {content_type} social media post for the product: {product_name}. Make it engaging and concise."
+            # Use provided compiled prompt or construct a basic fallback prompt.
+            prompt = prompt or (
+                f"Create a {content_type} social media post for the product: {product_name}. "
+                "Make it engaging and concise."
+            )
             
             # Prepare request
             url = f"{self.base_url}/chat/completions"

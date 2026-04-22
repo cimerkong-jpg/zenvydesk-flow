@@ -3,7 +3,7 @@ Facebook OAuth Lite Routes
 Minimal implementation for login and callback
 """
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 from urllib.parse import urlencode
@@ -16,7 +16,7 @@ from app.core.config import settings
 
 
 def _frontend_redirect(**params: str) -> RedirectResponse:
-    base = settings.frontend_base_url.rstrip("/")
+    base = settings.resolved_frontend_base_url.rstrip("/")
     query = urlencode({k: v for k, v in params.items() if v is not None})
     return RedirectResponse(url=f"{base}/?{query}")
 
@@ -31,10 +31,7 @@ async def facebook_login():
     Redirects user to Facebook OAuth dialog
     """
     if not settings.facebook_app_id or not settings.facebook_redirect_uri:
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "error": "Facebook OAuth config is missing"}
-        )
+        return _frontend_redirect(fb_error="missing_oauth_config")
 
     oauth = FacebookOAuthLite()
     login_url = oauth.get_login_url()
@@ -49,11 +46,7 @@ async def facebook_callback(
     db: Session = Depends(get_db)
 ):
     """
-    Handle Facebook OAuth callback
-    Exchange code for token, fetch pages, save first page to DB
-    
-    Returns:
-        JSON response with success status and pages_saved count
+    Handle Facebook OAuth callback and save all returned managed pages.
     """
     # Handle OAuth error
     if error:
@@ -84,36 +77,59 @@ async def facebook_callback(
             db.add(user)
             db.commit()
         
-        # Save first page to database
-        first_page = pages[0]
-        page_id = first_page.get("id")
-        page_name = first_page.get("name")
-        page_access_token = first_page.get("access_token")
-        
-        # Check if page already exists
-        existing_page = db.query(FacebookPage).filter(
-            FacebookPage.page_id == page_id
-        ).first()
-        
-        if existing_page:
-            # Update existing page
-            existing_page.page_name = page_name
-            existing_page.access_token = page_access_token
-            existing_page.is_active = True
-        else:
-            # Create new page
-            new_page = FacebookPage(
-                user_id=1,
-                page_id=page_id,
-                page_name=page_name,
-                access_token=page_access_token,
-                is_active=True
-            )
-            db.add(new_page)
-        
+        saved_page_ids = set()
+        selected_page = (
+            db.query(FacebookPage)
+            .filter(FacebookPage.user_id == 1, FacebookPage.is_selected.is_(True))
+            .first()
+        )
+
+        for page in pages:
+            page_id = page.get("id")
+            if not page_id:
+                continue
+
+            saved_page_ids.add(page_id)
+            existing_page = db.query(FacebookPage).filter(
+                FacebookPage.page_id == page_id
+            ).first()
+
+            if existing_page:
+                existing_page.page_name = page.get("name") or existing_page.page_name
+                existing_page.access_token = page.get("access_token")
+                existing_page.is_active = True
+            else:
+                existing_page = FacebookPage(
+                    user_id=1,
+                    page_id=page_id,
+                    page_name=page.get("name") or page_id,
+                    access_token=page.get("access_token"),
+                    is_active=True,
+                    is_selected=False,
+                )
+                db.add(existing_page)
+
+        db.flush()
+
+        existing_pages = db.query(FacebookPage).filter(FacebookPage.user_id == 1).all()
+        for existing_page in existing_pages:
+            if existing_page.page_id not in saved_page_ids:
+                existing_page.is_active = False
+                existing_page.is_selected = False
+
+        active_pages = [
+            page for page in existing_pages if page.page_id in saved_page_ids
+        ]
+        keep_selected = selected_page and selected_page.page_id in saved_page_ids
+        for page in active_pages:
+            page.is_selected = keep_selected and page.page_id == selected_page.page_id
+
+        if active_pages and not any(page.is_selected for page in active_pages):
+            active_pages[0].is_selected = True
+
         db.commit()
 
-        return _frontend_redirect(fb_connected="1", pages_saved="1")
+        return _frontend_redirect(fb_connected="1", pages_saved=str(len(saved_page_ids)))
 
     except Exception as e:
         return _frontend_redirect(fb_error=str(e))

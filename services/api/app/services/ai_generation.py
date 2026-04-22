@@ -24,7 +24,8 @@ def generate_post_content(
     target_audience: Optional[str] = None,
     cta: Optional[str] = None,
     provider: Optional[str] = None,
-    model: Optional[str] = None
+    model: Optional[str] = None,
+    prompt_override: Optional[str] = None,
 ) -> AIGenerationResult:
     """
     Generate post content using AI provider with prompt templates.
@@ -62,6 +63,8 @@ def generate_post_content(
         
         # Build final prompt from template
         final_prompt, template_used = PromptBuilder.build_prompt(content_type, context)
+        if prompt_override:
+            final_prompt = prompt_override
         
         logger.info(f"Built prompt using template '{template_used}' (requested: '{content_type}')")
         logger.debug(f"Final prompt length: {len(final_prompt)} characters")
@@ -69,7 +72,7 @@ def generate_post_content(
         # Get provider instance from registry
         ai_provider = get_ai_provider(
             provider_name=provider,
-            api_key=settings.ai_api_key,
+            api_key=settings.resolved_ai_api_key,
             base_url=settings.ai_base_url
         )
         
