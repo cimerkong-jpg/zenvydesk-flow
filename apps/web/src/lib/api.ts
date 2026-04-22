@@ -90,11 +90,27 @@ export type DraftGenerateInput = {
   tone?: string
   language?: string
   style?: string
+  ai_provider?: string | null
+  ai_model?: string | null
+  image_provider?: string | null
+  image_model?: string | null
 }
 
 export type DraftGenerateResponse = {
   content: string
   media_url: string | null
+}
+
+export type CreativeGenerateInput = DraftGenerateInput & {
+  generation_type: 'post' | 'image' | 'content'
+}
+
+export type CreativeGenerateResponse = DraftGenerateResponse & {
+  generation_type: 'post' | 'image' | 'content'
+  ai_provider: string
+  ai_model: string
+  image_provider: string
+  image_model: string
 }
 
 export type RuntimeSettings = {
@@ -301,6 +317,11 @@ export const generateDraft = (input: DraftGenerateInput): Promise<DraftGenerateR
 
 export const generateDraftImage = (input: DraftGenerateInput): Promise<DraftGenerateResponse> =>
   postJson<DraftGenerateResponse>(`${endpointUrls.drafts}/generate-image`, input)
+
+export const creativeGenerate = (
+  input: CreativeGenerateInput,
+): Promise<CreativeGenerateResponse> =>
+  postJson<CreativeGenerateResponse>(`${endpointUrls.creative}/generate`, input)
 
 /* ================================
    Post History

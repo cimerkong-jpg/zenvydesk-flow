@@ -27,6 +27,7 @@ export function Layout() {
   const NAV_CONTENT: NavItem[] = [
     { to: '/products', labelKey: 'nav.products', icon: '🛍️' },
     { to: '/content-library', labelKey: 'nav.contentLibrary', icon: '📚' },
+    { to: '/creative-ai', labelKey: 'nav.creativeAi', icon: '✨' },
   ]
 
   const NAV_AUTOMATION: NavItem[] = [

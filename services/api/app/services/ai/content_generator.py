@@ -18,6 +18,8 @@ def generate_content(
     content_library: ContentLibrary | None = None,
     tone: str = "marketing",
     language: str = "th",
+    provider: str | None = None,
+    model: str | None = None,
 ) -> GeneratedContent:
     prompt = build_prompt(
         product=product,
@@ -32,8 +34,8 @@ def generate_content(
         selling_points=[content_library.content] if content_library and content_library.content else None,
         tone=tone,
         target_audience="Thai market" if language.lower() == "th" else f"{language} market",
-        provider=settings.resolved_ai_provider,
-        model=settings.ai_model,
+        provider=provider or settings.resolved_ai_provider,
+        model=model or settings.ai_model,
         prompt_override=prompt,
     )
 

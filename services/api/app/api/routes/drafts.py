@@ -93,9 +93,15 @@ def generate_draft_content(payload: DraftGenerateRequest, db: Session = Depends(
         content_library=content_library,
         tone=payload.tone,
         language=payload.language,
+        provider=payload.ai_provider,
+        model=payload.ai_model,
     )
 
-    media_url = generate_image(generated_content.prompt)
+    media_url = generate_image(
+        generated_content.prompt,
+        provider_name=payload.image_provider,
+        model=payload.image_model,
+    )
     return DraftGenerateResponse(
         content=generated_content.content,
         media_url=media_url,
@@ -124,6 +130,8 @@ def generate_draft_image(payload: DraftGenerateRequest, db: Session = Depends(ge
         content_library=content_library,
         tone=payload.tone,
         language=payload.language,
+        provider=payload.ai_provider,
+        model=payload.ai_model,
     )
     media_prompt = "\n".join(
         [
@@ -134,5 +142,9 @@ def generate_draft_image(payload: DraftGenerateRequest, db: Session = Depends(ge
     )
     return DraftGenerateResponse(
         content=generated_content.content,
-        media_url=generate_image(media_prompt),
+        media_url=generate_image(
+            media_prompt,
+            provider_name=payload.image_provider,
+            model=payload.image_model,
+        ),
     )

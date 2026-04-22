@@ -6,6 +6,7 @@ import { SchedulePage } from './pages/SchedulePage'
 import { PostHistoryPage } from './pages/PostHistoryPage'
 import { ProductsPage } from './pages/ProductsPage'
 import { ContentLibraryPage } from './pages/ContentLibraryPage'
+import { CreativeWithAIPage } from './pages/CreativeWithAIPage'
 import { AutomationRulesPage } from './pages/AutomationRulesPage'
 import { ConnectionsPage } from './pages/ConnectionsPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -20,6 +21,7 @@ function App() {
         <Route path="post-history" element={<PostHistoryPage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="content-library" element={<ContentLibraryPage />} />
+        <Route path="creative-ai" element={<CreativeWithAIPage />} />
         <Route path="automation-rules" element={<AutomationRulesPage />} />
         <Route path="connections" element={<ConnectionsPage />} />
         <Route path="settings" element={<SettingsPage />} />

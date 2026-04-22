@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import health_router, products_router, content_library_router, drafts_router, post_history_router, posting_router, schedules_router, automation_rules_router, automation_runner_router, test_scheduled_posting_router, auth_facebook_lite_router, pages_router, settings_router
+from app.api.routes import health_router, products_router, content_library_router, drafts_router, post_history_router, posting_router, schedules_router, automation_rules_router, automation_runner_router, test_scheduled_posting_router, auth_facebook_lite_router, pages_router, settings_router, creative_router
 from app.core.database import ensure_automation_rules_columns, ensure_drafts_page_id_nullable, ensure_facebook_pages_selected_column
 
 app = FastAPI(title="ZenvyDesk API", version="0.1.0")
@@ -36,6 +36,7 @@ app.include_router(test_scheduled_posting_router)
 app.include_router(auth_facebook_lite_router)
 app.include_router(pages_router)
 app.include_router(settings_router, prefix="/api/v1/settings", tags=["settings"])
+app.include_router(creative_router, prefix="/api/v1/creative", tags=["creative"])
 
 
 @app.on_event("startup")

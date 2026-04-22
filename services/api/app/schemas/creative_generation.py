@@ -1,8 +1,10 @@
+from typing import Literal, Optional
+
 from pydantic import BaseModel
-from typing import Optional
 
 
-class DraftGenerateRequest(BaseModel):
+class CreativeGenerateRequest(BaseModel):
+    generation_type: Literal["post", "image", "content"] = "post"
     product_id: int
     content_library_id: Optional[int] = None
     tone: str = "marketing"
@@ -14,6 +16,11 @@ class DraftGenerateRequest(BaseModel):
     image_model: Optional[str] = None
 
 
-class DraftGenerateResponse(BaseModel):
+class CreativeGenerateResponse(BaseModel):
+    generation_type: Literal["post", "image", "content"]
     content: str
     media_url: Optional[str] = None
+    ai_provider: str
+    ai_model: str
+    image_provider: str
+    image_model: str

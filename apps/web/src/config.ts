@@ -18,4 +18,5 @@ export const endpointUrls = {
   automationRules: `${apiBaseUrl}/api/v1/automation-rules`,
   automationRunner: `${apiBaseUrl}/api/v1/automation-runner`,
   settingsRuntime: `${apiBaseUrl}/api/v1/settings/runtime`,
+  creative: `${apiBaseUrl}/api/v1/creative`,
 }
