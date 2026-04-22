@@ -187,6 +187,24 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 1px solid var(--sidebar-border);
 }
 
+.sidebar-user {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sidebar-user-name {
+  color: var(--sidebar-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sidebar-logout {
+  color: var(--sidebar-text);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -1357,6 +1375,24 @@ h1, h2, h3, h4, h5, h6 {
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
@@ -1880,6 +1916,44 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   gap: var(--space-3);
   flex-wrap: wrap;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.12), transparent 30%),
+    var(--surface-muted);
+}
+
+.login-card {
+  width: min(100%, 460px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-8);
+}
+
+.login-brand {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  align-items: flex-start;
+}
+
+.login-brand h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.login-brand p {
+  margin-top: var(--space-2);
+  color: var(--text-secondary);
 }
 
 /* ==========================================================================

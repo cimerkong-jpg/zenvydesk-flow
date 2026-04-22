@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { LoadingState } from './components/LoadingState'
+import { useAuth } from './context/AuthContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { DraftsPage } from './pages/DraftsPage'
 import { SchedulePage } from './pages/SchedulePage'
@@ -10,8 +12,19 @@ import { CreativeWithAIPage } from './pages/CreativeWithAIPage'
 import { AutomationRulesPage } from './pages/AutomationRulesPage'
 import { ConnectionsPage } from './pages/ConnectionsPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { LoginPage } from './pages/LoginPage'
 
-function App() {
+function ProtectedApp() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <LoadingState />
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <Routes>
       <Route element={<Layout />}>
@@ -27,6 +40,17 @@ function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+    </Routes>
+  )
+}
+
+function App() {
+  const { user } = useAuth()
+
+  return (
+    <Routes>
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+      <Route path="/*" element={<ProtectedApp />} />
     </Routes>
   )
 }

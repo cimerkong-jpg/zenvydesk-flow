@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fetchHealth } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
 import { LanguageSelector } from './LanguageSelector'
 
 type BackendStatus = 'loading' | 'ok' | 'down'
@@ -15,6 +16,7 @@ interface NavItem {
 
 export function Layout() {
   const { t } = useTranslation()
+  const { user, logout } = useAuth()
   const [status, setStatus] = useState<BackendStatus>('loading')
 
   const NAV_MAIN: NavItem[] = [
@@ -82,6 +84,12 @@ export function Layout() {
           <div className="logo">
             <div className="logo-icon">Z</div>
             <span>ZenvyDesk</span>
+          </div>
+          <div className="sidebar-user">
+            <div className="sidebar-user-name">{user?.username ?? 'guest'}</div>
+            <button className="btn btn-ghost btn-sm sidebar-logout" onClick={() => void logout()}>
+              Logout
+            </button>
           </div>
           <LanguageSelector />
         </div>

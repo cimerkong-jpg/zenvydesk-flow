@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { fetchPages, selectFacebookPage, type PageResponse } from '../lib/api'
+import { useAuth } from './AuthContext'
 
 const SELECTED_PAGE_KEY = 'zenvydesk_selected_page'
 
@@ -15,6 +16,7 @@ type SelectedPageContextValue = {
 const SelectedPageContext = createContext<SelectedPageContextValue | null>(null)
 
 export function SelectedPageProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
   const [pages, setPages] = useState<PageResponse[]>([])
   const [selectedPage, setSelectedPageState] = useState<PageResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,8 +58,18 @@ export function SelectedPageProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (authLoading) {
+      return
+    }
+    if (!user) {
+      setPages([])
+      setSelectedPageState(null)
+      setLoading(false)
+      setError(null)
+      return
+    }
     void syncPages()
-  }, [])
+  }, [authLoading, user])
 
   const setSelectedPage = async (page: PageResponse) => {
     const persisted = await selectFacebookPage(page.page_id)

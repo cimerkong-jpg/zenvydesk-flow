@@ -27,6 +27,19 @@ export type PageResponse = {
   connection_status: string
 }
 
+export type AuthUser = {
+  id: number
+  username: string
+  email: string
+  name: string | null
+}
+
+export type LoginResponse = {
+  token: string
+  expires_at: string | null
+  user: AuthUser
+}
+
 export type Product = {
   id: number
   user_id: number
@@ -215,14 +228,53 @@ const parseJson = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>
 }
 
-const get = <T>(url: string): Promise<T> => fetch(url).then(parseJson<T>)
+const AUTH_TOKEN_KEY = 'zenvydesk_auth_token'
+
+export const getStoredAuthToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY)
+
+export const setStoredAuthToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token)
+  } else {
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+  }
+}
+
+const authHeaders = (headers?: HeadersInit): HeadersInit => {
+  const token = getStoredAuthToken()
+  if (!token) {
+    return headers ?? {}
+  }
+  return {
+    ...(headers ?? {}),
+    Authorization: `Bearer ${token}`,
+  }
+}
+
+const get = <T>(url: string): Promise<T> =>
+  fetch(url, { headers: authHeaders() }).then(parseJson<T>)
 
 const postJson = <T>(url: string, body?: unknown): Promise<T> =>
   fetch(url, {
     method: 'POST',
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    headers:
+      body === undefined
+        ? authHeaders()
+        : authHeaders({ 'Content-Type': 'application/json' }),
     body: body === undefined ? undefined : JSON.stringify(body),
   }).then(parseJson<T>)
+
+/* ================================
+   Auth
+   ================================ */
+
+export const login = (username: string, password: string): Promise<LoginResponse> =>
+  postJson<LoginResponse>(endpointUrls.authLogin, { username, password })
+
+export const fetchCurrentUser = (): Promise<AuthUser> => get<AuthUser>(endpointUrls.authMe)
+
+export const logout = (): Promise<{ message: string }> =>
+  postJson<{ message: string }>(endpointUrls.authLogout)
 
 /* ================================
    Health
@@ -260,13 +312,14 @@ export const createProduct = (input: ProductInput): Promise<Product> =>
 export const updateProduct = (id: number, input: ProductInput): Promise<Product> =>
   fetch(`${endpointUrls.products}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(input),
   }).then(parseJson<Product>)
 
 export const deleteProduct = (id: number): Promise<void> =>
   fetch(`${endpointUrls.products}/${id}`, {
     method: 'DELETE',
+    headers: authHeaders(),
   }).then(parseJson<void>)
 
 /* ================================
@@ -286,13 +339,14 @@ export const updateContentLibraryItem = (
 ): Promise<ContentLibraryItem> =>
   fetch(`${endpointUrls.contentLibrary}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(input),
   }).then(parseJson<ContentLibraryItem>)
 
 export const deleteContentLibraryItem = (id: number): Promise<void> =>
   fetch(`${endpointUrls.contentLibrary}/${id}`, {
     method: 'DELETE',
+    headers: authHeaders(),
   }).then(parseJson<void>)
 
 /* ================================
@@ -307,13 +361,14 @@ export const createDraft = (input: DraftInput): Promise<Draft> =>
 export const updateDraft = (id: number, input: DraftInput): Promise<Draft> =>
   fetch(`${endpointUrls.drafts}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(input),
   }).then(parseJson<Draft>)
 
 export const deleteDraft = (id: number): Promise<void> =>
   fetch(`${endpointUrls.drafts}/${id}`, {
     method: 'DELETE',
+    headers: authHeaders(),
   }).then(parseJson<void>)
 
 export const generateDraft = (input: DraftGenerateInput): Promise<DraftGenerateResponse> =>
@@ -369,13 +424,14 @@ export const updateAutomationRule = (
 ): Promise<AutomationRule> =>
   fetch(`${endpointUrls.automationRules}/${ruleId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(input),
   }).then(parseJson<AutomationRule>)
 
 export const deleteAutomationRule = (ruleId: number): Promise<void> =>
   fetch(`${endpointUrls.automationRules}/${ruleId}`, {
     method: 'DELETE',
+    headers: authHeaders(),
   }).then(parseJson<void>)
 
 export const runAutomation = (ruleId: number): Promise<AutomationRunResult> =>

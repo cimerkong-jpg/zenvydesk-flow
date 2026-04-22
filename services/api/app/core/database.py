@@ -1,3 +1,5 @@
+import hashlib
+
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -16,6 +18,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create Base class for models
 Base = declarative_base()
+
+
+def _hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 
 def ensure_drafts_page_id_nullable() -> None:
@@ -103,6 +109,73 @@ def ensure_automation_rules_columns() -> None:
         for name, ddl in additions.items():
             if name not in columns:
                 connection.execute(text(ddl))
+
+
+def ensure_user_auth_columns() -> None:
+    """Add auth-related columns to legacy users table when missing."""
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("users")}
+    additions = {
+        "username": "ALTER TABLE users ADD COLUMN username VARCHAR",
+        "password_hash": "ALTER TABLE users ADD COLUMN password_hash VARCHAR",
+        "session_token": "ALTER TABLE users ADD COLUMN session_token VARCHAR",
+        "session_expires_at": "ALTER TABLE users ADD COLUMN session_expires_at DATETIME",
+    }
+
+    with engine.begin() as connection:
+        for name, ddl in additions.items():
+            if name not in columns:
+                connection.execute(text(ddl))
+
+
+def ensure_demo_user() -> None:
+    """Seed the default demo user for login."""
+    with engine.begin() as connection:
+        existing = connection.execute(
+            text("SELECT id FROM users WHERE id = 1")
+        ).fetchone()
+
+        password_hash = _hash_password("123")
+
+        if not existing:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO users (id, username, email, name, password_hash, created_at)
+                    VALUES (:id, :username, :email, :name, :password_hash, CURRENT_TIMESTAMP)
+                    """
+                ),
+                {
+                    "id": 1,
+                    "username": "demo",
+                    "email": "demo@zenvydesk.com",
+                    "name": "Demo User",
+                    "password_hash": password_hash,
+                },
+            )
+            return
+
+        connection.execute(
+            text(
+                """
+                UPDATE users
+                SET username = COALESCE(username, :username),
+                    email = COALESCE(email, :email),
+                    name = COALESCE(name, :name),
+                    password_hash = COALESCE(password_hash, :password_hash)
+                WHERE id = 1
+                """
+            ),
+            {
+                "username": "demo",
+                "email": "demo@zenvydesk.com",
+                "name": "Demo User",
+                "password_hash": password_hash,
+            },
+        )
 
 
 def get_db():
