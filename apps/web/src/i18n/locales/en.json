@@ -1,0 +1,112 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "drafts": "Drafts",
+    "schedule": "Schedule",
+    "postHistory": "Post History",
+    "products": "Products",
+    "contentLibrary": "Content Library",
+    "automationRules": "Automation Rules",
+    "connections": "Connections",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to ZenvyDesk",
+    "totalDrafts": "Total Drafts",
+    "scheduledPosts": "Scheduled Posts",
+    "postedToday": "Posted Today",
+    "activeRules": "Active Rules"
+  },
+  "drafts": {
+    "title": "Drafts",
+    "createNew": "Create New Draft",
+    "noDrafts": "No drafts yet",
+    "selectProduct": "Select Product",
+    "selectTemplate": "Select Template",
+    "generateContent": "Generate Content",
+    "content": "Content",
+    "status": "Status",
+    "actions": "Actions",
+    "postNow": "Post Now",
+    "schedulePost": "Schedule Post"
+  },
+  "schedule": {
+    "title": "Schedule",
+    "noScheduled": "No scheduled posts",
+    "scheduledTime": "Scheduled Time",
+    "page": "Page",
+    "cancelSchedule": "Cancel Schedule"
+  },
+  "postHistory": {
+    "title": "Post History",
+    "noHistory": "No post history",
+    "postedAt": "Posted At",
+    "status": "Status",
+    "viewPost": "View Post"
+  },
+  "products": {
+    "title": "Products",
+    "createNew": "Create New Product",
+    "noProducts": "No products yet",
+    "name": "Name",
+    "description": "Description",
+    "price": "Price"
+  },
+  "contentLibrary": {
+    "title": "Content Library",
+    "createNew": "Create New Template",
+    "noTemplates": "No templates yet",
+    "templateName": "Template Name",
+    "category": "Category"
+  },
+  "automationRules": {
+    "title": "Automation Rules",
+    "createNew": "Create New Rule",
+    "noRules": "No automation rules yet",
+    "ruleName": "Rule Name",
+    "frequency": "Frequency",
+    "active": "Active",
+    "inactive": "Inactive",
+    "runNow": "Run Now"
+  },
+  "connections": {
+    "title": "Connections",
+    "facebookPages": "Facebook Pages",
+    "noPages": "No pages connected",
+    "connectFacebook": "Connect Facebook",
+    "reconnect": "Reconnect",
+    "selectPage": "Select Page",
+    "activePage": "Active Page"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "aiProvider": "AI Provider",
+    "aiModel": "AI Model",
+    "general": "General",
+    "account": "Account"
+  },
+  "language": {
+    "english": "English",
+    "vietnamese": "Tiếng Việt"
+  }
+}

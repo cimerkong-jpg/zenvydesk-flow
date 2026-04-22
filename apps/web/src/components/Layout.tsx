@@ -1,32 +1,42 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { fetchHealth } from '../lib/api'
+import { LanguageSelector } from './LanguageSelector'
 
 type BackendStatus = 'loading' | 'ok' | 'down'
 
-const NAV_MAIN = [
-  { to: '/', label: 'Dashboard', icon: '📊', end: true },
-  { to: '/drafts', label: 'Drafts', icon: '📝' },
-  { to: '/schedule', label: 'Schedule', icon: '📅' },
-  { to: '/post-history', label: 'Post History', icon: '📜' },
-]
-
-const NAV_CONTENT = [
-  { to: '/products', label: 'Products', icon: '🛍️' },
-  { to: '/content-library', label: 'Content Library', icon: '📚' },
-]
-
-const NAV_AUTOMATION = [
-  { to: '/automation-rules', label: 'Automation Rules', icon: '⚙️' },
-]
-
-const NAV_SETTINGS = [
-  { to: '/connections', label: 'Connections', icon: '🔗' },
-  { to: '/settings', label: 'Settings', icon: '🧰' },
-]
+interface NavItem {
+  to: string
+  labelKey: string
+  icon: string
+  end?: boolean
+}
 
 export function Layout() {
+  const { t } = useTranslation()
   const [status, setStatus] = useState<BackendStatus>('loading')
+
+  const NAV_MAIN: NavItem[] = [
+    { to: '/', labelKey: 'nav.dashboard', icon: '📊', end: true },
+    { to: '/drafts', labelKey: 'nav.drafts', icon: '📝' },
+    { to: '/schedule', labelKey: 'nav.schedule', icon: '📅' },
+    { to: '/post-history', labelKey: 'nav.postHistory', icon: '📜' },
+  ]
+
+  const NAV_CONTENT: NavItem[] = [
+    { to: '/products', labelKey: 'nav.products', icon: '🛍️' },
+    { to: '/content-library', labelKey: 'nav.contentLibrary', icon: '📚' },
+  ]
+
+  const NAV_AUTOMATION: NavItem[] = [
+    { to: '/automation-rules', labelKey: 'nav.automationRules', icon: '⚙️' },
+  ]
+
+  const NAV_SETTINGS: NavItem[] = [
+    { to: '/connections', labelKey: 'nav.connections', icon: '🔗' },
+    { to: '/settings', labelKey: 'nav.settings', icon: '🧰' },
+  ]
 
   useEffect(() => {
     let cancelled = false
@@ -47,7 +57,7 @@ export function Layout() {
     }
   }, [])
 
-  const renderNavGroup = (title: string, items: typeof NAV_MAIN) => (
+  const renderNavGroup = (title: string, items: NavItem[]) => (
     <div className="nav-section">
       <div className="nav-section-title">{title}</div>
       {items.map((item) => (
@@ -58,7 +68,7 @@ export function Layout() {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
         >
           <span>{item.icon}</span>
-          <span>{item.label}</span>
+          <span>{t(item.labelKey)}</span>
         </NavLink>
       ))}
     </div>
@@ -72,6 +82,7 @@ export function Layout() {
             <div className="logo-icon">Z</div>
             <span>ZenvyDesk</span>
           </div>
+          <LanguageSelector />
         </div>
 
         <nav className="sidebar-nav">
@@ -85,7 +96,7 @@ export function Layout() {
           <div className={`backend-status backend-status-${status}`}>
             <span className={`status-dot status-dot-${status === 'ok' ? 'success' : 'error'}`} />
             <span className="backend-status-text">
-              {status === 'loading' && 'Checking backend…'}
+              {status === 'loading' && t('common.loading')}
               {status === 'ok' && 'Backend online'}
               {status === 'down' && 'Backend offline'}
             </span>

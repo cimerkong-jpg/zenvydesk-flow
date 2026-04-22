@@ -1,0 +1,112 @@
+{
+  "nav": {
+    "dashboard": "Tổng quan",
+    "drafts": "Bản nháp",
+    "schedule": "Lịch đăng",
+    "postHistory": "Lịch sử đăng",
+    "products": "Sản phẩm",
+    "contentLibrary": "Thư viện nội dung",
+    "automationRules": "Quy tắc tự động",
+    "connections": "Kết nối",
+    "settings": "Cài đặt"
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu",
+    "error": "Đã xảy ra lỗi",
+    "success": "Thành công",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "submit": "Gửi",
+    "close": "Đóng"
+  },
+  "dashboard": {
+    "title": "Tổng quan",
+    "welcome": "Chào mừng đến với ZenvyDesk",
+    "totalDrafts": "Tổng bản nháp",
+    "scheduledPosts": "Bài đã lên lịch",
+    "postedToday": "Đã đăng hôm nay",
+    "activeRules": "Quy tắc đang hoạt động"
+  },
+  "drafts": {
+    "title": "Bản nháp",
+    "createNew": "Tạo bản nháp mới",
+    "noDrafts": "Chưa có bản nháp nào",
+    "selectProduct": "Chọn sản phẩm",
+    "selectTemplate": "Chọn mẫu",
+    "generateContent": "Tạo nội dung",
+    "content": "Nội dung",
+    "status": "Trạng thái",
+    "actions": "Thao tác",
+    "postNow": "Đăng ngay",
+    "schedulePost": "Lên lịch đăng"
+  },
+  "schedule": {
+    "title": "Lịch đăng",
+    "noScheduled": "Không có bài đã lên lịch",
+    "scheduledTime": "Thời gian đăng",
+    "page": "Trang",
+    "cancelSchedule": "Hủy lịch"
+  },
+  "postHistory": {
+    "title": "Lịch sử đăng",
+    "noHistory": "Chưa có lịch sử",
+    "postedAt": "Đã đăng lúc",
+    "status": "Trạng thái",
+    "viewPost": "Xem bài đăng"
+  },
+  "products": {
+    "title": "Sản phẩm",
+    "createNew": "Tạo sản phẩm mới",
+    "noProducts": "Chưa có sản phẩm nào",
+    "name": "Tên",
+    "description": "Mô tả",
+    "price": "Giá"
+  },
+  "contentLibrary": {
+    "title": "Thư viện nội dung",
+    "createNew": "Tạo mẫu mới",
+    "noTemplates": "Chưa có mẫu nào",
+    "templateName": "Tên mẫu",
+    "category": "Danh mục"
+  },
+  "automationRules": {
+    "title": "Quy tắc tự động",
+    "createNew": "Tạo quy tắc mới",
+    "noRules": "Chưa có quy tắc nào",
+    "ruleName": "Tên quy tắc",
+    "frequency": "Tần suất",
+    "active": "Đang hoạt động",
+    "inactive": "Không hoạt động",
+    "runNow": "Chạy ngay"
+  },
+  "connections": {
+    "title": "Kết nối",
+    "facebookPages": "Trang Facebook",
+    "noPages": "Chưa kết nối trang nào",
+    "connectFacebook": "Kết nối Facebook",
+    "reconnect": "Kết nối lại",
+    "selectPage": "Chọn trang",
+    "activePage": "Trang đang dùng"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "language": "Ngôn ngữ",
+    "aiProvider": "Nhà cung cấp AI",
+    "aiModel": "Mô hình AI",
+    "general": "Chung",
+    "account": "Tài khoản"
+  },
+  "language": {
+    "english": "English",
+    "vietnamese": "Tiếng Việt"
+  }
+}
