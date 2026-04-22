@@ -30,3 +30,34 @@ def get_products(db: Session = Depends(get_db)):
     """Get all products"""
     products = db.query(Product).all()
     return products
+
+
+@router.put("/{product_id}", response_model=ProductResponse)
+def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
+    """Update a product"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    db_product.name = product.name
+    db_product.description = product.description
+    db_product.price = product.price
+    db_product.image_url = product.image_url
+    
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+
+@router.delete("/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    """Delete a product"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    db.delete(db_product)
+    db.commit()
+    return {"message": "Product deleted successfully"}

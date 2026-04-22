@@ -190,6 +190,18 @@ export const fetchProducts = (): Promise<Product[]> => get<Product[]>(endpointUr
 export const createProduct = (input: ProductInput): Promise<Product> =>
   postJson<Product>(endpointUrls.products, input)
 
+export const updateProduct = (id: number, input: ProductInput): Promise<Product> =>
+  fetch(`${endpointUrls.products}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(parseJson<Product>)
+
+export const deleteProduct = (id: number): Promise<void> =>
+  fetch(`${endpointUrls.products}/${id}`, {
+    method: 'DELETE',
+  }).then(parseJson<void>)
+
 /* ================================
    Content Library
    ================================ */

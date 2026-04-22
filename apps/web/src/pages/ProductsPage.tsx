@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createProduct, fetchProducts, type Product } from '../lib/api'
+import { createProduct, updateProduct, deleteProduct, fetchProducts, type Product } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { useAsync } from '../hooks/useAsync'
 import { Modal } from '../components/Modal'
@@ -14,6 +14,8 @@ export function ProductsPage() {
   const toast = useToast()
   const products = useAsync(fetchProducts, [])
   const [showCreate, setShowCreate] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
 
   const columns: Column<Product>[] = [
     {
@@ -61,6 +63,27 @@ export function ProductsPage() {
       width: '140px',
       render: (row) => formatRelative(row.created_at),
     },
+    {
+      key: 'actions',
+      header: '',
+      width: '180px',
+      render: (row) => (
+        <div className="row-actions">
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setEditingProduct(row)}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-ghost btn-sm text-danger"
+            onClick={() => setDeletingProduct(row)}
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -105,36 +128,78 @@ export function ProductsPage() {
         </div>
       )}
 
-      <CreateProductModal
+      <ProductFormModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={() => {
+        onSuccess={() => {
           setShowCreate(false)
           products.refresh()
           toast.success('Product created')
         }}
         onError={(msg) => toast.error(msg)}
       />
+
+      <ProductFormModal
+        open={!!editingProduct}
+        product={editingProduct}
+        onClose={() => setEditingProduct(null)}
+        onSuccess={() => {
+          setEditingProduct(null)
+          products.refresh()
+          toast.success('Product updated')
+        }}
+        onError={(msg) => toast.error(msg)}
+      />
+
+      <DeleteConfirmModal
+        open={!!deletingProduct}
+        productName={deletingProduct?.name ?? ''}
+        onClose={() => setDeletingProduct(null)}
+        onConfirm={async () => {
+          if (!deletingProduct) return
+          try {
+            await deleteProduct(deletingProduct.id)
+            setDeletingProduct(null)
+            products.refresh()
+            toast.success('Product deleted')
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : String(err))
+          }
+        }}
+      />
     </div>
   )
 }
 
-function CreateProductModal({
+function ProductFormModal({
   open,
+  product,
   onClose,
-  onCreated,
+  onSuccess,
   onError,
 }: {
   open: boolean
+  product?: Product | null
   onClose: () => void
-  onCreated: () => void
+  onSuccess: () => void
   onError: (msg: string) => void
 }) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const isEdit = !!product
+  const [name, setName] = useState(product?.name ?? '')
+  const [description, setDescription] = useState(product?.description ?? '')
+  const [price, setPrice] = useState(product?.price ?? '')
+  const [imageUrl, setImageUrl] = useState(product?.image_url ?? '')
   const [submitting, setSubmitting] = useState(false)
+
+  // Update form when product changes
+  useState(() => {
+    if (product) {
+      setName(product.name)
+      setDescription(product.description ?? '')
+      setPrice(product.price ?? '')
+      setImageUrl(product.image_url ?? '')
+    }
+  })
 
   const reset = () => {
     setName('')
@@ -150,14 +215,21 @@ function CreateProductModal({
     }
     setSubmitting(true)
     try {
-      await createProduct({
+      const input = {
         name: name.trim(),
         description: description.trim() || null,
         price: price.trim() || null,
         image_url: imageUrl.trim() || null,
-      })
+      }
+      
+      if (isEdit && product) {
+        await updateProduct(product.id, input)
+      } else {
+        await createProduct(input)
+      }
+      
       reset()
-      onCreated()
+      onSuccess()
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -168,8 +240,8 @@ function CreateProductModal({
   return (
     <Modal
       open={open}
-      title="New Product"
-      description="Add a product to your catalog."
+      title={isEdit ? 'Edit Product' : 'New Product'}
+      description={isEdit ? 'Update product details.' : 'Add a product to your catalog.'}
       size="lg"
       onClose={() => {
         reset()
@@ -194,7 +266,7 @@ function CreateProductModal({
             onClick={handleSubmit}
             disabled={submitting || !name.trim()}
           >
-            {submitting ? 'Creating…' : 'Create Product'}
+            {submitting ? (isEdit ? 'Updating…' : 'Creating…') : (isEdit ? 'Update Product' : 'Create Product')}
           </button>
         </>
       }
@@ -230,6 +302,63 @@ function CreateProductModal({
           placeholder="https://…"
         />
       </div>
+    </Modal>
+  )
+}
+
+function DeleteConfirmModal({
+  open,
+  productName,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean
+  productName: string
+  onClose: () => void
+  onConfirm: () => Promise<void>
+}) {
+  const [deleting, setDeleting] = useState(false)
+
+  const handleConfirm = async () => {
+    setDeleting(true)
+    try {
+      await onConfirm()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      title="Delete Product"
+      description="This action cannot be undone."
+      size="sm"
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={onClose}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={handleConfirm}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete Product'}
+          </button>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to delete <strong>{productName}</strong>?
+      </p>
     </Modal>
   )
 }
