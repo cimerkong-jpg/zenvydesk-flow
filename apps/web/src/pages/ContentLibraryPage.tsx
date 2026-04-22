@@ -236,6 +236,16 @@ function ContentFormModal({
     }
   }
 
+  // Dynamic field configuration based on content_type
+  const isMediaType = contentType === 'image' || contentType === 'video'
+  const contentLabel = contentType === 'image' ? 'Image URL' : contentType === 'video' ? 'Video URL' : 'Content'
+  const contentPlaceholder = contentType === 'image' 
+    ? 'https://example.com/image.jpg' 
+    : contentType === 'video' 
+    ? 'https://youtube.com/watch?v=...' 
+    : 'The content body'
+  const contentHint = isMediaType ? 'Enter the full URL to the media file' : undefined
+
   return (
     <Modal
       open={open}
@@ -272,26 +282,11 @@ function ContentFormModal({
     >
       <div className="form-stack">
         <FormField
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Optional title"
-        />
-        <FormField
-          label="Content"
-          as="textarea"
-          required
-          rows={6}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="The content body"
-        />
-        <FormField
           label="Content type"
           as="select"
           value={contentType}
           onChange={(e) => setContentType(e.target.value)}
-          hint="Optional label for grouping."
+          hint="Select type first - form fields will adapt accordingly."
         >
           <option value="">(none)</option>
           <option value="text">text</option>
@@ -300,6 +295,24 @@ function ContentFormModal({
           <option value="template">template</option>
           <option value="snippet">snippet</option>
         </FormField>
+
+        <FormField
+          label="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Optional title"
+        />
+
+        <FormField
+          label={contentLabel}
+          as={isMediaType ? 'input' : 'textarea'}
+          required
+          rows={isMediaType ? undefined : 6}
+          value={content}
+          onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContent(e.target.value)}
+          placeholder={contentPlaceholder}
+          hint={contentHint}
+        />
       </div>
     </Modal>
   )
