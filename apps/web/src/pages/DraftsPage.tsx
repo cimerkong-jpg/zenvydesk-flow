@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import {
   createDraft,
+  updateDraft,
+  deleteDraft,
   fetchDrafts,
   fetchProducts,
+  fetchContentLibrary,
   postFromDraft,
   scheduleDraft,
   type Draft,
   type Product,
+  type ContentLibraryItem,
 } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
 import { useAsync } from '../hooks/useAsync'
@@ -33,6 +37,8 @@ export function DraftsPage() {
   const products = useAsync(fetchProducts, [])
 
   const [showCreate, setShowCreate] = useState(false)
+  const [editingDraft, setEditingDraft] = useState<Draft | null>(null)
+  const [deletingDraft, setDeletingDraft] = useState<Draft | null>(null)
   const [scheduleFor, setScheduleFor] = useState<Draft | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -88,10 +94,20 @@ export function DraftsPage() {
     {
       key: 'actions',
       header: '',
-      width: '260px',
+      width: '360px',
       align: 'right',
       render: (row) => (
         <div className="row-actions">
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditingDraft(row)
+            }}
+            disabled={row.status === 'posted'}
+          >
+            Edit
+          </button>
           <button
             className="btn btn-ghost btn-sm"
             onClick={(e) => {
@@ -117,6 +133,15 @@ export function DraftsPage() {
             disabled={row.status === 'posted'}
           >
             📤 Post
+          </button>
+          <button
+            className="btn btn-ghost btn-sm text-danger"
+            onClick={(e) => {
+              e.stopPropagation()
+              setDeletingDraft(row)
+            }}
+          >
+            Delete
           </button>
         </div>
       ),

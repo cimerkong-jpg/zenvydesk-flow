@@ -32,3 +32,35 @@ def get_drafts(db: Session = Depends(get_db)):
     """Get all drafts"""
     drafts = db.query(Draft).all()
     return drafts
+
+
+@router.put("/{draft_id}", response_model=DraftResponse)
+def update_draft(draft_id: int, draft: DraftCreate, db: Session = Depends(get_db)):
+    """Update draft"""
+    db_draft = db.query(Draft).filter(Draft.id == draft_id).first()
+    if not db_draft:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    db_draft.page_id = draft.page_id
+    db_draft.product_id = draft.product_id
+    db_draft.content = draft.content
+    db_draft.media_url = draft.media_url
+    db_draft.scheduled_time = draft.scheduled_time
+    
+    db.commit()
+    db.refresh(db_draft)
+    return db_draft
+
+
+@router.delete("/{draft_id}")
+def delete_draft(draft_id: int, db: Session = Depends(get_db)):
+    """Delete draft"""
+    db_draft = db.query(Draft).filter(Draft.id == draft_id).first()
+    if not db_draft:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    db.delete(db_draft)
+    db.commit()
+    return {"message": "Draft deleted successfully"}

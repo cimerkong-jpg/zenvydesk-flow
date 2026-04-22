@@ -237,6 +237,18 @@ export const fetchDrafts = (): Promise<Draft[]> => get<Draft[]>(endpointUrls.dra
 export const createDraft = (input: DraftInput): Promise<Draft> =>
   postJson<Draft>(endpointUrls.drafts, input)
 
+export const updateDraft = (id: number, input: DraftInput): Promise<Draft> =>
+  fetch(`${endpointUrls.drafts}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(parseJson<Draft>)
+
+export const deleteDraft = (id: number): Promise<void> =>
+  fetch(`${endpointUrls.drafts}/${id}`, {
+    method: 'DELETE',
+  }).then(parseJson<void>)
+
 /* ================================
    Post History
    ================================ */
