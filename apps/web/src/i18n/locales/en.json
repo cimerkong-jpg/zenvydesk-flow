@@ -627,15 +627,17 @@
   },
   "creativePage": {
     "title": "Creative with AI",
-    "description": "Generate a full post, image-only creative, or content-only copy with a complete preview.",
-    "setupTitle": "Creative setup",
+    "description": "Enter a request, let the backend shape it, and review the result in one preview.",
+    "setupTitle": "Content request",
     "previewTitle": "Preview",
     "actionsTitle": "Actions",
-    "generatePreview": "Generate preview",
-    "generatingPreview": "Generating preview...",
+    "generateContent": "Tạo nội dung",
+    "generatingContent": "Đang tạo nội dung...",
     "generationFailed": "Generation failed",
     "noPreviewTitle": "No preview yet",
-    "noPreviewDescription": "Choose a product, style, AI provider, and model to generate a complete creative preview.",
+    "noPreviewDescription": "Choose a product, add your request, and generate content.",
+    "loadingTitle": "Đang tạo nội dung...",
+    "loadingDescription": "The AI manager is preparing the output for preview.",
     "pageSelected": "Page: {{name}}",
     "noPageSelected": "No page selected",
     "scheduleTime": "Schedule time",
@@ -652,15 +654,11 @@
     "draftScheduled": "Scheduled draft #{{id}}",
     "draftPosted": "Posted draft #{{id}}",
     "productRequired": "Select a product before generating.",
+    "userPromptRequired": "Enter your request before generating.",
     "scheduleRequired": "Choose a time before scheduling.",
     "pageRequired": "Select a Facebook page before posting.",
     "previewRequiredForAction": "Generate a preview before performing this action.",
     "previewRequiredForPost": "Generate a preview before posting.",
-    "mode": {
-      "post": "Create Post",
-      "image": "Create Image",
-      "content": "Create Content"
-    },
     "form": {
       "product": "Product",
       "productPlaceholder": "Select product",
@@ -668,15 +666,14 @@
       "contentLibrary": "Content Library",
       "contentLibraryHint": "Optional context for AI.",
       "noLibrary": "Do not use",
-      "tone": "Tone",
-      "language": "Language",
-      "style": "Style",
-      "aiProvider": "AI provider",
-      "aiModel": "AI model"
+      "userPrompt": "Your request",
+      "userPromptPlaceholder": "Example: Write a sales post for this product with the goal of driving inbox messages"
     },
     "context": {
       "noDescription": "No description",
+      "market": "Market",
       "library": "Library",
+      "userPrompt": "Request",
       "generatedContent": "Generated content",
       "noImageGenerated": "No image generated"
     }

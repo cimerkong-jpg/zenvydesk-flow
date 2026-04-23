@@ -52,3 +52,6 @@ logs/
 .Python
 
 .worktrees/
+
+# Local SQLite database
+services/api/zenvydesk.db

@@ -40,56 +40,47 @@ def generate_creative(
     current_user: User = Depends(get_current_user),
 ):
     product, content_library = _load_context(db, payload, current_user)
-    ai_provider = payload.ai_provider or settings.resolved_ai_provider
-    ai_model = payload.ai_model or settings.ai_model
+    ai_provider = settings.resolved_ai_provider
+    ai_model = settings.ai_model
     image_provider = resolve_image_provider_name(
-        payload.image_provider,
+        None,
         preferred_ai_provider=ai_provider,
         db=db,
         user=current_user,
     )
-    image_model = resolve_image_model_name(image_provider, payload.image_model)
+    image_model = resolve_image_model_name(image_provider, None)
 
     generated = generate_content(
         product=product,
         content_library=content_library,
         market=payload.market or "TH",
-        tone=payload.tone,
-        language=payload.language,
+        user_prompt=payload.user_prompt,
         provider=ai_provider,
         model=ai_model,
-        base_url=payload.ai_base_url,
         db=db,
         user=current_user,
     )
     if not generated.success:
         raise HTTPException(status_code=400, detail=generated.error or "AI generation failed")
 
-    media_url = None
-    if payload.generation_type in {"post", "image"}:
-        image_prompt = "\n".join(
-            [
-                generated.prompt,
-                get_market_profile(payload.market).image_guidance,
-                f"Visual style: {payload.style or 'social ad creative'}",
-                f"Draft content context: {generated.content}",
-            ]
-        )
-        media_url = generate_image(
-            image_prompt,
-            provider_name=image_provider,
-            model=image_model,
-            base_url=payload.image_base_url,
-            db=db,
-            user=current_user,
-            preferred_ai_provider=ai_provider,
-        )
-
-    if payload.generation_type == "image":
-        generated.content = generated.content
+    image_prompt = "\n".join(
+        [
+            generated.prompt,
+            get_market_profile(payload.market).image_guidance,
+            "Visual style: social ad creative",
+            f"Draft content context: {generated.content}",
+        ]
+    )
+    media_url = generate_image(
+        image_prompt,
+        provider_name=image_provider,
+        model=image_model,
+        db=db,
+        user=current_user,
+        preferred_ai_provider=ai_provider,
+    )
 
     return CreativeGenerateResponse(
-        generation_type=payload.generation_type,
         content=generated.content,
         media_url=media_url,
         ai_provider=ai_provider,

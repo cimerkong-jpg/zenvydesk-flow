@@ -133,17 +133,19 @@ export type DraftGenerateInput = {
   image_base_url?: string | null
 }
 
+export type GenerateContentInput = {
+  product_id: number
+  content_library_id?: number | null
+  market?: MarketCode
+  user_prompt: string
+}
+
 export type DraftGenerateResponse = {
   content: string
   media_url: string | null
 }
 
-export type CreativeGenerateInput = DraftGenerateInput & {
-  generation_type: 'post' | 'image' | 'content'
-}
-
 export type CreativeGenerateResponse = DraftGenerateResponse & {
-  generation_type: 'post' | 'image' | 'content'
   ai_provider: string
   ai_model: string
   image_provider: string
@@ -515,8 +517,8 @@ export const generateDraft = (input: DraftGenerateInput): Promise<DraftGenerateR
 export const generateDraftImage = (input: DraftGenerateInput): Promise<DraftGenerateResponse> =>
   postJson<DraftGenerateResponse>(`${endpointUrls.drafts}/generate-image`, input)
 
-export const creativeGenerate = (
-  input: CreativeGenerateInput,
+export const generateContent = (
+  input: GenerateContentInput,
 ): Promise<CreativeGenerateResponse> =>
   postJson<CreativeGenerateResponse>(`${endpointUrls.creative}/generate`, input)
 

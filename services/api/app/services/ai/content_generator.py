@@ -26,6 +26,7 @@ def generate_content(
     market: str = "TH",
     tone: str = "marketing",
     language: str = "th",
+    user_prompt: str | None = None,
     provider: str | None = None,
     model: str | None = None,
     api_key: str | None = None,
@@ -42,6 +43,14 @@ def generate_content(
         tone=tone,
         language=resolved_language,
     )
+    if user_prompt and user_prompt.strip():
+        prompt = "\n".join(
+            [
+                prompt,
+                "User request:",
+                user_prompt.strip(),
+            ]
+        )
     result = generate_post_content(
         content_type=content_library.content_type if content_library and content_library.content_type else "general_post",
         product_name=product.name,
