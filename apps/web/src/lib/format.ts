@@ -1,7 +1,7 @@
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso ?? '—'
+  if (Number.isNaN(date.getTime())) return iso ?? '-'
   return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -12,9 +12,9 @@ export function formatDateTime(iso: string | null | undefined): string {
 }
 
 export function formatRelative(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso ?? '—'
+  if (Number.isNaN(date.getTime())) return iso ?? '-'
   const diffMs = date.getTime() - Date.now()
   const absMs = Math.abs(diffMs)
   const minutes = Math.round(absMs / 60_000)
@@ -31,7 +31,26 @@ export function formatRelative(iso: string | null | undefined): string {
 
 export function truncate(text: string, max = 140): string {
   if (text.length <= max) return text
-  return text.slice(0, max - 1).trimEnd() + '…'
+  return text.slice(0, max - 1).trimEnd() + '...'
+}
+
+export function formatMediaUrlDisplay(url: string | null | undefined, max = 60): string {
+  if (!url) return ''
+
+  if (url.startsWith('data:image/')) {
+    return 'AI-generated image'
+  }
+
+  if (url.startsWith('data:video/')) {
+    return 'Embedded video'
+  }
+
+  try {
+    const parsed = new URL(url)
+    return truncate(`${parsed.host}${parsed.pathname}`, max)
+  } catch {
+    return truncate(url, max)
+  }
 }
 
 export function toDateTimeLocalValue(iso: string | null | undefined): string {

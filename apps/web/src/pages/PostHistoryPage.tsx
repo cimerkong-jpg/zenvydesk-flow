@@ -6,7 +6,7 @@ import { LoadingState } from '../components/LoadingState'
 import { PageHeader } from '../components/PageHeader'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAsync } from '../hooks/useAsync'
-import { formatDateTime, formatRelative, truncate } from '../lib/format'
+import { formatDateTime, formatMediaUrlDisplay, formatRelative, truncate } from '../lib/format'
 import { fetchPostHistory, type PostHistory } from '../lib/api'
 
 type StatusFilter = 'all' | 'success' | 'error' | 'pending'
@@ -40,8 +40,8 @@ export function PostHistoryPage() {
         <div className="cell-primary">
           <div className="cell-title">{truncate(row.content, 140)}</div>
           {row.media_url ? (
-            <a className="cell-link" href={row.media_url} target="_blank" rel="noopener noreferrer">
-              {truncate(row.media_url, 60)}
+            <a className="cell-link" href={row.media_url} target="_blank" rel="noopener noreferrer" title={row.media_url}>
+              {formatMediaUrlDisplay(row.media_url)}
             </a>
           ) : null}
         </div>

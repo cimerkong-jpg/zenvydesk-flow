@@ -10,7 +10,7 @@ import { StatusBadge } from '../components/StatusBadge'
 import { useToast } from '../components/Toast'
 import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
-import { formatDateTime, formatRelative, fromDateTimeLocalValue, toDateTimeLocalValue, truncate } from '../lib/format'
+import { formatDateTime, formatMediaUrlDisplay, formatRelative, fromDateTimeLocalValue, toDateTimeLocalValue, truncate } from '../lib/format'
 import { loadAiPreferences } from '../lib/aiPreferences'
 import { MARKET_DEFAULT_LANGUAGE, MARKET_OPTIONS, type MarketCode } from '../lib/markets'
 import {
@@ -55,8 +55,8 @@ export function DraftsPage() {
         <div className="cell-primary">
           <div className="cell-title">{truncate(row.content, 120)}</div>
           {row.media_url ? (
-            <a className="cell-link" href={row.media_url} target="_blank" rel="noopener noreferrer">
-              {row.media_url}
+            <a className="cell-link" href={row.media_url} target="_blank" rel="noopener noreferrer" title={row.media_url}>
+              {formatMediaUrlDisplay(row.media_url)}
             </a>
           ) : null}
         </div>
