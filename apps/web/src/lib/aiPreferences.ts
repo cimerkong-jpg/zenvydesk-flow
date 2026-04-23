@@ -1,36 +1,31 @@
-export type ContentProvider = 'openai' | 'gemini' | 'claude' | 'grok'
-export type ImageProvider = 'openai'
-export type ProviderKeyMap = Partial<Record<ContentProvider | ImageProvider, string>>
+export type AIProvider = 'openai' | 'gemini' | 'claude' | 'grok'
+export type ProviderKeyMap = Partial<Record<AIProvider, string>>
 
 export type AiPreferences = {
-  contentProvider: ContentProvider
-  contentModel: string
-  imageProvider: ImageProvider
-  imageModel: string
+  provider: AIProvider
+  model: string
   providerKeys: ProviderKeyMap
+}
+
+type LegacyAiPreferences = Partial<AiPreferences> & {
+  contentProvider?: AIProvider
+  contentModel?: string
 }
 
 const STORAGE_KEY = 'zenvydesk_ai_preferences'
 
-export const CONTENT_PROVIDER_OPTIONS: ContentProvider[] = ['openai', 'gemini', 'claude', 'grok']
-export const IMAGE_PROVIDER_OPTIONS: ImageProvider[] = ['openai']
+export const AI_PROVIDER_OPTIONS: AIProvider[] = ['openai', 'gemini', 'claude', 'grok']
 
-export const CONTENT_MODELS: Record<ContentProvider, string[]> = {
+export const AI_MODELS: Record<AIProvider, string[]> = {
   openai: ['gpt-4o-mini', 'gpt-4.1-mini'],
   gemini: ['gemini-2.5-flash', 'gemini-2.5-pro'],
   claude: ['claude-3-5-sonnet-20241022', 'claude-3-7-sonnet-20250219'],
   grok: ['grok-2-latest', 'grok-beta'],
 }
 
-export const IMAGE_MODELS: Record<ImageProvider, string[]> = {
-  openai: ['gpt-image-1'],
-}
-
 const DEFAULTS: AiPreferences = {
-  contentProvider: 'openai',
-  contentModel: 'gpt-4o-mini',
-  imageProvider: 'openai',
-  imageModel: 'gpt-image-1',
+  provider: 'openai',
+  model: 'gpt-4o-mini',
   providerKeys: {},
 }
 
@@ -40,27 +35,21 @@ export function loadAiPreferences(): AiPreferences {
     if (!raw) {
       return DEFAULTS
     }
-    const parsed = JSON.parse(raw) as Partial<AiPreferences>
-    const contentProvider =
-      parsed.contentProvider && CONTENT_PROVIDER_OPTIONS.includes(parsed.contentProvider)
-        ? parsed.contentProvider
-        : DEFAULTS.contentProvider
-    const imageProvider =
-      parsed.imageProvider && IMAGE_PROVIDER_OPTIONS.includes(parsed.imageProvider)
-        ? parsed.imageProvider
-        : DEFAULTS.imageProvider
+
+    const parsed = JSON.parse(raw) as LegacyAiPreferences
+    const providerCandidate = parsed.provider ?? parsed.contentProvider
+    const provider =
+      providerCandidate && AI_PROVIDER_OPTIONS.includes(providerCandidate)
+        ? providerCandidate
+        : DEFAULTS.provider
+    const modelCandidate = parsed.model ?? parsed.contentModel
 
     return {
-      contentProvider,
-      contentModel:
-        parsed.contentModel && CONTENT_MODELS[contentProvider].includes(parsed.contentModel)
-          ? parsed.contentModel
-          : CONTENT_MODELS[contentProvider][0],
-      imageProvider,
-      imageModel:
-        parsed.imageModel && IMAGE_MODELS[imageProvider].includes(parsed.imageModel)
-          ? parsed.imageModel
-          : IMAGE_MODELS[imageProvider][0],
+      provider,
+      model:
+        modelCandidate && AI_MODELS[provider].includes(modelCandidate)
+          ? modelCandidate
+          : AI_MODELS[provider][0],
       providerKeys: parsed.providerKeys ?? {},
     }
   } catch {
@@ -72,9 +61,6 @@ export function saveAiPreferences(preferences: AiPreferences) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
 }
 
-export function getProviderKey(
-  preferences: AiPreferences,
-  provider: ContentProvider | ImageProvider,
-): string | null {
+export function getProviderKey(preferences: AiPreferences, provider: AIProvider): string | null {
   return preferences.providerKeys[provider]?.trim() || null
 }

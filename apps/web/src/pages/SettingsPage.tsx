@@ -1,21 +1,34 @@
 import { useEffect, useState } from 'react'
-import { apiBaseUrl } from '../config'
-import { fetchHealth, fetchRuntimeSettings, type RuntimeSettings } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
-import { useSelectedPage } from '../hooks/useSelectedPage'
+import { FormField } from '../components/FormField'
 import { useToast } from '../components/Toast'
+import { apiBaseUrl } from '../config'
+import { useSelectedPage } from '../hooks/useSelectedPage'
+import { fetchHealth, fetchRuntimeSettings, type RuntimeSettings } from '../lib/api'
 import {
-  CONTENT_MODELS,
-  CONTENT_PROVIDER_OPTIONS,
-  IMAGE_MODELS,
-  IMAGE_PROVIDER_OPTIONS,
+  AI_MODELS,
+  AI_PROVIDER_OPTIONS,
+  type AIProvider,
   type AiPreferences,
   loadAiPreferences,
   saveAiPreferences,
 } from '../lib/aiPreferences'
-import { FormField } from '../components/FormField'
 
 type HealthState = 'loading' | 'ok' | 'down'
+
+const PROVIDER_LABELS: Record<AIProvider, string> = {
+  openai: 'OpenAI',
+  gemini: 'Gemini',
+  claude: 'Claude',
+  grok: 'Grok',
+}
+
+const PROVIDER_PLACEHOLDERS: Record<AIProvider, string> = {
+  openai: 'sk-...',
+  gemini: 'AIza...',
+  claude: 'sk-ant-...',
+  grok: 'xai-...',
+}
 
 export function SettingsPage() {
   const toast = useToast()
@@ -67,17 +80,12 @@ export function SettingsPage() {
   const updatePreferences = (patch: Partial<AiPreferences>) => {
     setPreferences((current) => {
       const next = { ...current, ...patch }
-      const contentModel = CONTENT_MODELS[next.contentProvider].includes(next.contentModel)
-        ? next.contentModel
-        : CONTENT_MODELS[next.contentProvider][0]
-      const imageModel = IMAGE_MODELS[next.imageProvider].includes(next.imageModel)
-        ? next.imageModel
-        : IMAGE_MODELS[next.imageProvider][0]
-      return { ...next, contentModel, imageModel }
+      const model = AI_MODELS[next.provider].includes(next.model) ? next.model : AI_MODELS[next.provider][0]
+      return { ...next, model }
     })
   }
 
-  const updateProviderKey = (provider: keyof AiPreferences['providerKeys'], value: string) => {
+  const updateProviderKey = (provider: AIProvider, value: string) => {
     setPreferences((current) => ({
       ...current,
       providerKeys: {
@@ -87,8 +95,7 @@ export function SettingsPage() {
     }))
   }
 
-  const maskKey = (value?: string) =>
-    value ? `${value.slice(0, 4)}••••••${value.slice(-4)}` : 'Not saved'
+  const maskKey = (value?: string) => (value ? `${value.slice(0, 4)}......${value.slice(-4)}` : 'Not saved')
 
   return (
     <div className="page">
@@ -194,55 +201,24 @@ export function SettingsPage() {
         <div className="form-stack">
           <div className="creative-grid-2">
             <FormField
-              label="Default content provider"
+              label="Default AI provider"
               as="select"
-              value={preferences.contentProvider}
-              onChange={(event) =>
-                updatePreferences({ contentProvider: event.target.value as AiPreferences['contentProvider'] })
-              }
+              value={preferences.provider}
+              onChange={(event) => updatePreferences({ provider: event.target.value as AIProvider })}
             >
-              {CONTENT_PROVIDER_OPTIONS.map((provider) => (
+              {AI_PROVIDER_OPTIONS.map((provider) => (
                 <option key={provider} value={provider}>
-                  {provider}
+                  {PROVIDER_LABELS[provider]}
                 </option>
               ))}
             </FormField>
             <FormField
-              label="Default content model"
+              label="Default AI model"
               as="select"
-              value={preferences.contentModel}
-              onChange={(event) => updatePreferences({ contentModel: event.target.value })}
+              value={preferences.model}
+              onChange={(event) => updatePreferences({ model: event.target.value })}
             >
-              {CONTENT_MODELS[preferences.contentProvider].map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </FormField>
-          </div>
-
-          <div className="creative-grid-2">
-            <FormField
-              label="Default image provider"
-              as="select"
-              value={preferences.imageProvider}
-              onChange={(event) =>
-                updatePreferences({ imageProvider: event.target.value as AiPreferences['imageProvider'] })
-              }
-            >
-              {IMAGE_PROVIDER_OPTIONS.map((provider) => (
-                <option key={provider} value={provider}>
-                  {provider}
-                </option>
-              ))}
-            </FormField>
-            <FormField
-              label="Default image model"
-              as="select"
-              value={preferences.imageModel}
-              onChange={(event) => updatePreferences({ imageModel: event.target.value })}
-            >
-              {IMAGE_MODELS[preferences.imageProvider].map((model) => (
+              {AI_MODELS[preferences.provider].map((model) => (
                 <option key={model} value={model}>
                   {model}
                 </option>
@@ -251,43 +227,16 @@ export function SettingsPage() {
           </div>
 
           <FormField
-            label="OpenAI API key"
+            label={`${PROVIDER_LABELS[preferences.provider]} API key`}
             type="password"
-            value={preferences.providerKeys.openai ?? ''}
-            onChange={(event) => updateProviderKey('openai', event.target.value)}
-            placeholder="sk-..."
-            hint={`Saved locally: ${maskKey(preferences.providerKeys.openai)}`}
-          />
-
-          <FormField
-            label="Gemini API key"
-            type="password"
-            value={preferences.providerKeys.gemini ?? ''}
-            onChange={(event) => updateProviderKey('gemini', event.target.value)}
-            placeholder="AIza..."
-            hint={`Saved locally: ${maskKey(preferences.providerKeys.gemini)}`}
-          />
-
-          <FormField
-            label="Claude API key"
-            type="password"
-            value={preferences.providerKeys.claude ?? ''}
-            onChange={(event) => updateProviderKey('claude', event.target.value)}
-            placeholder="sk-ant-..."
-            hint={`Saved locally: ${maskKey(preferences.providerKeys.claude)}`}
-          />
-
-          <FormField
-            label="Grok API key"
-            type="password"
-            value={preferences.providerKeys.grok ?? ''}
-            onChange={(event) => updateProviderKey('grok', event.target.value)}
-            placeholder="xai-..."
-            hint={`Saved locally: ${maskKey(preferences.providerKeys.grok)}`}
+            value={preferences.providerKeys[preferences.provider] ?? ''}
+            onChange={(event) => updateProviderKey(preferences.provider, event.target.value)}
+            placeholder={PROVIDER_PLACEHOLDERS[preferences.provider]}
+            hint={`Saved locally: ${maskKey(preferences.providerKeys[preferences.provider])}`}
           />
 
           <div className="form-hint">
-            Keys and default models are saved in this browser storage and applied automatically to AI generation requests.
+            Content and image preferences now share one AI selection. Each provider key is still stored separately in this browser, so switching back to a previous AI restores the key you entered before.
           </div>
         </div>
       </div>

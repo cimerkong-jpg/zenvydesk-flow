@@ -16,15 +16,17 @@ import {
 } from '../lib/api'
 import { fromDateTimeLocalValue } from '../lib/format'
 import {
-  CONTENT_MODELS,
-  CONTENT_PROVIDER_OPTIONS,
-  IMAGE_MODELS,
-  IMAGE_PROVIDER_OPTIONS,
+  AI_MODELS,
+  AI_PROVIDER_OPTIONS,
+  type AIProvider,
   getProviderKey,
   loadAiPreferences,
 } from '../lib/aiPreferences'
 
 type GenerationMode = 'post' | 'image' | 'content'
+
+const OPENAI_IMAGE_PROVIDER: AIProvider = 'openai'
+const OPENAI_IMAGE_MODEL = 'gpt-image-1'
 
 export function CreativeWithAIPage() {
   const toast = useToast()
@@ -38,10 +40,8 @@ export function CreativeWithAIPage() {
   const [tone, setTone] = useState('marketing')
   const [language, setLanguage] = useState('th')
   const [style, setStyle] = useState('social ad creative')
-  const [contentProvider, setContentProvider] = useState(loadAiPreferences().contentProvider)
-  const [contentModel, setContentModel] = useState(loadAiPreferences().contentModel)
-  const [imageProvider, setImageProvider] = useState(loadAiPreferences().imageProvider)
-  const [imageModel, setImageModel] = useState(loadAiPreferences().imageModel)
+  const [provider, setProvider] = useState(loadAiPreferences().provider)
+  const [model, setModel] = useState(loadAiPreferences().model)
   const [preview, setPreview] = useState<CreativeGenerateResponse | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -50,23 +50,15 @@ export function CreativeWithAIPage() {
 
   useEffect(() => {
     const saved = loadAiPreferences()
-    setContentProvider(saved.contentProvider)
-    setContentModel(saved.contentModel)
-    setImageProvider(saved.imageProvider)
-    setImageModel(saved.imageModel)
+    setProvider(saved.provider)
+    setModel(saved.model)
   }, [])
 
   useEffect(() => {
-    if (!CONTENT_MODELS[contentProvider]?.includes(contentModel)) {
-      setContentModel(CONTENT_MODELS[contentProvider][0])
+    if (!AI_MODELS[provider]?.includes(model)) {
+      setModel(AI_MODELS[provider][0])
     }
-  }, [contentProvider, contentModel])
-
-  useEffect(() => {
-    if (!IMAGE_MODELS[imageProvider]?.includes(imageModel)) {
-      setImageModel(IMAGE_MODELS[imageProvider][0])
-    }
-  }, [imageProvider, imageModel])
+  }, [provider, model])
 
   const selectedProduct = useMemo(
     () => products.data?.find((item) => item.id === Number(productId)) ?? null,
@@ -88,6 +80,7 @@ export function CreativeWithAIPage() {
     setPreviewError(null)
     try {
       const preferences = loadAiPreferences()
+      const providerKey = getProviderKey(preferences, provider)
       const result = await creativeGenerate({
         generation_type: mode,
         product_id: Number(productId),
@@ -95,12 +88,12 @@ export function CreativeWithAIPage() {
         tone,
         language,
         style,
-        ai_provider: contentProvider,
-        ai_model: contentModel,
-        ai_api_key: getProviderKey(preferences, contentProvider),
-        image_provider: imageProvider,
-        image_model: imageModel,
-        image_api_key: getProviderKey(preferences, imageProvider),
+        ai_provider: provider,
+        ai_model: model,
+        ai_api_key: providerKey,
+        image_provider: OPENAI_IMAGE_PROVIDER,
+        image_model: OPENAI_IMAGE_MODEL,
+        image_api_key: getProviderKey(preferences, OPENAI_IMAGE_PROVIDER),
       })
       setPreview(result)
       toast.success('Preview AI đã sẵn sàng.')
@@ -279,24 +272,24 @@ export function CreativeWithAIPage() {
 
               <div className="creative-grid-2">
                 <FormField
-                  label="Content AI"
+                  label="AI provider"
                   as="select"
-                  value={contentProvider}
-                  onChange={(e) => setContentProvider(e.target.value as typeof contentProvider)}
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value as AIProvider)}
                 >
-                  {CONTENT_PROVIDER_OPTIONS.map((option) => (
+                  {AI_PROVIDER_OPTIONS.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </FormField>
                 <FormField
-                  label="Content model"
+                  label="AI model"
                   as="select"
-                  value={contentModel}
-                  onChange={(e) => setContentModel(e.target.value)}
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
                 >
-                  {CONTENT_MODELS[contentProvider].map((option) => (
+                  {AI_MODELS[provider].map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
@@ -304,31 +297,8 @@ export function CreativeWithAIPage() {
                 </FormField>
               </div>
 
-              <div className="creative-grid-2">
-                <FormField
-                  label="Image AI"
-                  as="select"
-                  value={imageProvider}
-                  onChange={(e) => setImageProvider(e.target.value as typeof imageProvider)}
-                >
-                  {IMAGE_PROVIDER_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </FormField>
-                <FormField
-                  label="Image model"
-                  as="select"
-                  value={imageModel}
-                  onChange={(e) => setImageModel(e.target.value)}
-                >
-                  {IMAGE_MODELS[imageProvider].map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </FormField>
+              <div className="form-hint">
+                Settings now save one shared AI choice. Image generation still uses the stored OpenAI image engine behind the scenes for compatibility.
               </div>
 
               <button
