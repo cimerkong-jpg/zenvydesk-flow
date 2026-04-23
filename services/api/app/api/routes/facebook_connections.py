@@ -25,7 +25,7 @@ legacy_router = APIRouter(prefix="/api/v1/auth/facebook", tags=["facebook-connec
 def _frontend_redirect(**params: str) -> RedirectResponse:
     base = settings.resolved_frontend_base_url.rstrip("/")
     query = urlencode({key: value for key, value in params.items() if value is not None})
-    return RedirectResponse(url=f"{base}/connections?{query}")
+    return RedirectResponse(url=f"{base}/#/connections?{query}")
 
 
 def _serialize_page(page) -> FacebookPageResponse:

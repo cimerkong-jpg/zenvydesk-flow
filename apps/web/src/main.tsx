@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import App from './App.tsx'
 import { ToastProvider } from './components/Toast'
 import { AuthProvider } from './context/AuthContext'
@@ -10,7 +10,7 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <ToastProvider>
         <AuthProvider>
           <SelectedPageProvider>
@@ -18,6 +18,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </SelectedPageProvider>
         </AuthProvider>
       </ToastProvider>
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>,
 )
