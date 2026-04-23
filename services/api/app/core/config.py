@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 
 KNOWN_AI_PROVIDERS = {"mock", "openai", "gemini", "claude", "grok"}
+MANAGED_AI_PROVIDERS = ("openai", "gemini", "claude", "grok")
 KNOWN_IMAGE_PROVIDERS = {"mock", "openai", "stable_diffusion"}
 LOCAL_HOST_MARKERS = ("localhost", "127.0.0.1", "testserver")
 STAGING_FRONTEND_URL = "https://zenvydesk-staging.onrender.com"
@@ -58,6 +59,7 @@ class Settings(BaseSettings):
     password_reset_expiry_minutes: int = 30
     oauth_state_expiry_minutes: int = 10
     password_hash_iterations: int = 120000
+    user_api_keys_encryption_secret: str = "dev_user_api_keys_encryption_secret_change_in_production"
 
     database_url: str = "sqlite:///./zenvydesk.db"
 
@@ -66,6 +68,9 @@ class Settings(BaseSettings):
     ai_api_key: Optional[str] = None
     ai_base_url: Optional[str] = None
     openai_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    claude_api_key: Optional[str] = None
+    grok_api_key: Optional[str] = None
     image_provider: str = "mock"
     image_model: str = "mock-image-v1"
     image_api_key: Optional[str] = None
@@ -168,7 +173,23 @@ class Settings(BaseSettings):
 
     @property
     def resolved_ai_api_key(self) -> Optional[str]:
-        return self.ai_api_key or self.openai_api_key
+        return self.get_provider_api_key(self.resolved_ai_provider)
+
+    def get_provider_api_key(self, provider: str, *, image: bool = False) -> Optional[str]:
+        normalized = (provider or "").strip().lower()
+        if normalized == "mock":
+            return None
+        if normalized == "openai":
+            if image:
+                return self.image_api_key or self.openai_api_key or self.ai_api_key
+            return self.openai_api_key or self.ai_api_key
+        if normalized == "gemini":
+            return self.gemini_api_key
+        if normalized == "claude":
+            return self.claude_api_key
+        if normalized == "grok":
+            return self.grok_api_key
+        return None
 
     class Config:
         env_file = ".env"

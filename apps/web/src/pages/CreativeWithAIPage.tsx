@@ -19,14 +19,10 @@ import {
   AI_MODELS,
   AI_PROVIDER_OPTIONS,
   type AIProvider,
-  getProviderKey,
   loadAiPreferences,
 } from '../lib/aiPreferences'
 
 type GenerationMode = 'post' | 'image' | 'content'
-
-const OPENAI_IMAGE_PROVIDER: AIProvider = 'openai'
-const OPENAI_IMAGE_MODEL = 'gpt-image-1'
 
 export function CreativeWithAIPage() {
   const toast = useToast()
@@ -79,8 +75,6 @@ export function CreativeWithAIPage() {
     setGenerating(true)
     setPreviewError(null)
     try {
-      const preferences = loadAiPreferences()
-      const providerKey = getProviderKey(preferences, provider)
       const result = await creativeGenerate({
         generation_type: mode,
         product_id: Number(productId),
@@ -90,10 +84,6 @@ export function CreativeWithAIPage() {
         style,
         ai_provider: provider,
         ai_model: model,
-        ai_api_key: providerKey,
-        image_provider: OPENAI_IMAGE_PROVIDER,
-        image_model: OPENAI_IMAGE_MODEL,
-        image_api_key: getProviderKey(preferences, OPENAI_IMAGE_PROVIDER),
       })
       setPreview(result)
       toast.success('Preview AI đã sẵn sàng.')
@@ -295,10 +285,6 @@ export function CreativeWithAIPage() {
                     </option>
                   ))}
                 </FormField>
-              </div>
-
-              <div className="form-hint">
-                Settings now save one shared AI choice. Image generation still uses the stored OpenAI image engine behind the scenes for compatibility.
               </div>
 
               <button

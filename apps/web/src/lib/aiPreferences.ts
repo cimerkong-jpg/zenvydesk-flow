@@ -1,10 +1,8 @@
 export type AIProvider = 'openai' | 'gemini' | 'claude' | 'grok'
-export type ProviderKeyMap = Partial<Record<AIProvider, string>>
 
 export type AiPreferences = {
   provider: AIProvider
   model: string
-  providerKeys: ProviderKeyMap
 }
 
 type LegacyAiPreferences = Partial<AiPreferences> & {
@@ -26,7 +24,6 @@ export const AI_MODELS: Record<AIProvider, string[]> = {
 const DEFAULTS: AiPreferences = {
   provider: 'openai',
   model: 'gpt-4o-mini',
-  providerKeys: {},
 }
 
 export function loadAiPreferences(): AiPreferences {
@@ -50,7 +47,6 @@ export function loadAiPreferences(): AiPreferences {
         modelCandidate && AI_MODELS[provider].includes(modelCandidate)
           ? modelCandidate
           : AI_MODELS[provider][0],
-      providerKeys: parsed.providerKeys ?? {},
     }
   } catch {
     return DEFAULTS
@@ -59,8 +55,4 @@ export function loadAiPreferences(): AiPreferences {
 
 export function saveAiPreferences(preferences: AiPreferences) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
-}
-
-export function getProviderKey(preferences: AiPreferences, provider: AIProvider): string | null {
-  return preferences.providerKeys[provider]?.trim() || null
 }

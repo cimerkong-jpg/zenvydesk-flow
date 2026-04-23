@@ -51,9 +51,12 @@ def generate_creative(
         language=payload.language,
         provider=ai_provider,
         model=ai_model,
-        api_key=payload.ai_api_key,
         base_url=payload.ai_base_url,
+        db=db,
+        user=current_user,
     )
+    if not generated.success:
+        raise HTTPException(status_code=400, detail=generated.error or "AI generation failed")
 
     media_url = None
     if payload.generation_type in {"post", "image"}:
@@ -68,8 +71,9 @@ def generate_creative(
             image_prompt,
             provider_name=image_provider,
             model=image_model,
-            api_key=payload.image_api_key or payload.ai_api_key,
             base_url=payload.image_base_url,
+            db=db,
+            user=current_user,
         )
 
     if payload.generation_type == "image":

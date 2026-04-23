@@ -117,16 +117,20 @@ def generate_draft_content(
         language=payload.language,
         provider=payload.ai_provider,
         model=payload.ai_model,
-        api_key=payload.ai_api_key,
         base_url=payload.ai_base_url,
+        db=db,
+        user=current_user,
     )
+    if not generated_content.success:
+        raise HTTPException(status_code=400, detail=generated_content.error or "AI generation failed")
 
     media_url = generate_image(
         generated_content.prompt,
         provider_name=payload.image_provider,
         model=payload.image_model,
-        api_key=payload.image_api_key or payload.ai_api_key,
         base_url=payload.image_base_url,
+        db=db,
+        user=current_user,
     )
     return DraftGenerateResponse(
         content=generated_content.content,
@@ -161,9 +165,12 @@ def generate_draft_image(
         language=payload.language,
         provider=payload.ai_provider,
         model=payload.ai_model,
-        api_key=payload.ai_api_key,
         base_url=payload.ai_base_url,
+        db=db,
+        user=current_user,
     )
+    if not generated_content.success:
+        raise HTTPException(status_code=400, detail=generated_content.error or "AI generation failed")
     media_prompt = "\n".join(
         [
             generated_content.prompt,
@@ -177,7 +184,8 @@ def generate_draft_image(
             media_prompt,
             provider_name=payload.image_provider,
             model=payload.image_model,
-            api_key=payload.image_api_key or payload.ai_api_key,
             base_url=payload.image_base_url,
+            db=db,
+            user=current_user,
         ),
     )

@@ -30,5 +30,6 @@ export const endpointUrls = {
   automationRules: `${apiBaseUrl}/api/v1/automation-rules`,
   automationRunner: `${apiBaseUrl}/api/v1/automation-runner`,
   settingsRuntime: `${apiBaseUrl}/api/v1/settings/runtime`,
+  settingsAiKeys: `${apiBaseUrl}/api/v1/settings/ai-keys`,
   creative: `${apiBaseUrl}/api/v1/creative`,
 }

@@ -68,11 +68,7 @@ function ProtectedApp() {
           />
           <Route
             path="settings"
-            element={
-              <ProtectedRoute roles={['admin', 'super_admin']}>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
+            element={<SettingsPage />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

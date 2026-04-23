@@ -6,7 +6,12 @@ Service layer for AI content generation using provider registry
 import logging
 from typing import Optional
 
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
+from app.models.user import User
+from app.services.ai_key_resolver import resolve_effective_api_key
 from app.services.ai_providers.registry import get_ai_provider
 from app.services.ai_providers.types import AIGenerationResult
 from app.services.prompt_builder import PromptBuilder, PromptContext
@@ -28,6 +33,8 @@ def generate_post_content(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     prompt_override: Optional[str] = None,
+    db: Session | None = None,
+    user: User | None = None,
 ) -> AIGenerationResult:
     """
     Generate post content using AI provider with prompt templates.
@@ -72,9 +79,17 @@ def generate_post_content(
         logger.debug(f"Final prompt length: {len(final_prompt)} characters")
         
         # Get provider instance from registry
+        resolved_key = None
+        if provider != "mock":
+            resolved_key = (
+                resolve_effective_api_key(db, provider, user=user, image=False)
+                if api_key is None
+                else None
+            )
+
         ai_provider = get_ai_provider(
             provider_name=provider,
-            api_key=api_key or settings.resolved_ai_api_key,
+            api_key=api_key or (resolved_key.api_key if resolved_key else None),
             base_url=base_url or settings.ai_base_url
         )
         
@@ -115,9 +130,9 @@ def generate_post_content(
         
         return result
         
-    except ValueError as e:
+    except (ValueError, HTTPException) as e:
         # Configuration error (e.g., missing API key)
-        error_msg = f"AI provider configuration error: {str(e)}"
+        error_msg = str(e.detail) if isinstance(e, HTTPException) else f"AI provider configuration error: {str(e)}"
         logger.error(error_msg)
         return AIGenerationResult(
             success=False,

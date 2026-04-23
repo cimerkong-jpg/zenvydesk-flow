@@ -5,6 +5,7 @@ from .oauth_identity import OAuthIdentity
 from .password_reset_token import PasswordResetToken
 from .product import Product
 from .refresh_token import RefreshToken
+from .user_ai_api_key import UserAiApiKey
 from .content_library import ContentLibrary
 from .draft import Draft
 from .media_library import MediaLibrary
@@ -20,6 +21,7 @@ __all__ = [
     "PasswordResetToken",
     "Product",
     "RefreshToken",
+    "UserAiApiKey",
     "ContentLibrary",
     "Draft",
     "MediaLibrary",

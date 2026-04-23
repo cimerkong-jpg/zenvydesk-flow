@@ -160,6 +160,19 @@ export type RuntimeSettings = {
   image_configured: boolean
 }
 
+export type UserAiKeyStatus = {
+  provider: 'openai' | 'gemini' | 'claude' | 'grok'
+  is_configured: boolean
+  key_hint: string | null
+  validation_status: string | null
+  last_validated_at: string | null
+  source: 'user' | 'env' | 'missing'
+}
+
+export type UserAiKeyListResponse = {
+  items: UserAiKeyStatus[]
+}
+
 export type PostHistory = {
   id: number
   user_id: number
@@ -332,6 +345,25 @@ export const fetchHealth = (): Promise<HealthResponse> => get<HealthResponse>(en
 
 export const fetchRuntimeSettings = (): Promise<RuntimeSettings> =>
   get<RuntimeSettings>(endpointUrls.settingsRuntime)
+
+export const fetchUserAiKeys = (): Promise<UserAiKeyListResponse> =>
+  get<UserAiKeyListResponse>(endpointUrls.settingsAiKeys)
+
+export const upsertUserAiKey = (
+  provider: UserAiKeyStatus['provider'],
+  apiKey: string,
+): Promise<UserAiKeyStatus> =>
+  fetch(`${endpointUrls.settingsAiKeys}/${provider}`, {
+    method: 'PUT',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ api_key: apiKey }),
+  }).then(parseJson<UserAiKeyStatus>)
+
+export const deleteUserAiKey = (provider: UserAiKeyStatus['provider']): Promise<{ message: string }> =>
+  fetch(`${endpointUrls.settingsAiKeys}/${provider}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  }).then(parseJson<{ message: string }>)
 
 export const fetchUsers = (params?: {
   keyword?: string

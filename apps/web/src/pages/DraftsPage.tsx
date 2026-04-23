@@ -31,10 +31,7 @@ import {
   toDateTimeLocalValue,
   truncate,
 } from '../lib/format'
-import { type AIProvider, getProviderKey, loadAiPreferences } from '../lib/aiPreferences'
-
-const OPENAI_IMAGE_PROVIDER: AIProvider = 'openai'
-const OPENAI_IMAGE_MODEL = 'gpt-image-1'
+import { loadAiPreferences } from '../lib/aiPreferences'
 
 export function DraftsPage() {
   const toast = useToast()
@@ -341,7 +338,6 @@ function CreateDraftModal({
     setGenerating(true)
     try {
       const preferences = loadAiPreferences()
-      const providerKey = getProviderKey(preferences, preferences.provider)
       const result = await generateDraft({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
@@ -350,10 +346,6 @@ function CreateDraftModal({
         style,
         ai_provider: preferences.provider,
         ai_model: preferences.model,
-        ai_api_key: providerKey,
-        image_provider: OPENAI_IMAGE_PROVIDER,
-        image_model: OPENAI_IMAGE_MODEL,
-        image_api_key: getProviderKey(preferences, OPENAI_IMAGE_PROVIDER),
       })
       setContent(result.content)
       setMediaUrl(result.media_url ?? '')
@@ -373,7 +365,6 @@ function CreateDraftModal({
     setGeneratingImage(true)
     try {
       const preferences = loadAiPreferences()
-      const providerKey = getProviderKey(preferences, preferences.provider)
       const result = await generateDraftImage({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
@@ -382,10 +373,6 @@ function CreateDraftModal({
         style,
         ai_provider: preferences.provider,
         ai_model: preferences.model,
-        ai_api_key: providerKey,
-        image_provider: OPENAI_IMAGE_PROVIDER,
-        image_model: OPENAI_IMAGE_MODEL,
-        image_api_key: getProviderKey(preferences, OPENAI_IMAGE_PROVIDER),
       })
       if (!content.trim()) {
         setContent(result.content)

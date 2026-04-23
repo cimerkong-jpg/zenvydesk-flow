@@ -39,12 +39,14 @@ export function Layout() {
     { to: '/automation-rules', label: t('nav.automationRules'), icon: 'Au' },
   ]
 
-  const navSettings: NavItem[] = [{ to: '/connections', label: t('nav.connections'), icon: 'Fb' }]
+  const navSettings: NavItem[] = [
+    { to: '/connections', label: t('nav.connections'), icon: 'Fb' },
+    { to: '/settings', label: t('nav.settings'), icon: 'St' },
+  ]
   const navAdmin: NavItem[] =
     user?.role === 'admin' || user?.role === 'super_admin'
       ? [
           { to: '/users', label: 'Users', icon: 'Us' },
-          { to: '/settings', label: t('nav.settings'), icon: 'St' },
         ]
       : []
 

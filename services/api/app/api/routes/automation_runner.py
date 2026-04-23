@@ -76,17 +76,19 @@ def run_automation(
         content_library=content_library,
         tone=rule.tone or rule.content_type or "marketing",
         language=rule.language or "th",
+        db=db,
+        user=current_user,
     )
-    if not generated.content.strip():
+    if not generated.success or not generated.content.strip():
         logger.error("AI generation returned empty content: rule_id=%s", rule_id)
         return {
             "rule_id": rule_id,
             "draft_id": None,
             "post_history_id": None,
             "status": "generation_failed",
-            "error": "Draft generation returned empty content",
-            "provider": "service-layer",
-            "model": "derived",
+            "error": generated.error or "Draft generation returned empty content",
+            "provider": generated.provider,
+            "model": generated.model,
         }
 
     media_prompt = "\n".join(
@@ -96,7 +98,7 @@ def run_automation(
             f"Draft content context: {generated.content}",
         ]
     )
-    media_url = generate_image(media_prompt)
+    media_url = generate_image(media_prompt, db=db, user=current_user)
 
     draft = Draft(
         user_id=rule.user_id,
@@ -141,6 +143,6 @@ def run_automation(
         "draft_id": draft.id,
         "post_history_id": post_history_id,
         "status": status,
-        "provider": "service-layer",
-        "model": "derived",
+        "provider": generated.provider,
+        "model": generated.model,
     }
