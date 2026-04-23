@@ -196,14 +196,14 @@ export function CreativeWithAIPage() {
                 ))}
               </FormField>
 
-              <FormField label={t('creativePage.form.userPrompt')}>
-                <textarea
-                  placeholder={t('creativePage.form.userPromptPlaceholder')}
-                  value={userPrompt}
-                  onChange={(event) => setUserPrompt(event.target.value)}
-                  rows={4}
-                />
-              </FormField>
+              <FormField
+                label={t('creativePage.form.userPrompt')}
+                as="textarea"
+                placeholder={t('creativePage.form.userPromptPlaceholder')}
+                value={userPrompt}
+                onChange={(event) => setUserPrompt(event.target.value)}
+                rows={4}
+              />
 
               <button
                 type="button"

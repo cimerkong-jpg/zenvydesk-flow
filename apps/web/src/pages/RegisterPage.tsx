@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
+import { formatDisplayError } from '../lib/errors'
 
 
 export function RegisterPage() {
@@ -30,7 +31,7 @@ export function RegisterPage() {
     try {
       await register(fullName.trim(), email.trim(), password)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatDisplayError(err))
     } finally {
       setSubmitting(false)
     }

@@ -99,6 +99,19 @@
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign in"
     },
+    "errors": {
+      "validationFailed": "Please check the highlighted fields and try again.",
+      "fullNameRequired": "Full name is required.",
+      "fullNameTooLong": "Full name must be at most {{max}} characters.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Email is invalid.",
+      "passwordRequired": "Password is required.",
+      "passwordTooShort": "Password must be at least {{min}} characters.",
+      "emailAlreadyRegistered": "This email is already registered.",
+      "invalidEmailOrPassword": "Invalid email or password.",
+      "userInactive": "This account is not active.",
+      "tooManyLoginAttempts": "Too many login attempts. Please try again in a moment."
+    },
     "forgotPassword": {
       "title": "Forgot password",
       "subtitle": "Enter your email and ZenvyDesk will generate a reset token.",

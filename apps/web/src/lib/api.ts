@@ -1,4 +1,5 @@
 import { endpointUrls } from '../config'
+import i18n from '../i18n'
 import type { MarketCode } from './markets'
 
 /* ================================
@@ -248,12 +249,89 @@ export type AutomationRunResult = {
    Low-level fetch helpers
    ================================ */
 
+type ApiValidationDetail = {
+  type?: string
+  loc?: Array<string | number>
+  msg?: string
+  ctx?: Record<string, unknown>
+}
+
+const translateAuthError = (detail: string): string => {
+  switch (detail) {
+    case 'Email already registered':
+      return i18n.t('auth.errors.emailAlreadyRegistered')
+    case 'Invalid email or password':
+      return i18n.t('auth.errors.invalidEmailOrPassword')
+    case 'User is not active':
+      return i18n.t('auth.errors.userInactive')
+    case 'Too many login attempts':
+      return i18n.t('auth.errors.tooManyLoginAttempts')
+    default:
+      return detail
+  }
+}
+
+const formatValidationDetail = (item: ApiValidationDetail): string => {
+  const field = String(item.loc?.[item.loc.length - 1] ?? '')
+
+  if (field === 'full_name') {
+    if (item.type === 'missing' || item.type === 'string_too_short') {
+      return i18n.t('auth.errors.fullNameRequired')
+    }
+    if (item.type === 'string_too_long') {
+      return i18n.t('auth.errors.fullNameTooLong', {
+        max: Number(item.ctx?.max_length ?? 200),
+      })
+    }
+  }
+
+  if (field === 'password') {
+    if (item.type === 'missing') {
+      return i18n.t('auth.errors.passwordRequired')
+    }
+    if (item.type === 'string_too_short') {
+      return i18n.t('auth.errors.passwordTooShort', {
+        min: Number(item.ctx?.min_length ?? 8),
+      })
+    }
+  }
+
+  if (field === 'email') {
+    if (item.type === 'missing') {
+      return i18n.t('auth.errors.emailRequired')
+    }
+    return i18n.t('auth.errors.emailInvalid')
+  }
+
+  return item.msg || i18n.t('auth.errors.validationFailed')
+}
+
+const formatApiErrorDetail = (body: unknown): string => {
+  if (body && typeof body === 'object') {
+    const detail = (body as { detail?: unknown; message?: unknown }).detail
+    const message = (body as { detail?: unknown; message?: unknown }).message
+
+    if (Array.isArray(detail)) {
+      return detail.map((item) => formatValidationDetail(item as ApiValidationDetail)).join(' ')
+    }
+    if (typeof detail === 'string') {
+      return translateAuthError(detail)
+    }
+    if (typeof message === 'string') {
+      return message
+    }
+    return JSON.stringify(body)
+  }
+
+  return typeof body === 'string' ? body : ''
+}
+
 const parseJson = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     let detail = ''
     try {
       const body = await response.json()
-      detail = body?.detail ?? body?.message ?? JSON.stringify(body)
+      detail = formatApiErrorDetail(body)
     } catch {
       detail = await response.text()
     }

@@ -99,6 +99,19 @@
       "alreadyHaveAccount": "Đã có tài khoản?",
       "signIn": "Đăng nhập"
     },
+    "errors": {
+      "validationFailed": "Vui lòng kiểm tra lại thông tin và thử lại.",
+      "fullNameRequired": "Họ và tên là bắt buộc.",
+      "fullNameTooLong": "Họ và tên tối đa {{max}} ký tự.",
+      "emailRequired": "Email là bắt buộc.",
+      "emailInvalid": "Email không hợp lệ.",
+      "passwordRequired": "Mật khẩu là bắt buộc.",
+      "passwordTooShort": "Mật khẩu phải có ít nhất {{min}} ký tự.",
+      "emailAlreadyRegistered": "Email này đã được đăng ký.",
+      "invalidEmailOrPassword": "Email hoặc mật khẩu không đúng.",
+      "userInactive": "Tài khoản này chưa hoạt động.",
+      "tooManyLoginAttempts": "Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau."
+    },
     "forgotPassword": {
       "title": "Quên mật khẩu",
       "subtitle": "Nhập email của bạn và ZenvyDesk sẽ tạo mã đặt lại mật khẩu.",
