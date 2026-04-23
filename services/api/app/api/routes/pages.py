@@ -12,6 +12,7 @@ router = APIRouter(prefix="/api/v1/facebook/pages", tags=["facebook-pages-legacy
 
 
 def _serialize_page(page) -> FacebookPageResponse:
+    is_demo = str(page.page_id).startswith("demo-page-")
     return FacebookPageResponse(
         id=page.id,
         facebook_page_id=page.page_id,
@@ -21,7 +22,7 @@ def _serialize_page(page) -> FacebookPageResponse:
         is_active=page.is_active,
         is_selected=page.is_selected,
         has_access_token=bool(page.access_token),
-        connection_status="connected" if page.access_token and page.is_active else "needs_reconnect",
+        connection_status="demo" if is_demo else "connected" if page.access_token and page.is_active else "needs_reconnect",
     )
 
 

@@ -23,6 +23,39 @@ class FacebookConnectionService:
         self.db = db
         self.oauth = FacebookOAuthLite()
 
+    @staticmethod
+    def _demo_page_id(user: User) -> str:
+        return f"demo-page-{user.id}"
+
+    def _ensure_demo_page(self, user: User) -> FacebookPage:
+        demo_page = (
+            self.db.query(FacebookPage)
+            .filter(FacebookPage.user_id == user.id, FacebookPage.page_id == self._demo_page_id(user))
+            .first()
+        )
+        if not demo_page:
+            demo_page = FacebookPage(
+                user_id=user.id,
+                page_id=self._demo_page_id(user),
+                page_name="Demo Page",
+                category="demo",
+                tasks="DEMO_TEST",
+                is_active=True,
+                is_selected=True,
+            )
+            self.db.add(demo_page)
+            self.db.commit()
+            self.db.refresh(demo_page)
+            return demo_page
+
+        if not demo_page.is_active or not demo_page.is_selected:
+            self.db.query(FacebookPage).filter(FacebookPage.user_id == user.id).update({FacebookPage.is_selected: False})
+            demo_page.is_active = True
+            demo_page.is_selected = True
+            self.db.commit()
+            self.db.refresh(demo_page)
+        return demo_page
+
     def start_connection(self, user: User) -> dict[str, str]:
         if not settings.facebook_app_id or not settings.facebook_redirect_uri:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Facebook OAuth is not configured")
@@ -155,6 +188,17 @@ class FacebookConnectionService:
             .order_by(FacebookPage.is_selected.desc(), FacebookPage.id.asc())
             .all()
         )
+        active_pages = [page for page in pages if page.is_active]
+        if not active_pages:
+            demo_page = self._ensure_demo_page(user)
+            pages = (
+                self.db.query(FacebookPage)
+                .filter(FacebookPage.user_id == user.id)
+                .order_by(FacebookPage.is_selected.desc(), FacebookPage.id.asc())
+                .all()
+            )
+            if demo_page.id not in {page.id for page in pages}:
+                pages = [demo_page, *pages]
         return {
             "connected": identity is not None,
             "provider_user_id": identity.provider_user_id if identity else None,

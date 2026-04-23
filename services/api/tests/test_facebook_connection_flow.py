@@ -13,6 +13,18 @@ def test_authenticated_user_can_start_connect_flow(client, test_user, auth_heade
     assert response.status_code == 400 or response.status_code == 200
 
 
+def test_get_pages_returns_demo_page_when_no_real_connection(client, test_user, auth_headers):
+    response = client.get("/api/v1/connections/facebook/pages", headers=auth_headers(test_user))
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["connected"] is False
+    assert len(payload["pages"]) == 1
+    assert payload["pages"][0]["connection_status"] == "demo"
+    assert payload["pages"][0]["is_selected"] is True
+    assert payload["pages"][0]["facebook_page_id"].startswith("demo-page-")
+
+
 def test_callback_stores_identity_and_pages_for_existing_user(client, test_db, test_user, auth_headers, monkeypatch):
     start = client.get("/api/v1/connections/facebook/start", headers=auth_headers(test_user))
     if start.status_code == 400:
@@ -89,3 +101,32 @@ def test_select_page_works_only_for_owner_user(client, test_db, test_user, admin
     )
     assert allowed.status_code == 200
     assert allowed.json()["is_selected"] is True
+
+
+def test_disconnect_restores_demo_page_when_real_pages_become_inactive(client, test_db, test_user, auth_headers):
+    page = FacebookPage(
+        user_id=test_user.id,
+        page_id="real-page",
+        page_name="Real Page",
+        access_token="token",
+        is_active=True,
+        is_selected=True,
+    )
+    identity = OAuthIdentity(
+        user_id=test_user.id,
+        provider="facebook",
+        provider_user_id="fb-real-user",
+    )
+    test_db.add(page)
+    test_db.add(identity)
+    test_db.commit()
+
+    response = client.post("/api/v1/connections/facebook/disconnect", headers=auth_headers(test_user))
+    assert response.status_code == 200
+
+    pages_response = client.get("/api/v1/connections/facebook/pages", headers=auth_headers(test_user))
+    assert pages_response.status_code == 200
+    payload = pages_response.json()
+    demo_pages = [page for page in payload["pages"] if page["connection_status"] == "demo"]
+    assert len(demo_pages) == 1
+    assert demo_pages[0]["is_selected"] is True
