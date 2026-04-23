@@ -53,11 +53,16 @@ class UserAiKeyService:
                 continue
 
             env_available = bool(env_status_provider(provider))
+            key_hint = None
+            if env_available and provider == "openai":
+                key_hint = "System fallback available"
+            elif not env_available and provider != "openai":
+                key_hint = "Personal API key required"
             items.append(
                 {
                     "provider": provider,
                     "is_configured": env_available,
-                    "key_hint": "System fallback available" if env_available else None,
+                    "key_hint": key_hint,
                     "validation_status": "unknown" if env_available else None,
                     "last_validated_at": None,
                     "source": "env" if env_available else "missing",

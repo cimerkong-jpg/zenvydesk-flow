@@ -42,6 +42,23 @@ const PROVIDER_PLACEHOLDERS: Record<AIProvider, string> = {
   grok: 'xai-...',
 }
 
+const getProviderStatusMessage = (
+  provider: AIProvider,
+  item: UserAiKeyStatus | undefined,
+  t: ReturnType<typeof useTranslation>['t'],
+) => {
+  if (item?.source === 'user') {
+    return item.key_hint ?? t('settingsPage.keys.userKeySaved')
+  }
+  if (provider === 'openai' && item?.source === 'env') {
+    return t('settingsPage.keys.openaiSystemFallback')
+  }
+  if (provider === 'openai') {
+    return t('settingsPage.keys.openaiOverrideHint')
+  }
+  return t('settingsPage.keys.personalKeyRequired')
+}
+
 export function SettingsPage() {
   const { t } = useTranslation()
   const toast = useToast()
@@ -228,6 +245,20 @@ export function SettingsPage() {
                 <div className="info-value">{runtime.ai_configured ? t('settingsPage.runtime.configured') : t('settingsPage.runtime.missing')}</div>
               </div>
               <div className="info-row">
+                <div className="info-label">{t('settingsPage.runtime.managerStatus')}</div>
+                <div className="info-value">
+                  {runtime.manager_ai_enabled ? t('settingsPage.runtime.configured') : t('settingsPage.runtime.missing')}
+                </div>
+              </div>
+              <div className="info-row">
+                <div className="info-label">{t('settingsPage.runtime.openaiFallback')}</div>
+                <div className="info-value">
+                  {runtime.execution_openai_fallback_available
+                    ? t('settingsPage.runtime.openaiFallbackAvailable')
+                    : t('settingsPage.runtime.openaiFallbackMissing')}
+                </div>
+              </div>
+              <div className="info-row">
                 <div className="info-label">{t('settingsPage.runtime.imageProvider')}</div>
                 <div className="info-value">
                   {runtime.image_provider} / {runtime.image_model}
@@ -321,6 +352,7 @@ export function SettingsPage() {
                   <li key={provider} className="list-item" style={{ alignItems: 'stretch' }}>
                     <div className="list-item-main">
                       <div className="list-item-title">{PROVIDER_LABELS[provider]}</div>
+                      <div className="list-item-meta">{getProviderStatusMessage(provider, item, t)}</div>
                       <div className="list-item-meta">
                         {t('settingsPage.keys.source')}: {item?.source ?? t('settingsPage.keys.sourceMissing')} | {t('settingsPage.keys.status')}:{' '}
                         {item?.validation_status ?? t('settingsPage.keys.statusMissing')} | {item?.key_hint ?? t('settingsPage.keys.noKey')}

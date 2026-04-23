@@ -1,7 +1,7 @@
 from tests.helpers import override_ai_settings
 
 
-def test_generate_creative_post(client, test_product, test_content_library):
+def test_generate_creative_post(client, test_user, test_product, test_content_library, auth_headers):
     with override_ai_settings(ai_provider="mock", image_provider="mock"):
         response = client.post(
             "/api/v1/creative/generate",
@@ -17,6 +17,7 @@ def test_generate_creative_post(client, test_product, test_content_library):
                 "image_provider": "mock",
                 "image_model": "mock-image-v1",
             },
+            headers=auth_headers(test_user),
         )
 
     assert response.status_code == 200
@@ -28,7 +29,7 @@ def test_generate_creative_post(client, test_product, test_content_library):
     assert data["image_provider"] == "mock"
 
 
-def test_generate_creative_content_only_has_no_media(client, test_product):
+def test_generate_creative_content_only_has_no_media(client, test_user, test_product, auth_headers):
     with override_ai_settings(ai_provider="mock", image_provider="mock"):
         response = client.post(
             "/api/v1/creative/generate",
@@ -38,6 +39,7 @@ def test_generate_creative_content_only_has_no_media(client, test_product):
                 "tone": "professional",
                 "language": "th",
             },
+            headers=auth_headers(test_user),
         )
 
     assert response.status_code == 200

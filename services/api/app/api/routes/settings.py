@@ -31,7 +31,9 @@ def get_runtime_settings(
         "frontend_base_url": settings.resolved_frontend_base_url,
         "ai_provider": ai_provider,
         "ai_model": settings.ai_model,
-        "ai_configured": bool(settings.get_provider_api_key(ai_provider)) or ai_provider == "mock",
+        "ai_configured": bool(settings.get_execution_fallback_api_key(ai_provider)) or ai_provider == "mock",
+        "manager_ai_enabled": bool(settings.resolved_openai_manager_api_key),
+        "execution_openai_fallback_available": bool(settings.get_execution_fallback_api_key("openai")),
         "image_provider": image_provider,
         "image_model": settings.image_model,
         "image_configured": bool(settings.get_provider_api_key(image_provider, image=True)) or image_provider == "mock",
@@ -47,7 +49,7 @@ def list_user_ai_keys(
     return {
         "items": [
             UserAiApiKeyStatusResponse(**item)
-            for item in service.list_key_statuses(current_user, lambda provider: settings.get_provider_api_key(provider))
+            for item in service.list_key_statuses(current_user, lambda provider: settings.get_execution_fallback_api_key(provider))
         ]
     }
 

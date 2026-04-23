@@ -11,11 +11,11 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.user import User
-from app.services.ai_key_resolver import resolve_effective_api_key
+from app.services.ai.manager import GPTManagerService
+from app.services.ai_key_resolver import resolve_execution_api_key
 from app.services.ai_providers.registry import get_ai_provider
 from app.services.ai_providers.types import AIGenerationResult
 from app.services.prompt_builder import PromptBuilder, PromptContext
-from app.services.output_validator import OutputValidator
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +56,15 @@ def generate_post_content(
     # Use config defaults if not provided
     provider = provider or settings.resolved_ai_provider
     model = model or settings.ai_model
+    manager = GPTManagerService()
     
-    logger.info(f"AI generation request: provider={provider}, model={model}, content_type={content_type}, product={product_name}")
+    logger.info(
+        "AI generation request: manager=gpt execution_provider=%s model=%s content_type=%s product=%s",
+        provider,
+        model,
+        content_type,
+        product_name,
+    )
     
     try:
         # Build prompt context
@@ -74,17 +81,34 @@ def generate_post_content(
         final_prompt, template_used = PromptBuilder.build_prompt(content_type, context)
         if prompt_override:
             final_prompt = prompt_override
+
+        manager_plan = manager.create_plan(
+            content_type=content_type,
+            product_name=product_name,
+            compiled_prompt=final_prompt,
+            tone=tone,
+            target_audience=target_audience,
+            cta=cta,
+            execution_provider=provider,
+        )
         
         logger.info(f"Built prompt using template '{template_used}' (requested: '{content_type}')")
-        logger.debug(f"Final prompt length: {len(final_prompt)} characters")
+        logger.debug("Manager execution prompt length: %s characters", len(manager_plan.execution_prompt))
         
         # Get provider instance from registry
         resolved_key = None
         if provider != "mock":
             resolved_key = (
-                resolve_effective_api_key(db, provider, user=user, image=False)
+                resolve_execution_api_key(db, provider, user=user)
                 if api_key is None
                 else None
+            )
+            logger.info(
+                "Execution AI resolved: provider=%s model=%s key_source=%s objective=%s",
+                provider,
+                model,
+                resolved_key.source if resolved_key else "request",
+                manager_plan.objective,
             )
 
         ai_provider = get_ai_provider(
@@ -98,8 +122,8 @@ def generate_post_content(
             content_type=content_type,
             product_name=product_name,
             model=model,
-            prompt=final_prompt,
-            template_used=template_used
+            prompt=manager_plan.execution_prompt,
+            template_used=template_used,
         )
         
         # If generation failed, return immediately
@@ -108,11 +132,10 @@ def generate_post_content(
             return result
         
         # Validate and sanitize output
-        validation_result = OutputValidator.validate_and_clean(result.content)
-        
-        if not validation_result.success:
-            # Output validation failed - return safe failure
-            error_msg = f"AI output validation failed: {validation_result.error}"
+        try:
+            result.content = manager.normalize_output(result.content)
+        except ValueError as exc:
+            error_msg = f"AI output validation failed: {exc}"
             logger.warning(f"{error_msg} (provider={result.provider}, model={result.model})")
             return AIGenerationResult(
                 success=False,
@@ -123,9 +146,6 @@ def generate_post_content(
                 provider_response=result.provider_response,
                 error=error_msg
             )
-        
-        # Update result with cleaned content
-        result.content = validation_result.cleaned_content
         logger.info(f"AI generation success with validated output: provider={result.provider}, model={result.model}, template={template_used}")
         
         return result

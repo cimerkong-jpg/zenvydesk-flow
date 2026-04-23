@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     ai_api_key: Optional[str] = None
     ai_base_url: Optional[str] = None
     openai_api_key: Optional[str] = None
+    openai_manager_api_key: Optional[str] = None
+    openai_manager_model: str = "gpt-4.1-mini"
     gemini_api_key: Optional[str] = None
     claude_api_key: Optional[str] = None
     grok_api_key: Optional[str] = None
@@ -174,6 +176,16 @@ class Settings(BaseSettings):
     @property
     def resolved_ai_api_key(self) -> Optional[str]:
         return self.get_provider_api_key(self.resolved_ai_provider)
+
+    @property
+    def resolved_openai_manager_api_key(self) -> Optional[str]:
+        return self.openai_manager_api_key or self.openai_api_key
+
+    def get_execution_fallback_api_key(self, provider: str) -> Optional[str]:
+        normalized = (provider or "").strip().lower()
+        if normalized == "openai":
+            return self.openai_api_key
+        return None
 
     def get_provider_api_key(self, provider: str, *, image: bool = False) -> Optional[str]:
         normalized = (provider or "").strip().lower()

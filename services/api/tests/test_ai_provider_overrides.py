@@ -26,6 +26,18 @@ def test_generate_post_content_uses_request_level_provider_overrides(monkeypatch
         return FakeProvider()
 
     monkeypatch.setattr("app.services.ai_generation.get_ai_provider", fake_get_ai_provider)
+    monkeypatch.setattr(
+        "app.services.ai_generation.GPTManagerService.create_plan",
+        lambda self, **kwargs: __import__("app.services.ai.manager", fromlist=["TextGenerationPlan"]).TextGenerationPlan(
+            objective="general",
+            tone="marketing",
+            audience="general audience",
+            hook_style="Short, attention-grabbing first line",
+            cta_style="Clear CTA",
+            content_constraints=["Return only the final post text."],
+            execution_prompt="Manager execution prompt based on Custom prompt",
+        ),
+    )
 
     result = generate_post_content(
         content_type="general_post",
@@ -42,4 +54,4 @@ def test_generate_post_content_uses_request_level_provider_overrides(monkeypatch
     assert captured["api_key"] == "gemini-secret"
     assert captured["base_url"] == "https://example.ai"
     assert captured["model"] == "gemini-2.5-flash"
-    assert captured["prompt"] == "Custom prompt"
+    assert "Custom prompt" in captured["prompt"]

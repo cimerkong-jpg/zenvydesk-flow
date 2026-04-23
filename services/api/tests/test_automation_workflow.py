@@ -80,7 +80,13 @@ def test_automation_uses_fallback_when_provider_missing_key(client, test_db, tes
         content_type="promotion",
     )
 
-    with override_ai_settings(ai_provider="openai", ai_api_key=None, openai_api_key=None, image_provider="mock"):
+    with override_ai_settings(
+        ai_provider="openai",
+        ai_api_key=None,
+        openai_manager_api_key="sk-manager-only-1234",
+        openai_api_key=None,
+        image_provider="mock",
+    ):
         response = client.post(f"/api/v1/automation-runner/run/{rule.id}", headers=auth_headers(test_user))
 
     assert response.status_code == 200

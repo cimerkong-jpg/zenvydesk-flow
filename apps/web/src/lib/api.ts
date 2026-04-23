@@ -157,6 +157,8 @@ export type RuntimeSettings = {
   ai_provider: string
   ai_model: string
   ai_configured: boolean
+  manager_ai_enabled: boolean
+  execution_openai_fallback_available: boolean
   image_provider: string
   image_model: string
   image_configured: boolean

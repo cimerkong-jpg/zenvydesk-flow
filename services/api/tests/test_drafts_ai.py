@@ -4,7 +4,7 @@ from app.models.draft import Draft
 from tests.helpers import override_ai_settings
 
 
-def test_create_draft_without_page(client, test_user):
+def test_create_draft_without_page(client, test_user, auth_headers):
     response = client.post(
         "/api/v1/drafts/",
         json={
@@ -15,6 +15,7 @@ def test_create_draft_without_page(client, test_user):
             "media_url": None,
             "scheduled_time": None,
         },
+        headers=auth_headers(test_user),
     )
 
     assert response.status_code == 200
@@ -24,7 +25,7 @@ def test_create_draft_without_page(client, test_user):
     assert data["status"] == "draft"
 
 
-def test_post_from_draft_requires_page(client, test_db, test_user):
+def test_post_from_draft_requires_page(client, test_db, test_user, auth_headers):
     draft = Draft(
         user_id=test_user.id,
         page_id=None,
@@ -35,13 +36,13 @@ def test_post_from_draft_requires_page(client, test_db, test_user):
     test_db.commit()
     test_db.refresh(draft)
 
-    response = client.post(f"/api/v1/posting/from-draft/{draft.id}")
+    response = client.post(f"/api/v1/posting/from-draft/{draft.id}", headers=auth_headers(test_user))
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Select a Facebook page before posting this draft"
 
 
-def test_generate_draft_content(client, test_product, test_content_library):
+def test_generate_draft_content(client, test_user, test_product, test_content_library, auth_headers):
     with override_ai_settings(ai_provider="mock", image_provider="mock"):
         response = client.post(
             "/api/v1/drafts/generate",
@@ -49,6 +50,7 @@ def test_generate_draft_content(client, test_product, test_content_library):
                 "product_id": test_product.id,
                 "content_library_id": test_content_library.id,
             },
+            headers=auth_headers(test_user),
         )
 
     assert response.status_code == 200
@@ -57,7 +59,7 @@ def test_generate_draft_content(client, test_product, test_content_library):
     assert data["media_url"].startswith("data:image/")
 
 
-def test_generate_draft_image(client, test_product, test_content_library):
+def test_generate_draft_image(client, test_user, test_product, test_content_library, auth_headers):
     with override_ai_settings(ai_provider="mock", image_provider="mock"):
         response = client.post(
             "/api/v1/drafts/generate-image",
@@ -66,6 +68,7 @@ def test_generate_draft_image(client, test_product, test_content_library):
                 "content_library_id": test_content_library.id,
                 "style": "product showcase",
             },
+            headers=auth_headers(test_user),
         )
 
     assert response.status_code == 200
@@ -74,7 +77,7 @@ def test_generate_draft_image(client, test_product, test_content_library):
     assert data["media_url"].startswith("data:image/")
 
 
-def test_generate_draft_content_passes_compiled_prompt(monkeypatch, client, test_product, test_content_library):
+def test_generate_draft_content_passes_compiled_prompt(monkeypatch, client, test_user, test_product, test_content_library, auth_headers):
     captured = {}
 
     def fake_generate_post_content(**kwargs):
@@ -99,6 +102,7 @@ def test_generate_draft_content_passes_compiled_prompt(monkeypatch, client, test
             "tone": "friendly",
             "language": "en",
         },
+        headers=auth_headers(test_user),
     )
 
     assert response.status_code == 200
