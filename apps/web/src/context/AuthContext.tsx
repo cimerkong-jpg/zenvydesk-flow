@@ -2,16 +2,19 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import {
   fetchCurrentUser,
   getStoredAuthToken,
+  getStoredRefreshToken,
   login as apiLogin,
+  register as apiRegister,
   logout as apiLogout,
-  setStoredAuthToken,
+  setStoredAuthTokens,
   type AuthUser,
 } from '../lib/api'
 
 type AuthContextValue = {
   user: AuthUser | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
+  register: (fullName: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -31,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchCurrentUser()
       .then((currentUser) => setUser(currentUser))
       .catch(() => {
-        setStoredAuthToken(null)
+        setStoredAuthTokens(null, null)
         setUser(null)
       })
       .finally(() => setLoading(false))
@@ -41,16 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
-      login: async (username: string, password: string) => {
-        const result = await apiLogin(username, password)
-        setStoredAuthToken(result.token)
+      login: async (email: string, password: string) => {
+        const result = await apiLogin(email, password)
+        setStoredAuthTokens(result.access_token, result.refresh_token)
+        setUser(result.user)
+      },
+      register: async (fullName: string, email: string, password: string) => {
+        const result = await apiRegister(email, password, fullName)
+        setStoredAuthTokens(result.access_token, result.refresh_token)
         setUser(result.user)
       },
       logout: async () => {
         try {
-          await apiLogout()
+          if (getStoredRefreshToken()) {
+            await apiLogout()
+          }
         } finally {
-          setStoredAuthToken(null)
+          setStoredAuthTokens(null, null)
           setUser(null)
         }
       },

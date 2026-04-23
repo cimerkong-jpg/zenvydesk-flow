@@ -97,7 +97,7 @@ export function DashboardPage() {
             <div className="page-info">
               <div className="page-name">{selectedPage.page_name}</div>
               <div className="page-meta">
-                ID: {selectedPage.page_id} • Ready to post
+                ID: {selectedPage.facebook_page_id} • Ready to post
               </div>
             </div>
             {pages.length > 1 && (
@@ -113,10 +113,10 @@ export function DashboardPage() {
             <div className="page-selector-dropdown">
               <div className="page-selector-title">Select Facebook Page</div>
               {pages.map((page) => {
-                const active = page.page_id === selectedPage.page_id
+                const active = page.facebook_page_id === selectedPage.facebook_page_id
                 return (
                   <button
-                    key={page.page_id}
+                    key={page.facebook_page_id}
                     className={`page-option ${active ? 'selected' : ''}`}
                     onClick={() => {
                       void setSelectedPage(page)
@@ -126,7 +126,7 @@ export function DashboardPage() {
                     <div className="page-option-avatar">{active ? '✓' : 'f'}</div>
                     <div className="page-option-info">
                       <div className="page-option-name">{page.page_name}</div>
-                      <div className="page-option-id">ID: {page.page_id}</div>
+                      <div className="page-option-id">ID: {page.facebook_page_id}</div>
                     </div>
                   </button>
                 )

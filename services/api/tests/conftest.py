@@ -12,6 +12,7 @@ from app.models.content_library import ContentLibrary
 from app.models.facebook_page import FacebookPage
 from app.models.product import Product
 from app.models.user import User
+from app.services.auth_service import AuthService, hash_password
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -25,7 +26,6 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
-    """Override database dependency for tests."""
     db = TestingSessionLocal()
     try:
         yield db
@@ -38,7 +38,7 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(scope="function")
 def test_db():
-    """Create a fresh in-memory database for each test."""
+    AuthService._login_attempts = {}
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -49,18 +49,75 @@ def test_db():
 
 
 @pytest.fixture
-def client():
-    """Provide a FastAPI test client."""
+def client(test_db):
     return TestClient(app)
 
 
 @pytest.fixture
 def test_user(test_db):
-    user = User(id=1, email="test@example.com", name="Test User")
+    user = User(
+        id=1,
+        email="member@example.com",
+        username="member@example.com",
+        name="Member User",
+        full_name="Member User",
+        password_hash=hash_password("Member123!"),
+        role="member",
+        status="active",
+    )
     test_db.add(user)
     test_db.commit()
     test_db.refresh(user)
     return user
+
+
+@pytest.fixture
+def admin_user(test_db):
+    user = User(
+        id=2,
+        email="admin@example.com",
+        username="admin@example.com",
+        name="Admin User",
+        full_name="Admin User",
+        password_hash=hash_password("Admin123!"),
+        role="admin",
+        status="active",
+    )
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+    return user
+
+
+@pytest.fixture
+def super_admin_user(test_db):
+    user = User(
+        id=3,
+        email="super@example.com",
+        username="super@example.com",
+        name="Super Admin",
+        full_name="Super Admin",
+        password_hash=hash_password("Super123!"),
+        role="super_admin",
+        status="active",
+    )
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+    return user
+
+
+@pytest.fixture
+def auth_headers(test_db):
+    def _build(user: User):
+        access_token = AuthService(test_db).login(user.email, {
+            "member@example.com": "Member123!",
+            "admin@example.com": "Admin123!",
+            "super@example.com": "Super123!",
+        }[user.email])["access_token"]
+        return {"Authorization": f"Bearer {access_token}"}
+
+    return _build
 
 
 @pytest.fixture
@@ -85,7 +142,7 @@ def test_product(test_db, test_user):
         user_id=test_user.id,
         name="Test Product",
         description="A test product",
-        price=99.99,
+        price="99.99",
         image_url="https://example.com/image.jpg",
     )
     test_db.add(product)

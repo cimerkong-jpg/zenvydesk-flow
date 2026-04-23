@@ -6,19 +6,24 @@ from app.core.database import get_db
 from app.models.content_library import ContentLibrary
 from app.models.draft import Draft
 from app.models.product import Product
+from app.models.user import User
 from app.schemas.draft import DraftCreate, DraftResponse
 from app.schemas.draft_generation import DraftGenerateRequest, DraftGenerateResponse
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=DraftResponse)
-def create_draft(draft: DraftCreate, db: Session = Depends(get_db)):
-    """Create new draft"""
+def create_draft(
+    draft: DraftCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     db_draft = Draft(
-        user_id=1,  # Hardcoded for now
+        user_id=current_user.id,
         page_id=draft.page_id,
         product_id=draft.product_id,
         content_library_id=draft.content_library_id,
@@ -34,16 +39,27 @@ def create_draft(draft: DraftCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[DraftResponse])
-def get_drafts(db: Session = Depends(get_db)):
-    """Get all drafts"""
-    drafts = db.query(Draft).order_by(Draft.created_at.desc(), Draft.id.desc()).all()
+def get_drafts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    drafts = (
+        db.query(Draft)
+        .filter(Draft.user_id == current_user.id)
+        .order_by(Draft.created_at.desc(), Draft.id.desc())
+        .all()
+    )
     return drafts
 
 
 @router.put("/{draft_id}", response_model=DraftResponse)
-def update_draft(draft_id: int, draft: DraftCreate, db: Session = Depends(get_db)):
-    """Update draft"""
-    db_draft = db.query(Draft).filter(Draft.id == draft_id).first()
+def update_draft(
+    draft_id: int,
+    draft: DraftCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_draft = db.query(Draft).filter(Draft.id == draft_id, Draft.user_id == current_user.id).first()
     if not db_draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     
@@ -60,9 +76,12 @@ def update_draft(draft_id: int, draft: DraftCreate, db: Session = Depends(get_db
 
 
 @router.delete("/{draft_id}")
-def delete_draft(draft_id: int, db: Session = Depends(get_db)):
-    """Delete draft"""
-    db_draft = db.query(Draft).filter(Draft.id == draft_id).first()
+def delete_draft(
+    draft_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_draft = db.query(Draft).filter(Draft.id == draft_id, Draft.user_id == current_user.id).first()
     if not db_draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     
@@ -72,9 +91,12 @@ def delete_draft(draft_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/generate", response_model=DraftGenerateResponse)
-def generate_draft_content(payload: DraftGenerateRequest, db: Session = Depends(get_db)):
-    """Generate draft content and optional media via AI service layer."""
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+def generate_draft_content(
+    payload: DraftGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    product = db.query(Product).filter(Product.id == payload.product_id, Product.user_id == current_user.id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -82,7 +104,7 @@ def generate_draft_content(payload: DraftGenerateRequest, db: Session = Depends(
     if payload.content_library_id is not None:
         content_library = (
             db.query(ContentLibrary)
-            .filter(ContentLibrary.id == payload.content_library_id)
+            .filter(ContentLibrary.id == payload.content_library_id, ContentLibrary.user_id == current_user.id)
             .first()
         )
         if not content_library:
@@ -113,9 +135,12 @@ def generate_draft_content(payload: DraftGenerateRequest, db: Session = Depends(
 
 
 @router.post("/generate-image", response_model=DraftGenerateResponse)
-def generate_draft_image(payload: DraftGenerateRequest, db: Session = Depends(get_db)):
-    """Generate media for a draft using current product and content context."""
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+def generate_draft_image(
+    payload: DraftGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    product = db.query(Product).filter(Product.id == payload.product_id, Product.user_id == current_user.id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -123,7 +148,7 @@ def generate_draft_image(payload: DraftGenerateRequest, db: Session = Depends(ge
     if payload.content_library_id is not None:
         content_library = (
             db.query(ContentLibrary)
-            .filter(ContentLibrary.id == payload.content_library_id)
+            .filter(ContentLibrary.id == payload.content_library_id, ContentLibrary.user_id == current_user.id)
             .first()
         )
         if not content_library:

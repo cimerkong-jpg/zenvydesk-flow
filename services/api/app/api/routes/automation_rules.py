@@ -4,16 +4,21 @@ from typing import List
 
 from app.core.database import get_db
 from app.models.automation_rule import AutomationRule
+from app.models.user import User
 from app.schemas.automation_rule import AutomationRuleCreate, AutomationRuleResponse
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=AutomationRuleResponse)
-def create_automation_rule(rule: AutomationRuleCreate, db: Session = Depends(get_db)):
-    """Create automation rule"""
+def create_automation_rule(
+    rule: AutomationRuleCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     db_rule = AutomationRule(
-        user_id=1,  # Hardcoded for now
+        user_id=current_user.id,
         page_id=rule.page_id,
         product_id=rule.product_id,
         content_library_id=rule.content_library_id,
@@ -33,10 +38,13 @@ def create_automation_rule(rule: AutomationRuleCreate, db: Session = Depends(get
 
 
 @router.get("/", response_model=List[AutomationRuleResponse])
-def get_automation_rules(db: Session = Depends(get_db)):
-    """Get all automation rules"""
+def get_automation_rules(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     rules = (
         db.query(AutomationRule)
+        .filter(AutomationRule.user_id == current_user.id)
         .order_by(AutomationRule.created_at.desc(), AutomationRule.id.desc())
         .all()
     )
@@ -48,8 +56,13 @@ def update_automation_rule(
     rule_id: int,
     rule: AutomationRuleCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    db_rule = db.query(AutomationRule).filter(AutomationRule.id == rule_id).first()
+    db_rule = (
+        db.query(AutomationRule)
+        .filter(AutomationRule.id == rule_id, AutomationRule.user_id == current_user.id)
+        .first()
+    )
     if not db_rule:
         raise HTTPException(status_code=404, detail="Automation rule not found")
 
@@ -70,8 +83,16 @@ def update_automation_rule(
 
 
 @router.delete("/{rule_id}")
-def delete_automation_rule(rule_id: int, db: Session = Depends(get_db)):
-    db_rule = db.query(AutomationRule).filter(AutomationRule.id == rule_id).first()
+def delete_automation_rule(
+    rule_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_rule = (
+        db.query(AutomationRule)
+        .filter(AutomationRule.id == rule_id, AutomationRule.user_id == current_user.id)
+        .first()
+    )
     if not db_rule:
         raise HTTPException(status_code=404, detail="Automation rule not found")
 

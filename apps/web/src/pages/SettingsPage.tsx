@@ -304,13 +304,13 @@ export function SettingsPage() {
         ) : (
           <ul className="list">
             {pages.map((page) => {
-              const active = selectedPage?.page_id === page.page_id
+              const active = selectedPage?.facebook_page_id === page.facebook_page_id
               return (
-                <li key={page.page_id} className="list-item">
+                <li key={page.facebook_page_id} className="list-item">
                   <div className="list-item-main">
                     <div className="list-item-title">{page.page_name}</div>
                     <div className="list-item-meta">
-                      ID: {page.page_id} | {page.connection_status} | token {page.has_access_token ? 'ready' : 'missing'}
+                      ID: {page.facebook_page_id} | {page.connection_status} | token {page.has_access_token ? 'ready' : 'missing'}
                     </div>
                   </div>
                   {active ? (

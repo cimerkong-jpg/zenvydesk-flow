@@ -1,71 +1,79 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.auth import AuthUserResponse, LoginRequest, LoginResponse
-from app.services.auth_service import clear_session, create_session, get_user_by_session, verify_password
+from app.schemas.auth import (
+    AuthTokensResponse,
+    ChangePasswordRequest,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    LoginRequest,
+    LogoutRequest,
+    MessageResponse,
+    RefreshTokenRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    UserResponse,
+)
+from app.services.auth_service import AuthService
+from app.services.permission_service import get_current_user
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
-def _extract_bearer_token(authorization: str | None) -> str | None:
-    if not authorization:
-        return None
-    prefix = "bearer "
-    if authorization.lower().startswith(prefix):
-        return authorization[len(prefix):].strip()
-    return None
+@router.post("/register", response_model=AuthTokensResponse)
+def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
+    return AuthService(db).register(payload.email, payload.password, payload.full_name, request)
 
 
-@router.post("/login", response_model=LoginResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = (
-        db.query(User)
-        .filter(User.username == payload.username.strip().lower())
-        .first()
-    )
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
-
-    token = create_session(db, user)
-    return LoginResponse(
-        token=token,
-        expires_at=user.session_expires_at,
-        user=AuthUserResponse(
-            id=user.id,
-            username=user.username or "",
-            email=user.email,
-            name=user.name,
-        ),
-    )
+@router.post("/login", response_model=AuthTokensResponse)
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    return AuthService(db).login(payload.email, payload.password, request)
 
 
-@router.get("/me", response_model=AuthUserResponse)
-def me(
-    authorization: str | None = Header(default=None),
-    db: Session = Depends(get_db),
-):
-    token = _extract_bearer_token(authorization)
-    user = get_user_by_session(db, token or "")
-    if not user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return AuthUserResponse(
-        id=user.id,
-        username=user.username or "",
-        email=user.email,
-        name=user.name,
-    )
+@router.post("/refresh", response_model=AuthTokensResponse)
+def refresh(payload: RefreshTokenRequest, request: Request, db: Session = Depends(get_db)):
+    return AuthService(db).refresh(payload.refresh_token, request)
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=MessageResponse)
 def logout(
-    authorization: str | None = Header(default=None),
+    payload: LogoutRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    token = _extract_bearer_token(authorization)
-    user = get_user_by_session(db, token or "")
-    if user:
-        clear_session(db, user)
+    AuthService(db).logout(current_user, payload.refresh_token, payload.revoke_all)
     return {"message": "Logged out"}
+
+
+@router.get("/me", response_model=UserResponse)
+def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/change-password", response_model=MessageResponse)
+def change_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    AuthService(db).change_password(current_user, payload.current_password, payload.new_password)
+    return {"message": "Password changed"}
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    reset_token = AuthService(db).forgot_password(payload.email)
+    return {
+        "message": "If the account exists, a reset token has been generated.",
+        "reset_token": reset_token if settings.resolved_app_env != "production" else None,
+    }
+
+
+@router.post("/reset-password", response_model=MessageResponse)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    AuthService(db).reset_password(payload.token, payload.password)
+    return {"message": "Password reset successful"}

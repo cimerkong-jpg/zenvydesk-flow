@@ -1,6 +1,7 @@
 from typing import Optional
 from urllib.parse import urlparse
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -52,7 +53,11 @@ class Settings(BaseSettings):
     debug: bool = True
 
     secret_key: str = "dev_secret_key_change_in_production"
-    session_expiry_minutes: int = 60
+    access_token_expiry_minutes: int = 30
+    refresh_token_expiry_days: int = 14
+    password_reset_expiry_minutes: int = 30
+    oauth_state_expiry_minutes: int = 10
+    password_hash_iterations: int = 120000
 
     database_url: str = "sqlite:///./zenvydesk.db"
 
@@ -72,6 +77,17 @@ class Settings(BaseSettings):
     facebook_scopes: str = "pages_show_list,pages_manage_posts"
 
     frontend_base_url: Optional[str] = None
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def coerce_debug(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"release", "prod", "production", "0", "false", "no", "off"}:
+                return False
+            if normalized in {"1", "true", "yes", "on", "debug", "development"}:
+                return True
+        return value
 
     def infer_app_env(self, request_base_url: Optional[str] = None) -> str:
         env = (self.app_env or "").strip().lower()

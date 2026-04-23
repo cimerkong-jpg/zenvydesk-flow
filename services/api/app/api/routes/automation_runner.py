@@ -10,8 +10,10 @@ from app.models.content_library import ContentLibrary
 from app.models.draft import Draft
 from app.models.post_history import PostHistory
 from app.models.product import Product
+from app.models.user import User
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -29,11 +31,18 @@ def _pick_product(rule: AutomationRule, db: Session) -> Optional[Product]:
 
 
 @router.post("/run/{rule_id}")
-def run_automation(rule_id: int, db: Session = Depends(get_db)):
-    """Run automation rule: generate content, create draft, optionally create post history."""
+def run_automation(
+    rule_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     logger.info("Automation runner started: rule_id=%s", rule_id)
 
-    rule = db.query(AutomationRule).filter(AutomationRule.id == rule_id).first()
+    rule = (
+        db.query(AutomationRule)
+        .filter(AutomationRule.id == rule_id, AutomationRule.user_id == current_user.id)
+        .first()
+    )
     if not rule:
         logger.error("Automation rule not found: rule_id=%s", rule_id)
         raise HTTPException(status_code=404, detail="Automation rule not found")

@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.draft import Draft
 from app.models.facebook_page import FacebookPage
+from app.models.user import User
 from app.schemas.post_history import PostHistoryResponse
 from app.services.posting_service import PostingService
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 
@@ -15,9 +17,9 @@ def post_from_draft(
     draft_id: int,
     mock_mode: bool = Query(False),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Post a draft using the selected Facebook page when available."""
-    draft = db.query(Draft).filter(Draft.id == draft_id).first()
+    draft = db.query(Draft).filter(Draft.id == draft_id, Draft.user_id == current_user.id).first()
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
 

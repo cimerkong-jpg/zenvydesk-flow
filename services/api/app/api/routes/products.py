@@ -1,19 +1,24 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
 from app.models.product import Product
+from app.models.user import User
 from app.schemas.product import ProductCreate, ProductResponse
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=ProductResponse)
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
-    """Create a new product"""
+def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     db_product = Product(
-        user_id=1,  # Hardcoded for now
+        user_id=current_user.id,
         name=product.name,
         description=product.description,
         price=product.price,
@@ -26,18 +31,28 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[ProductResponse])
-def get_products(db: Session = Depends(get_db)):
-    """Get all products"""
-    products = db.query(Product).order_by(Product.created_at.desc(), Product.id.desc()).all()
+def get_products(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    products = (
+        db.query(Product)
+        .filter(Product.user_id == current_user.id)
+        .order_by(Product.created_at.desc(), Product.id.desc())
+        .all()
+    )
     return products
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
-def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
-    """Update a product"""
-    db_product = db.query(Product).filter(Product.id == product_id).first()
+def update_product(
+    product_id: int,
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_product = db.query(Product).filter(Product.id == product_id, Product.user_id == current_user.id).first()
     if not db_product:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Product not found")
     
     db_product.name = product.name
@@ -51,13 +66,14 @@ def update_product(product_id: int, product: ProductCreate, db: Session = Depend
 
 
 @router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    """Delete a product"""
-    db_product = db.query(Product).filter(Product.id == product_id).first()
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_product = db.query(Product).filter(Product.id == product_id, Product.user_id == current_user.id).first()
     if not db_product:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Product not found")
-    
     db.delete(db_product)
     db.commit()
     return {"message": "Product deleted successfully"}

@@ -19,8 +19,10 @@ export type ScheduledRunResponse = {
 
 export type PageResponse = {
   id: number
-  page_id: string
+  facebook_page_id: string
   page_name: string
+  category: string | null
+  tasks: string | null
   is_active: boolean
   is_selected: boolean
   has_access_token: boolean
@@ -29,15 +31,31 @@ export type PageResponse = {
 
 export type AuthUser = {
   id: number
-  username: string
   email: string
-  name: string | null
+  full_name: string | null
+  role: 'super_admin' | 'admin' | 'member'
+  status: 'active' | 'inactive' | 'suspended'
+  is_email_verified: boolean
+  last_login_at: string | null
+  created_at: string
 }
 
-export type LoginResponse = {
-  token: string
-  expires_at: string | null
+export type AuthResponse = {
+  access_token: string
+  refresh_token: string
+  token_type: string
   user: AuthUser
+}
+
+export type FacebookPagesResponse = {
+  connected: boolean
+  provider_user_id: string | null
+  pages: PageResponse[]
+}
+
+export type UserListResponse = {
+  items: AuthUser[]
+  total: number
 }
 
 export type Product = {
@@ -228,15 +246,24 @@ const parseJson = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>
 }
 
-const AUTH_TOKEN_KEY = 'zenvydesk_auth_token'
+const ACCESS_TOKEN_KEY = 'zenvydesk_access_token'
+const REFRESH_TOKEN_KEY = 'zenvydesk_refresh_token'
 
-export const getStoredAuthToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY)
+export const getStoredAuthToken = (): string | null => localStorage.getItem(ACCESS_TOKEN_KEY)
 
-export const setStoredAuthToken = (token: string | null) => {
-  if (token) {
-    localStorage.setItem(AUTH_TOKEN_KEY, token)
+export const getStoredRefreshToken = (): string | null => localStorage.getItem(REFRESH_TOKEN_KEY)
+
+export const setStoredAuthTokens = (accessToken: string | null, refreshToken: string | null) => {
+  if (accessToken) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
   } else {
-    localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+  }
+
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  } else {
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
   }
 }
 
@@ -268,13 +295,34 @@ const postJson = <T>(url: string, body?: unknown): Promise<T> =>
    Auth
    ================================ */
 
-export const login = (username: string, password: string): Promise<LoginResponse> =>
-  postJson<LoginResponse>(endpointUrls.authLogin, { username, password })
+export const login = (email: string, password: string): Promise<AuthResponse> =>
+  postJson<AuthResponse>(endpointUrls.authLogin, { email, password })
+
+export const register = (
+  email: string,
+  password: string,
+  fullName: string,
+): Promise<AuthResponse> =>
+  postJson<AuthResponse>(endpointUrls.authRegister, {
+    email,
+    password,
+    full_name: fullName,
+  })
 
 export const fetchCurrentUser = (): Promise<AuthUser> => get<AuthUser>(endpointUrls.authMe)
 
+export const forgotPassword = (
+  email: string,
+): Promise<{ message: string; reset_token?: string | null }> =>
+  postJson(endpointUrls.authForgotPassword, { email })
+
+export const resetPassword = (token: string, password: string): Promise<{ message: string }> =>
+  postJson(endpointUrls.authResetPassword, { token, password })
+
 export const logout = (): Promise<{ message: string }> =>
-  postJson<{ message: string }>(endpointUrls.authLogout)
+  postJson<{ message: string }>(endpointUrls.authLogout, {
+    refresh_token: getStoredRefreshToken(),
+  })
 
 /* ================================
    Health
@@ -285,17 +333,69 @@ export const fetchHealth = (): Promise<HealthResponse> => get<HealthResponse>(en
 export const fetchRuntimeSettings = (): Promise<RuntimeSettings> =>
   get<RuntimeSettings>(endpointUrls.settingsRuntime)
 
+export const fetchUsers = (params?: {
+  keyword?: string
+  role?: string
+  status?: string
+}): Promise<UserListResponse> => {
+  const query = new URLSearchParams()
+  if (params?.keyword) query.set('keyword', params.keyword)
+  if (params?.role) query.set('role', params.role)
+  if (params?.status) query.set('status', params.status)
+  const suffix = query.toString()
+  return get<UserListResponse>(suffix ? `${endpointUrls.adminUsers}/?${suffix}` : `${endpointUrls.adminUsers}/`)
+}
+
+export const createUser = (input: {
+  email: string
+  password: string
+  full_name: string
+  role: string
+  status: string
+}): Promise<AuthUser> => postJson<AuthUser>(endpointUrls.adminUsers, input)
+
+export const updateUser = (
+  id: number,
+  input: { email?: string; full_name?: string },
+): Promise<AuthUser> =>
+  fetch(`${endpointUrls.adminUsers}/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(input),
+  }).then(parseJson<AuthUser>)
+
+export const updateUserRole = (id: number, role: string): Promise<AuthUser> =>
+  fetch(`${endpointUrls.adminUsers}/${id}/role`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ role }),
+  }).then(parseJson<AuthUser>)
+
+export const updateUserStatus = (id: number, statusValue: string): Promise<AuthUser> =>
+  fetch(`${endpointUrls.adminUsers}/${id}/status`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ status: statusValue }),
+  }).then(parseJson<AuthUser>)
+
+export const adminResetPassword = (id: number, password: string): Promise<{ message: string }> =>
+  postJson<{ message: string }>(`${endpointUrls.adminUsers}/${id}/reset-password`, { password })
+
 /* ================================
    Facebook
    ================================ */
 
-export const fetchPages = (): Promise<PageResponse[]> =>
-  get<PageResponse[]>(endpointUrls.facebookPages)
+export const fetchPages = (): Promise<FacebookPagesResponse> =>
+  get<FacebookPagesResponse>(endpointUrls.facebookPages)
 
 export const selectFacebookPage = (pageId: string): Promise<PageResponse> =>
-  postJson<PageResponse>(`${endpointUrls.facebookPages}/select/${encodeURIComponent(pageId)}`)
+  postJson<PageResponse>(endpointUrls.facebookSelectPage, { facebook_page_id: pageId })
 
-export const getFacebookLoginUrl = (): string => endpointUrls.facebookLogin
+export const startFacebookConnection = (): Promise<{ authorization_url: string; state: string }> =>
+  get(endpointUrls.facebookConnectStart)
+
+export const disconnectFacebook = (): Promise<{ message: string }> =>
+  postJson(endpointUrls.facebookDisconnect)
 
 export const runScheduledPost = (mockMode: boolean): Promise<ScheduledRunResponse> =>
   postJson<ScheduledRunResponse>(`${endpointUrls.scheduledRun}?mock_mode=${mockMode}`)

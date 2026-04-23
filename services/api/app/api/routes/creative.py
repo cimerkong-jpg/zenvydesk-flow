@@ -5,22 +5,26 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.models.content_library import ContentLibrary
 from app.models.product import Product
+from app.models.user import User
 from app.schemas.creative_generation import CreativeGenerateRequest, CreativeGenerateResponse
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.permission_service import get_current_user
 
 router = APIRouter()
 
 
-def _load_context(db: Session, payload: CreativeGenerateRequest):
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+def _load_context(db: Session, payload: CreativeGenerateRequest, current_user: User):
+    product = db.query(Product).filter(Product.id == payload.product_id, Product.user_id == current_user.id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     content_library = None
     if payload.content_library_id is not None:
         content_library = (
-            db.query(ContentLibrary).filter(ContentLibrary.id == payload.content_library_id).first()
+            db.query(ContentLibrary)
+            .filter(ContentLibrary.id == payload.content_library_id, ContentLibrary.user_id == current_user.id)
+            .first()
         )
         if not content_library:
             raise HTTPException(status_code=404, detail="Content library item not found")
@@ -29,8 +33,12 @@ def _load_context(db: Session, payload: CreativeGenerateRequest):
 
 
 @router.post("/generate", response_model=CreativeGenerateResponse)
-def generate_creative(payload: CreativeGenerateRequest, db: Session = Depends(get_db)):
-    product, content_library = _load_context(db, payload)
+def generate_creative(
+    payload: CreativeGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    product, content_library = _load_context(db, payload, current_user)
     ai_provider = payload.ai_provider or settings.resolved_ai_provider
     ai_model = payload.ai_model or settings.ai_model
     image_provider = payload.image_provider or settings.resolved_image_provider

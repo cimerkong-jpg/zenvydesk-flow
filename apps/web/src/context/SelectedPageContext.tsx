@@ -26,23 +26,29 @@ export function SelectedPageProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      const pagesData = await fetchPages()
+      const pagesResult = await fetchPages()
+      const pagesData = pagesResult.pages
       setPages(pagesData)
 
       const serverSelected = pagesData.find((page) => page.is_selected) ?? null
       const savedId = localStorage.getItem(SELECTED_PAGE_KEY)
-      const savedPage = savedId ? pagesData.find((page) => page.page_id === savedId) ?? null : null
+      const savedPage = savedId
+        ? pagesData.find((page) => page.facebook_page_id === savedId) ?? null
+        : null
       const fallbackPage = serverSelected ?? savedPage ?? pagesData[0] ?? null
 
       setSelectedPageState(fallbackPage)
       if (fallbackPage) {
-        localStorage.setItem(SELECTED_PAGE_KEY, fallbackPage.page_id)
-        if (!serverSelected || serverSelected.page_id !== fallbackPage.page_id) {
-          const persisted = await selectFacebookPage(fallbackPage.page_id)
+        localStorage.setItem(SELECTED_PAGE_KEY, fallbackPage.facebook_page_id)
+        if (
+          !serverSelected ||
+          serverSelected.facebook_page_id !== fallbackPage.facebook_page_id
+        ) {
+          const persisted = await selectFacebookPage(fallbackPage.facebook_page_id)
           setPages((current) =>
             current.map((page) => ({
               ...page,
-              is_selected: page.page_id === persisted.page_id,
+              is_selected: page.facebook_page_id === persisted.facebook_page_id,
             })),
           )
           setSelectedPageState(persisted)
@@ -72,15 +78,15 @@ export function SelectedPageProvider({ children }: { children: ReactNode }) {
   }, [authLoading, user])
 
   const setSelectedPage = async (page: PageResponse) => {
-    const persisted = await selectFacebookPage(page.page_id)
+    const persisted = await selectFacebookPage(page.facebook_page_id)
     setPages((current) =>
       current.map((item) => ({
         ...item,
-        is_selected: item.page_id === persisted.page_id,
+        is_selected: item.facebook_page_id === persisted.facebook_page_id,
       })),
     )
     setSelectedPageState(persisted)
-    localStorage.setItem(SELECTED_PAGE_KEY, persisted.page_id)
+    localStorage.setItem(SELECTED_PAGE_KEY, persisted.facebook_page_id)
   }
 
   const value = useMemo(

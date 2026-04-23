@@ -1,31 +1,32 @@
-import hashlib
+from __future__ import annotations
 
 from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# SQLite database URL (for development)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./zenvydesk.db"
+from app.core.config import settings
 
-# Create engine
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}  # Needed for SQLite
-)
 
-# Create SessionLocal class
+engine_kwargs = {}
+if settings.database_url.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(settings.database_url, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create Base class for models
 Base = declarative_base()
 
 
-def _hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+def _add_column_if_missing(table_name: str, column_name: str, ddl: str) -> None:
+    inspector = inspect(engine)
+    if table_name not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns(table_name)}
+    if column_name in columns:
+        return
+    with engine.begin() as connection:
+        connection.execute(text(ddl))
 
 
 def ensure_drafts_page_id_nullable() -> None:
-    """Migrate legacy SQLite drafts table so page_id can be null."""
     inspector = inspect(engine)
     if "drafts" not in inspector.get_table_names():
         return
@@ -38,65 +39,92 @@ def ensure_drafts_page_id_nullable() -> None:
     with engine.begin() as connection:
         connection.execute(text("PRAGMA foreign_keys=OFF"))
         connection.execute(text("ALTER TABLE drafts RENAME TO drafts_old"))
-        connection.execute(text("""
-            CREATE TABLE drafts (
-                id INTEGER NOT NULL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                page_id INTEGER,
-                product_id INTEGER,
-                content_library_id INTEGER,
-                content VARCHAR NOT NULL,
-                media_url VARCHAR,
-                status VARCHAR,
-                scheduled_time DATETIME,
-                is_active BOOLEAN,
-                created_at DATETIME,
-                FOREIGN KEY(user_id) REFERENCES users (id),
-                FOREIGN KEY(page_id) REFERENCES facebook_pages (id),
-                FOREIGN KEY(product_id) REFERENCES products (id),
-                FOREIGN KEY(content_library_id) REFERENCES content_library (id)
+        connection.execute(
+            text(
+                """
+                CREATE TABLE drafts (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    page_id INTEGER,
+                    product_id INTEGER,
+                    content_library_id INTEGER,
+                    content VARCHAR NOT NULL,
+                    media_url VARCHAR,
+                    status VARCHAR,
+                    scheduled_time DATETIME,
+                    is_active BOOLEAN,
+                    created_at DATETIME,
+                    FOREIGN KEY(user_id) REFERENCES users (id),
+                    FOREIGN KEY(page_id) REFERENCES facebook_pages (id),
+                    FOREIGN KEY(product_id) REFERENCES products (id),
+                    FOREIGN KEY(content_library_id) REFERENCES content_library (id)
+                )
+                """
             )
-        """))
-        connection.execute(text("""
-            INSERT INTO drafts (
-                id, user_id, page_id, product_id, content_library_id,
-                content, media_url, status, scheduled_time, is_active, created_at
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO drafts (
+                    id, user_id, page_id, product_id, content_library_id,
+                    content, media_url, status, scheduled_time, is_active, created_at
+                )
+                SELECT
+                    id, user_id, page_id, product_id, content_library_id,
+                    content, media_url, status, scheduled_time, is_active, created_at
+                FROM drafts_old
+                """
             )
-            SELECT
-                id, user_id, page_id, product_id, content_library_id,
-                content, media_url, status, scheduled_time, is_active, created_at
-            FROM drafts_old
-        """))
+        )
         connection.execute(text("DROP TABLE drafts_old"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_drafts_id ON drafts (id)"))
         connection.execute(text("PRAGMA foreign_keys=ON"))
 
 
-def ensure_facebook_pages_selected_column() -> None:
-    """Add is_selected to legacy facebook_pages table when missing."""
-    inspector = inspect(engine)
-    if "facebook_pages" not in inspector.get_table_names():
-        return
-
-    columns = {column["name"] for column in inspector.get_columns("facebook_pages")}
-    if "is_selected" in columns:
-        return
+def ensure_users_table_columns() -> None:
+    additions = {
+        "username": "ALTER TABLE users ADD COLUMN username VARCHAR",
+        "full_name": "ALTER TABLE users ADD COLUMN full_name VARCHAR",
+        "password_hash": "ALTER TABLE users ADD COLUMN password_hash VARCHAR",
+        "role": "ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'member' NOT NULL",
+        "status": "ALTER TABLE users ADD COLUMN status VARCHAR DEFAULT 'active' NOT NULL",
+        "is_email_verified": "ALTER TABLE users ADD COLUMN is_email_verified BOOLEAN DEFAULT 0 NOT NULL",
+        "last_login_at": "ALTER TABLE users ADD COLUMN last_login_at DATETIME",
+        "created_by": "ALTER TABLE users ADD COLUMN created_by INTEGER",
+        "updated_by": "ALTER TABLE users ADD COLUMN updated_by INTEGER",
+        "deleted_at": "ALTER TABLE users ADD COLUMN deleted_at DATETIME",
+        "updated_at": "ALTER TABLE users ADD COLUMN updated_at DATETIME",
+    }
+    for name, ddl in additions.items():
+        _add_column_if_missing("users", name, ddl)
 
     with engine.begin() as connection:
         connection.execute(
             text(
-                "ALTER TABLE facebook_pages ADD COLUMN is_selected BOOLEAN DEFAULT 0"
+                """
+                UPDATE users
+                SET full_name = COALESCE(full_name, name),
+                    role = COALESCE(role, 'member'),
+                    status = COALESCE(status, 'active'),
+                    is_email_verified = COALESCE(is_email_verified, 0),
+                    updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP)
+                """
             )
         )
 
 
-def ensure_automation_rules_columns() -> None:
-    """Add newer automation_rules columns to legacy SQLite tables when missing."""
-    inspector = inspect(engine)
-    if "automation_rules" not in inspector.get_table_names():
-        return
+def ensure_facebook_pages_columns() -> None:
+    additions = {
+        "is_selected": "ALTER TABLE facebook_pages ADD COLUMN is_selected BOOLEAN DEFAULT 0",
+        "category": "ALTER TABLE facebook_pages ADD COLUMN category VARCHAR",
+        "tasks": "ALTER TABLE facebook_pages ADD COLUMN tasks VARCHAR",
+        "updated_at": "ALTER TABLE facebook_pages ADD COLUMN updated_at DATETIME",
+    }
+    for name, ddl in additions.items():
+        _add_column_if_missing("facebook_pages", name, ddl)
 
-    columns = {column["name"] for column in inspector.get_columns("automation_rules")}
+
+def ensure_automation_rules_columns() -> None:
     additions = {
         "product_id": "ALTER TABLE automation_rules ADD COLUMN product_id INTEGER",
         "content_library_id": "ALTER TABLE automation_rules ADD COLUMN content_library_id INTEGER",
@@ -104,82 +132,36 @@ def ensure_automation_rules_columns() -> None:
         "language": "ALTER TABLE automation_rules ADD COLUMN language VARCHAR",
         "style": "ALTER TABLE automation_rules ADD COLUMN style VARCHAR",
     }
-
-    with engine.begin() as connection:
-        for name, ddl in additions.items():
-            if name not in columns:
-                connection.execute(text(ddl))
+    for name, ddl in additions.items():
+        _add_column_if_missing("automation_rules", name, ddl)
 
 
-def ensure_user_auth_columns() -> None:
-    """Add auth-related columns to legacy users table when missing."""
-    inspector = inspect(engine)
-    if "users" not in inspector.get_table_names():
-        return
+def ensure_auth_tables() -> None:
+    from app import models  # noqa: F401
 
-    columns = {column["name"] for column in inspector.get_columns("users")}
-    additions = {
-        "username": "ALTER TABLE users ADD COLUMN username VARCHAR",
-        "password_hash": "ALTER TABLE users ADD COLUMN password_hash VARCHAR",
-        "session_token": "ALTER TABLE users ADD COLUMN session_token VARCHAR",
-        "session_expires_at": "ALTER TABLE users ADD COLUMN session_expires_at DATETIME",
-    }
-
-    with engine.begin() as connection:
-        for name, ddl in additions.items():
-            if name not in columns:
-                connection.execute(text(ddl))
+    Base.metadata.create_all(
+        bind=engine,
+        tables=[
+            models.RefreshToken.__table__,
+            models.PasswordResetToken.__table__,
+            models.OAuthIdentity.__table__,
+            models.OAuthConnectionSession.__table__,
+        ],
+    )
 
 
-def ensure_demo_user() -> None:
-    """Seed the default demo user for login."""
-    with engine.begin() as connection:
-        existing = connection.execute(
-            text("SELECT id FROM users WHERE id = 1")
-        ).fetchone()
+def init_database() -> None:
+    from app import models  # noqa: F401
 
-        password_hash = _hash_password("123")
-
-        if not existing:
-            connection.execute(
-                text(
-                    """
-                    INSERT INTO users (id, username, email, name, password_hash, created_at)
-                    VALUES (:id, :username, :email, :name, :password_hash, CURRENT_TIMESTAMP)
-                    """
-                ),
-                {
-                    "id": 1,
-                    "username": "demo",
-                    "email": "demo@zenvydesk.com",
-                    "name": "Demo User",
-                    "password_hash": password_hash,
-                },
-            )
-            return
-
-        connection.execute(
-            text(
-                """
-                UPDATE users
-                SET username = COALESCE(username, :username),
-                    email = COALESCE(email, :email),
-                    name = COALESCE(name, :name),
-                    password_hash = COALESCE(password_hash, :password_hash)
-                WHERE id = 1
-                """
-            ),
-            {
-                "username": "demo",
-                "email": "demo@zenvydesk.com",
-                "name": "Demo User",
-                "password_hash": password_hash,
-            },
-        )
+    Base.metadata.create_all(bind=engine)
+    ensure_users_table_columns()
+    ensure_drafts_page_id_nullable()
+    ensure_facebook_pages_columns()
+    ensure_automation_rules_columns()
+    ensure_auth_tables()
 
 
 def get_db():
-    """Database session dependency"""
     db = SessionLocal()
     try:
         yield db

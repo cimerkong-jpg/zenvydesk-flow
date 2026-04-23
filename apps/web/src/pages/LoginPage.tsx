@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+
 import { useAuth } from '../context/AuthContext'
+
 
 export function LoginPage() {
   const { user, loading, login } = useAuth()
-  const [username, setUsername] = useState('demo')
-  const [password, setPassword] = useState('123')
+  const [email, setEmail] = useState('admin@zenvydesk.com')
+  const [password, setPassword] = useState('Admin123!')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -18,7 +20,7 @@ export function LoginPage() {
     setSubmitting(true)
     setError(null)
     try {
-      await login(username.trim(), password)
+      await login(email.trim(), password)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -33,18 +35,18 @@ export function LoginPage() {
           <div className="logo-icon">Z</div>
           <div>
             <h1>ZenvyDesk</h1>
-            <p>Sign in to manage drafts, products, content, AI creative, and posting.</p>
+            <p>Sign in with your app account, then connect Facebook from inside the product.</p>
           </div>
         </div>
 
         <form className="form-stack" onSubmit={handleSubmit}>
           <label className="form-field">
-            <span className="form-label">Username</span>
+            <span className="form-label">Email</span>
             <input
               className="form-input"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
             />
           </label>
 
@@ -59,20 +61,25 @@ export function LoginPage() {
             />
           </label>
 
-          {error && (
+          {error ? (
             <div className="alert alert-error">
               <div className="alert-content">
                 <div className="alert-title">Login failed</div>
                 <div className="alert-message">{error}</div>
               </div>
             </div>
-          )}
+          ) : null}
 
           <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
             {submitting ? 'Signing in...' : 'Sign in'}
           </button>
 
-          <div className="form-hint">Demo account: demo / 123</div>
+          <div className="form-hint">
+            Seeded super admin: `admin@zenvydesk.com` / `Admin123!`
+          </div>
+          <div className="form-hint">
+            <Link to="/register">Create account</Link> · <Link to="/forgot-password">Forgot password</Link>
+          </div>
         </form>
       </div>
     </div>

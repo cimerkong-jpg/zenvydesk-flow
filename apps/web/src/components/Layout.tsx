@@ -1,45 +1,52 @@
-import { NavLink, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { fetchHealth } from '../lib/api'
+
 import { useAuth } from '../context/AuthContext'
+import { fetchHealth } from '../lib/api'
 import { LanguageSelector } from './LanguageSelector'
+
 
 type BackendStatus = 'loading' | 'ok' | 'down'
 
 interface NavItem {
   to: string
-  labelKey: string
+  label: string
   icon: string
   end?: boolean
 }
+
 
 export function Layout() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const [status, setStatus] = useState<BackendStatus>('loading')
 
-  const NAV_MAIN: NavItem[] = [
-    { to: '/', labelKey: 'nav.dashboard', icon: '📊', end: true },
-    { to: '/drafts', labelKey: 'nav.drafts', icon: '📝' },
-    { to: '/schedule', labelKey: 'nav.schedule', icon: '📅' },
-    { to: '/post-history', labelKey: 'nav.postHistory', icon: '📜' },
+  const navMain: NavItem[] = [
+    { to: '/', label: t('nav.dashboard'), icon: 'D', end: true },
+    { to: '/drafts', label: t('nav.drafts'), icon: 'Dr' },
+    { to: '/schedule', label: t('nav.schedule'), icon: 'Sc' },
+    { to: '/post-history', label: t('nav.postHistory'), icon: 'Ph' },
   ]
 
-  const NAV_CONTENT: NavItem[] = [
-    { to: '/products', labelKey: 'nav.products', icon: '🛍️' },
-    { to: '/content-library', labelKey: 'nav.contentLibrary', icon: '📚' },
-    { to: '/creative-ai', labelKey: 'nav.creativeAi', icon: '✨' },
+  const navContent: NavItem[] = [
+    { to: '/products', label: t('nav.products'), icon: 'Pr' },
+    { to: '/content-library', label: t('nav.contentLibrary'), icon: 'Cl' },
+    { to: '/creative-ai', label: t('nav.creativeAi'), icon: 'Ai' },
   ]
 
-  const NAV_AUTOMATION: NavItem[] = [
-    { to: '/automation-rules', labelKey: 'nav.automationRules', icon: '⚙️' },
+  const navAutomation: NavItem[] = [
+    { to: '/automation-rules', label: t('nav.automationRules'), icon: 'Au' },
   ]
 
-  const NAV_SETTINGS: NavItem[] = [
-    { to: '/connections', labelKey: 'nav.connections', icon: '🔗' },
-    { to: '/settings', labelKey: 'nav.settings', icon: '🧰' },
-  ]
+  const navSettings: NavItem[] = [{ to: '/connections', label: t('nav.connections'), icon: 'Fb' }]
+  const navAdmin: NavItem[] =
+    user?.role === 'admin' || user?.role === 'super_admin'
+      ? [
+          { to: '/users', label: 'Users', icon: 'Us' },
+          { to: '/settings', label: t('nav.settings'), icon: 'St' },
+        ]
+      : []
 
   useEffect(() => {
     let cancelled = false
@@ -52,6 +59,7 @@ export function Layout() {
           if (!cancelled) setStatus('down')
         })
     }
+
     check()
     const id = window.setInterval(check, 30_000)
     return () => {
@@ -71,7 +79,7 @@ export function Layout() {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
         >
           <span>{item.icon}</span>
-          <span>{t(item.labelKey)}</span>
+          <span>{item.label}</span>
         </NavLink>
       ))}
     </div>
@@ -86,7 +94,7 @@ export function Layout() {
             <span>ZenvyDesk</span>
           </div>
           <div className="sidebar-user">
-            <div className="sidebar-user-name">{user?.username ?? 'guest'}</div>
+            <div className="sidebar-user-name">{user?.full_name ?? user?.email ?? 'guest'}</div>
             <button className="btn btn-ghost btn-sm sidebar-logout" onClick={() => void logout()}>
               Logout
             </button>
@@ -95,10 +103,11 @@ export function Layout() {
         </div>
 
         <nav className="sidebar-nav">
-          {renderNavGroup('Main', NAV_MAIN)}
-          {renderNavGroup('Content', NAV_CONTENT)}
-          {renderNavGroup('Automation', NAV_AUTOMATION)}
-          {renderNavGroup('Settings', NAV_SETTINGS)}
+          {renderNavGroup('Main', navMain)}
+          {renderNavGroup('Content', navContent)}
+          {renderNavGroup('Automation', navAutomation)}
+          {renderNavGroup('Connections', navSettings)}
+          {navAdmin.length > 0 ? renderNavGroup('Admin', navAdmin) : null}
         </nav>
 
         <div className="sidebar-footer">
