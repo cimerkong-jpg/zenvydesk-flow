@@ -8,7 +8,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.schemas.creative_generation import CreativeGenerateRequest, CreativeGenerateResponse
 from app.services.ai.content_generator import generate_content
-from app.services.ai.image_generator import generate_image
+from app.services.ai.image_generator import generate_image, resolve_image_model_name, resolve_image_provider_name
 from app.services.market_profiles import get_market_profile
 from app.services.permission_service import get_current_user
 
@@ -42,8 +42,13 @@ def generate_creative(
     product, content_library = _load_context(db, payload, current_user)
     ai_provider = payload.ai_provider or settings.resolved_ai_provider
     ai_model = payload.ai_model or settings.ai_model
-    image_provider = payload.image_provider or settings.resolved_image_provider
-    image_model = payload.image_model or settings.image_model
+    image_provider = resolve_image_provider_name(
+        payload.image_provider,
+        preferred_ai_provider=ai_provider,
+        db=db,
+        user=current_user,
+    )
+    image_model = resolve_image_model_name(image_provider, payload.image_model)
 
     generated = generate_content(
         product=product,
@@ -77,6 +82,7 @@ def generate_creative(
             base_url=payload.image_base_url,
             db=db,
             user=current_user,
+            preferred_ai_provider=ai_provider,
         )
 
     if payload.generation_type == "image":

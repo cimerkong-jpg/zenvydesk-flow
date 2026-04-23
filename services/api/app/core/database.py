@@ -1,18 +1,60 @@
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.engine.url import URL, make_url
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
-engine_kwargs = {}
-if settings.database_url.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(settings.database_url, **engine_kwargs)
+def build_engine_kwargs(database_url: str) -> dict:
+    if database_url.startswith("sqlite"):
+        return {"connect_args": {"check_same_thread": False}}
+    return {}
+
+
+def get_database_backend(database_url: str | URL) -> str:
+    url = make_url(str(database_url))
+    backend = url.get_backend_name()
+    if backend == "postgres":
+        return "postgresql"
+    return backend
+
+
+def mask_database_url(database_url: str | URL) -> str:
+    url = make_url(str(database_url))
+    backend = get_database_backend(url)
+    if backend == "sqlite":
+        database = url.database or "./zenvydesk.db"
+        return f"sqlite:///{database}"
+
+    host = url.host or "localhost"
+    port = f":{url.port}" if url.port else ""
+    database = f"/{url.database}" if url.database else ""
+    username = f"{url.username}@" if url.username else ""
+    return f"{backend}://{username}{host}{port}{database}"
+
+
+def create_db_engine(database_url: str) -> Engine:
+    return create_engine(database_url, **build_engine_kwargs(database_url))
+
+
+engine = create_db_engine(settings.database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+def is_sqlite_engine(target_engine: Engine) -> bool:
+    return get_database_backend(target_engine.url) == "sqlite"
+
+
+def describe_database_connection(target_engine: Engine) -> str:
+    return f"{get_database_backend(target_engine.url)} ({mask_database_url(target_engine.url)})"
 
 
 def _add_column_if_missing(table_name: str, column_name: str, ddl: str) -> None:
@@ -27,6 +69,9 @@ def _add_column_if_missing(table_name: str, column_name: str, ddl: str) -> None:
 
 
 def ensure_drafts_page_id_nullable() -> None:
+    if not is_sqlite_engine(engine):
+        return
+
     inspector = inspect(engine)
     if "drafts" not in inspector.get_table_names():
         return
@@ -82,6 +127,9 @@ def ensure_drafts_page_id_nullable() -> None:
 
 
 def ensure_users_table_columns() -> None:
+    if not is_sqlite_engine(engine):
+        return
+
     additions = {
         "username": "ALTER TABLE users ADD COLUMN username VARCHAR",
         "full_name": "ALTER TABLE users ADD COLUMN full_name VARCHAR",
@@ -114,6 +162,9 @@ def ensure_users_table_columns() -> None:
 
 
 def ensure_facebook_pages_columns() -> None:
+    if not is_sqlite_engine(engine):
+        return
+
     additions = {
         "is_selected": "ALTER TABLE facebook_pages ADD COLUMN is_selected BOOLEAN DEFAULT 0",
         "category": "ALTER TABLE facebook_pages ADD COLUMN category VARCHAR",
@@ -125,6 +176,9 @@ def ensure_facebook_pages_columns() -> None:
 
 
 def ensure_automation_rules_columns() -> None:
+    if not is_sqlite_engine(engine):
+        return
+
     additions = {
         "product_id": "ALTER TABLE automation_rules ADD COLUMN product_id INTEGER",
         "content_library_id": "ALTER TABLE automation_rules ADD COLUMN content_library_id INTEGER",
@@ -154,11 +208,15 @@ def ensure_auth_tables() -> None:
 def init_database() -> None:
     from app import models  # noqa: F401
 
+    logger.info("Initializing database using %s", describe_database_connection(engine))
     Base.metadata.create_all(bind=engine)
-    ensure_users_table_columns()
-    ensure_drafts_page_id_nullable()
-    ensure_facebook_pages_columns()
-    ensure_automation_rules_columns()
+    if is_sqlite_engine(engine):
+        ensure_users_table_columns()
+        ensure_drafts_page_id_nullable()
+        ensure_facebook_pages_columns()
+        ensure_automation_rules_columns()
+    else:
+        logger.info("Skipping SQLite compatibility patches for backend=%s", get_database_backend(engine.url))
     ensure_auth_tables()
 
 

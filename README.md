@@ -22,7 +22,8 @@ python create_tables.py
 uvicorn app.main:app --reload
 ```
 
-The local development database is `services/api/zenvydesk.db`.
+The local development database falls back to `services/api/zenvydesk.db` when `DATABASE_URL` is empty.
+For staging/production, set `DATABASE_URL` and the backend will use that database instead of SQLite.
 
 Do not commit `.env`. The repo already ignores it.
 
@@ -109,6 +110,7 @@ Use `services/api/.env.example` as the starting point for `services/api/.env`:
 
 ```env
 DEBUG=true
+DATABASE_URL=
 AI_PROVIDER=mock
 AI_MODEL=mock-v1
 AI_API_KEY=replace_with_your_api_key
@@ -118,7 +120,14 @@ AI_BASE_URL=
 Notes:
 - `AI_PROVIDER=mock` is the easiest local default and does not require a real API key.
 - Leave `AI_BASE_URL` empty unless you are using a custom compatible endpoint.
-- The current backend database path is configured in code as `sqlite:///./zenvydesk.db`.
+- Leave `DATABASE_URL` empty for local SQLite fallback at `services/api/zenvydesk.db`.
+- Set `DATABASE_URL` in staging/production to a PostgreSQL URL. When present, the backend will not fall back to SQLite.
+
+### Database Modes
+
+- Local/dev fallback: SQLite via `services/api/zenvydesk.db` when `DATABASE_URL` is unset or blank.
+- Staging/production: PostgreSQL via `DATABASE_URL`.
+- `python create_tables.py` and app startup both use the same init flow, so table creation follows the active database backend automatically.
 
 ### Run Tests
 

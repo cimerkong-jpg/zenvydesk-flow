@@ -19,6 +19,15 @@ def _normalize_url(value: Optional[str]) -> str:
     return (value or "").strip().rstrip("/")
 
 
+def _normalize_database_url(value: Optional[str]) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return "sqlite:///./zenvydesk.db"
+    if raw.startswith("postgres://"):
+        return f"postgresql://{raw[len('postgres://'):]}"
+    return raw
+
+
 def _extract_origin(value: Optional[str]) -> str:
     normalized = _normalize_url(value)
     if not normalized:
@@ -95,6 +104,11 @@ class Settings(BaseSettings):
             if normalized in {"1", "true", "yes", "on", "debug", "development"}:
                 return True
         return value
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value):
+        return _normalize_database_url(value)
 
     def infer_app_env(self, request_base_url: Optional[str] = None) -> str:
         env = (self.app_env or "").strip().lower()
@@ -176,6 +190,15 @@ class Settings(BaseSettings):
     @property
     def resolved_ai_api_key(self) -> Optional[str]:
         return self.get_provider_api_key(self.resolved_ai_provider)
+
+    @property
+    def resolved_database_backend(self) -> str:
+        normalized = (self.database_url or "").strip().lower()
+        if normalized.startswith("sqlite"):
+            return "sqlite"
+        if normalized.startswith("postgresql"):
+            return "postgresql"
+        return (urlparse(normalized).scheme or "unknown").split("+", 1)[0]
 
     @property
     def resolved_openai_manager_api_key(self) -> Optional[str]:

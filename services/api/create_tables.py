@@ -1,6 +1,10 @@
-from app.core.database import Base, engine
-from app.models import User, FacebookPage, Product, ContentLibrary, Draft, MediaLibrary, PostHistory
+from app.core.database import describe_database_connection, engine, init_database
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
-print("All tables created successfully!")
+
+def create_tables() -> None:
+    init_database()
+
+
+if __name__ == "__main__":
+    create_tables()
+    print(f"All tables created successfully on {describe_database_connection(engine)}")

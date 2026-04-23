@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,6 +25,7 @@ from app.api.routes import (
 from app.core.database import SessionLocal, init_database
 from app.db.seed_admin import seed_admin
 
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ZenvyDesk API", version="0.2.0")
 
@@ -63,6 +66,7 @@ app.include_router(creative_router, prefix="/api/v1/creative", tags=["creative"]
 
 @app.on_event("startup")
 async def startup_tasks():
+    logger.info("Starting ZenvyDesk API")
     init_database()
     db = SessionLocal()
     try:

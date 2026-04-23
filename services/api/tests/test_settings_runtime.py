@@ -2,7 +2,12 @@ from tests.helpers import override_ai_settings
 
 
 def test_runtime_settings_endpoint(client, admin_user, auth_headers):
-    with override_ai_settings(ai_provider="mock", image_provider="mock"):
+    with override_ai_settings(
+        ai_provider="mock",
+        image_provider="mock",
+        openai_manager_api_key=None,
+        openai_api_key=None,
+    ):
         response = client.get("/api/v1/settings/runtime", headers=auth_headers(admin_user))
 
     assert response.status_code == 200

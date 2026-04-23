@@ -10,7 +10,7 @@ from app.models.user import User
 from app.schemas.draft import DraftCreate, DraftResponse
 from app.schemas.draft_generation import DraftGenerateRequest, DraftGenerateResponse
 from app.services.ai.content_generator import generate_content
-from app.services.ai.image_generator import generate_image
+from app.services.ai.image_generator import generate_image, resolve_image_model_name, resolve_image_provider_name
 from app.services.market_profiles import get_market_profile
 from app.services.permission_service import get_current_user
 
@@ -126,13 +126,21 @@ def generate_draft_content(
     if not generated_content.success:
         raise HTTPException(status_code=400, detail=generated_content.error or "AI generation failed")
 
+    image_provider = resolve_image_provider_name(
+        payload.image_provider,
+        preferred_ai_provider=payload.ai_provider,
+        db=db,
+        user=current_user,
+    )
+    image_model = resolve_image_model_name(image_provider, payload.image_model)
     media_url = generate_image(
         "\n".join([generated_content.prompt, get_market_profile(payload.market).image_guidance]),
-        provider_name=payload.image_provider,
-        model=payload.image_model,
+        provider_name=image_provider,
+        model=image_model,
         base_url=payload.image_base_url,
         db=db,
         user=current_user,
+        preferred_ai_provider=payload.ai_provider,
     )
     return DraftGenerateResponse(
         content=generated_content.content,
@@ -174,6 +182,13 @@ def generate_draft_image(
     )
     if not generated_content.success:
         raise HTTPException(status_code=400, detail=generated_content.error or "AI generation failed")
+    image_provider = resolve_image_provider_name(
+        payload.image_provider,
+        preferred_ai_provider=payload.ai_provider,
+        db=db,
+        user=current_user,
+    )
+    image_model = resolve_image_model_name(image_provider, payload.image_model)
     media_prompt = "\n".join(
         [
             generated_content.prompt,
@@ -186,10 +201,11 @@ def generate_draft_image(
         content=generated_content.content,
         media_url=generate_image(
             media_prompt,
-            provider_name=payload.image_provider,
-            model=payload.image_model,
+            provider_name=image_provider,
+            model=image_model,
             base_url=payload.image_base_url,
             db=db,
             user=current_user,
+            preferred_ai_provider=payload.ai_provider,
         ),
     )
