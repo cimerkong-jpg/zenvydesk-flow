@@ -36,6 +36,12 @@
     "all": "All",
     "never": "Never",
     "or": "or",
+    "markets": {
+      "VN": "Vietnam",
+      "TH": "Thailand",
+      "PH": "Philippines",
+      "MY": "Malaysia"
+    },
     "status": {
       "draft": "Draft",
       "scheduled": "Scheduled",
@@ -381,6 +387,7 @@
       "ruleName": "Rule name",
       "ruleNamePlaceholder": "Daily product spotlight",
       "product": "Product",
+      "market": "Market",
       "contentLibrary": "Content Library",
       "contentType": "Content type",
       "tone": "Tone",
@@ -491,6 +498,7 @@
     "preferences": {
       "title": "AI Preferences",
       "saved": "AI preferences saved in browser storage",
+      "defaultMarket": "Default market",
       "defaultProvider": "Default AI provider",
       "defaultModel": "Default AI model",
       "hint": "Provider and model stay in this browser. API keys are stored on your account and used server-side."
@@ -561,6 +569,8 @@
       "newDescription": "Compose content manually or generate it with AI.",
       "editDescription": "Update draft content and settings.",
       "product": "Product",
+      "market": "Market",
+      "marketHint": "Used to localize language, buying behavior, and sales style.",
       "productHint": "Pick a product first for stronger AI output.",
       "contentLibrary": "Content Library",
       "contentLibraryHint": "Optional supporting content for AI or manual drafting.",
@@ -646,6 +656,7 @@
     "form": {
       "product": "Product",
       "productPlaceholder": "Select product",
+      "market": "Market",
       "contentLibrary": "Content Library",
       "contentLibraryHint": "Optional context for AI.",
       "noLibrary": "Do not use",

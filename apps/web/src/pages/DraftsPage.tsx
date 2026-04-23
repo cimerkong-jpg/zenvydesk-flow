@@ -12,6 +12,7 @@ import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
 import { formatDateTime, formatRelative, fromDateTimeLocalValue, toDateTimeLocalValue, truncate } from '../lib/format'
 import { loadAiPreferences } from '../lib/aiPreferences'
+import { MARKET_DEFAULT_LANGUAGE, MARKET_OPTIONS, type MarketCode } from '../lib/markets'
 import {
   createDraft,
   deleteDraft,
@@ -273,10 +274,12 @@ function CreateDraftModal({
 }) {
   const { t } = useTranslation()
   const isEdit = !!draft
+  const defaults = loadAiPreferences()
   const [productId, setProductId] = useState(draft?.product_id?.toString() ?? '')
   const [contentLibraryId, setContentLibraryId] = useState(draft?.content_library_id?.toString() ?? '')
+  const [market, setMarket] = useState<MarketCode>(defaults.market)
   const [tone, setTone] = useState('marketing')
-  const [language, setLanguage] = useState('th')
+  const [language, setLanguage] = useState(MARKET_DEFAULT_LANGUAGE[defaults.market])
   const [style, setStyle] = useState('social ad creative')
   const [content, setContent] = useState(draft?.content ?? '')
   const [mediaUrl, setMediaUrl] = useState(draft?.media_url ?? '')
@@ -287,8 +290,9 @@ function CreateDraftModal({
   useEffect(() => {
     setProductId(draft?.product_id?.toString() ?? '')
     setContentLibraryId(draft?.content_library_id?.toString() ?? '')
+    setMarket(defaults.market)
     setTone('marketing')
-    setLanguage('th')
+    setLanguage(MARKET_DEFAULT_LANGUAGE[defaults.market])
     setStyle('social ad creative')
     setContent(draft?.content ?? '')
     setMediaUrl(draft?.media_url ?? '')
@@ -298,8 +302,9 @@ function CreateDraftModal({
   const reset = () => {
     setProductId('')
     setContentLibraryId('')
+    setMarket(defaults.market)
     setTone('marketing')
-    setLanguage('th')
+    setLanguage(MARKET_DEFAULT_LANGUAGE[defaults.market])
     setStyle('social ad creative')
     setContent('')
     setMediaUrl('')
@@ -318,6 +323,7 @@ function CreateDraftModal({
       const result = await generateDraft({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
+        market,
         tone,
         language,
         style,
@@ -345,6 +351,7 @@ function CreateDraftModal({
       const result = await generateDraftImage({
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
+        market,
         tone,
         language,
         style,
@@ -458,6 +465,24 @@ function CreateDraftModal({
         </FormField>
 
         <FormField
+          label={t('draftsPage.form.market')}
+          as="select"
+          value={market}
+          onChange={(event) => {
+            const nextMarket = event.target.value as MarketCode
+            setMarket(nextMarket)
+            setLanguage(MARKET_DEFAULT_LANGUAGE[nextMarket])
+          }}
+          hint={t('draftsPage.form.marketHint')}
+        >
+          {MARKET_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {t(`common.markets.${option}`)}
+            </option>
+          ))}
+        </FormField>
+
+        <FormField
           label={t('draftsPage.form.contentLibrary')}
           as="select"
           value={contentLibraryId}
@@ -477,11 +502,6 @@ function CreateDraftModal({
           <option value="friendly">{t('automationPage.options.friendly')}</option>
           <option value="professional">{t('automationPage.options.professional')}</option>
           <option value="playful">{t('automationPage.options.playful')}</option>
-        </FormField>
-
-        <FormField label={t('draftsPage.form.language')} as="select" value={language} onChange={(event) => setLanguage(event.target.value)} hint={t('draftsPage.form.languageHint')}>
-          <option value="th">{t('automationPage.options.thai')}</option>
-          <option value="en">{t('automationPage.options.english')}</option>
         </FormField>
 
         <FormField

@@ -24,6 +24,7 @@ def create_automation_rule(
         content_library_id=rule.content_library_id,
         name=rule.name,
         content_type=rule.content_type,
+        market=rule.market,
         tone=rule.tone,
         language=rule.language,
         style=rule.style,
@@ -71,6 +72,7 @@ def update_automation_rule(
     db_rule.content_library_id = rule.content_library_id
     db_rule.name = rule.name
     db_rule.content_type = rule.content_type
+    db_rule.market = rule.market
     db_rule.tone = rule.tone
     db_rule.language = rule.language
     db_rule.style = rule.style

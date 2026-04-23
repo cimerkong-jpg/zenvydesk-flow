@@ -24,6 +24,7 @@ import {
   loadAiPreferences,
   saveAiPreferences,
 } from '../lib/aiPreferences'
+import { MARKET_OPTIONS, type MarketCode } from '../lib/markets'
 
 type HealthState = 'loading' | 'ok' | 'down'
 
@@ -259,6 +260,18 @@ export function SettingsPage() {
         <div className="form-stack">
           <div className="creative-grid-2">
             <FormField
+              label={t('settingsPage.preferences.defaultMarket')}
+              as="select"
+              value={preferences.market}
+              onChange={(event) => updatePreferences({ market: event.target.value as MarketCode })}
+            >
+              {MARKET_OPTIONS.map((market) => (
+                <option key={market} value={market}>
+                  {t(`common.markets.${market}`)}
+                </option>
+              ))}
+            </FormField>
+            <FormField
               label={t('settingsPage.preferences.defaultProvider')}
               as="select"
               value={preferences.provider}
@@ -270,6 +283,8 @@ export function SettingsPage() {
                 </option>
               ))}
             </FormField>
+          </div>
+          <div className="creative-grid-2">
             <FormField
               label={t('settingsPage.preferences.defaultModel')}
               as="select"

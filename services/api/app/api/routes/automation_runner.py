@@ -13,6 +13,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.market_profiles import get_market_profile
 from app.services.permission_service import get_current_user
 
 router = APIRouter()
@@ -74,6 +75,7 @@ def run_automation(
     generated = generate_content(
         product=product,
         content_library=content_library,
+        market=rule.market or "TH",
         tone=rule.tone or rule.content_type or "marketing",
         language=rule.language or "th",
         db=db,
@@ -94,6 +96,7 @@ def run_automation(
     media_prompt = "\n".join(
         [
             generated.prompt,
+            get_market_profile(rule.market).image_guidance,
             f"Visual style: {rule.style or 'social ad creative'}",
             f"Draft content context: {generated.content}",
         ]

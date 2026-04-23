@@ -6,6 +6,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.services.ai.prompt_builder import build_prompt
 from app.services.ai_generation import generate_post_content
+from app.services.market_profiles import get_market_profile
 from sqlalchemy.orm import Session
 
 
@@ -22,6 +23,7 @@ class GeneratedContent:
 def generate_content(
     product: Product,
     content_library: ContentLibrary | None = None,
+    market: str = "TH",
     tone: str = "marketing",
     language: str = "th",
     provider: str | None = None,
@@ -31,11 +33,14 @@ def generate_content(
     db: Session | None = None,
     user: User | None = None,
 ) -> GeneratedContent:
+    profile = get_market_profile(market)
+    resolved_language = language or profile.language
     prompt = build_prompt(
         product=product,
         content_library=content_library,
+        market=profile.code,
         tone=tone,
-        language=language,
+        language=resolved_language,
     )
     result = generate_post_content(
         content_type=content_library.content_type if content_library and content_library.content_type else "general_post",
@@ -43,7 +48,7 @@ def generate_content(
         product_description=product.description,
         selling_points=[content_library.content] if content_library and content_library.content else None,
         tone=tone,
-        target_audience="Thai market" if language.lower() == "th" else f"{language} market",
+        target_audience=profile.audience,
         provider=provider or settings.resolved_ai_provider,
         model=model or settings.ai_model,
         api_key=api_key,

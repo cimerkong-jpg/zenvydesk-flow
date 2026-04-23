@@ -128,6 +128,7 @@ def ensure_automation_rules_columns() -> None:
     additions = {
         "product_id": "ALTER TABLE automation_rules ADD COLUMN product_id INTEGER",
         "content_library_id": "ALTER TABLE automation_rules ADD COLUMN content_library_id INTEGER",
+        "market": "ALTER TABLE automation_rules ADD COLUMN market VARCHAR",
         "tone": "ALTER TABLE automation_rules ADD COLUMN tone VARCHAR",
         "language": "ALTER TABLE automation_rules ADD COLUMN language VARCHAR",
         "style": "ALTER TABLE automation_rules ADD COLUMN style VARCHAR",

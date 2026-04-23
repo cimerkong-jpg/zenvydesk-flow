@@ -36,6 +36,12 @@
     "all": "Tất cả",
     "never": "Chưa từng",
     "or": "hoặc",
+    "markets": {
+      "VN": "Việt Nam",
+      "TH": "Thái Lan",
+      "PH": "Philippines",
+      "MY": "Malaysia"
+    },
     "status": {
       "draft": "Bản nháp",
       "scheduled": "Đã lên lịch",
@@ -381,6 +387,7 @@
       "ruleName": "Tên quy tắc",
       "ruleNamePlaceholder": "Điểm nhấn sản phẩm hằng ngày",
       "product": "Sản phẩm",
+      "market": "Thị trường",
       "contentLibrary": "Thư viện nội dung",
       "contentType": "Loại nội dung",
       "tone": "Giọng điệu",
@@ -491,6 +498,7 @@
     "preferences": {
       "title": "Tùy chọn AI",
       "saved": "Đã lưu tùy chọn AI trong trình duyệt",
+      "defaultMarket": "Thị trường mặc định",
       "defaultProvider": "Nhà cung cấp AI mặc định",
       "defaultModel": "Model AI mặc định",
       "hint": "Nhà cung cấp và model được lưu trong trình duyệt này. API key được lưu theo tài khoản và dùng ở phía server."
@@ -561,6 +569,8 @@
       "newDescription": "Soạn nội dung thủ công hoặc tạo bằng AI.",
       "editDescription": "Cập nhật nội dung và thiết lập của bản nháp.",
       "product": "Sản phẩm",
+      "market": "Thị trường",
+      "marketHint": "Dùng để bản địa hóa ngôn ngữ, hành vi mua sắm và cách bán hàng.",
       "productHint": "Hãy chọn sản phẩm trước để AI tạo nội dung tốt hơn.",
       "contentLibrary": "Thư viện nội dung",
       "contentLibraryHint": "Nội dung bổ sung tùy chọn cho AI hoặc khi soạn thủ công.",
@@ -646,6 +656,7 @@
     "form": {
       "product": "Sản phẩm",
       "productPlaceholder": "Chọn sản phẩm",
+      "market": "Thị trường",
       "contentLibrary": "Thư viện nội dung",
       "contentLibraryHint": "Ngữ cảnh tùy chọn cho AI.",
       "noLibrary": "Không dùng",

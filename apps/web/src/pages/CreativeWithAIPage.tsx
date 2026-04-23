@@ -9,6 +9,7 @@ import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
 import { fromDateTimeLocalValue } from '../lib/format'
 import { AI_MODELS, AI_PROVIDER_OPTIONS, type AIProvider, loadAiPreferences } from '../lib/aiPreferences'
+import { MARKET_DEFAULT_LANGUAGE, MARKET_OPTIONS, type MarketCode } from '../lib/markets'
 import {
   createDraft,
   creativeGenerate,
@@ -29,13 +30,15 @@ export function CreativeWithAIPage() {
   const contentLibrary = useAsync(fetchContentLibrary, [])
 
   const [mode, setMode] = useState<GenerationMode>('post')
+  const savedPreferences = loadAiPreferences()
   const [productId, setProductId] = useState('')
   const [contentLibraryId, setContentLibraryId] = useState('')
+  const [market, setMarket] = useState<MarketCode>(savedPreferences.market)
   const [tone, setTone] = useState('marketing')
-  const [language, setLanguage] = useState('th')
+  const [language, setLanguage] = useState(MARKET_DEFAULT_LANGUAGE[savedPreferences.market])
   const [style, setStyle] = useState('social ad creative')
-  const [provider, setProvider] = useState(loadAiPreferences().provider)
-  const [model, setModel] = useState(loadAiPreferences().model)
+  const [provider, setProvider] = useState(savedPreferences.provider)
+  const [model, setModel] = useState(savedPreferences.model)
   const [preview, setPreview] = useState<CreativeGenerateResponse | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -44,6 +47,8 @@ export function CreativeWithAIPage() {
 
   useEffect(() => {
     const saved = loadAiPreferences()
+    setMarket(saved.market)
+    setLanguage(MARKET_DEFAULT_LANGUAGE[saved.market])
     setProvider(saved.provider)
     setModel(saved.model)
   }, [])
@@ -77,6 +82,7 @@ export function CreativeWithAIPage() {
         generation_type: mode,
         product_id: Number(productId),
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
+        market,
         tone,
         language,
         style,
@@ -198,6 +204,23 @@ export function CreativeWithAIPage() {
               </FormField>
 
               <FormField
+                label={t('creativePage.form.market')}
+                as="select"
+                value={market}
+                onChange={(event) => {
+                  const nextMarket = event.target.value as MarketCode
+                  setMarket(nextMarket)
+                  setLanguage(MARKET_DEFAULT_LANGUAGE[nextMarket])
+                }}
+              >
+                {MARKET_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {t(`common.markets.${option}`)}
+                  </option>
+                ))}
+              </FormField>
+
+              <FormField
                 label={t('creativePage.form.contentLibrary')}
                 as="select"
                 value={contentLibraryId}
@@ -218,11 +241,6 @@ export function CreativeWithAIPage() {
                   <option value="friendly">{t('automationPage.options.friendly')}</option>
                   <option value="professional">{t('automationPage.options.professional')}</option>
                   <option value="playful">{t('automationPage.options.playful')}</option>
-                </FormField>
-                <FormField label={t('creativePage.form.language')} as="select" value={language} onChange={(event) => setLanguage(event.target.value)}>
-                  <option value="th">{t('automationPage.options.thai')}</option>
-                  <option value="en">{t('automationPage.options.english')}</option>
-                  <option value="vi">{t('common.vietnamese')}</option>
                 </FormField>
               </div>
 

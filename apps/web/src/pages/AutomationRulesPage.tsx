@@ -10,7 +10,9 @@ import { StatusBadge } from '../components/StatusBadge'
 import { useToast } from '../components/Toast'
 import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
+import { loadAiPreferences } from '../lib/aiPreferences'
 import { formatDateTime, formatRelative, fromDateTimeLocalValue, toDateTimeLocalValue, truncate } from '../lib/format'
+import { MARKET_DEFAULT_LANGUAGE, MARKET_OPTIONS, type MarketCode } from '../lib/markets'
 import {
   createAutomationRule,
   deleteAutomationRule,
@@ -259,12 +261,14 @@ function RuleModal({
 }) {
   const { t } = useTranslation()
   const isEdit = !!rule
+  const defaults = loadAiPreferences()
   const [name, setName] = useState('')
   const [productId, setProductId] = useState('')
   const [contentLibraryId, setContentLibraryId] = useState('')
   const [contentType, setContentType] = useState('')
+  const [market, setMarket] = useState<MarketCode>(defaults.market)
   const [tone, setTone] = useState('marketing')
-  const [language, setLanguage] = useState('th')
+  const [language, setLanguage] = useState(MARKET_DEFAULT_LANGUAGE[defaults.market])
   const [style, setStyle] = useState('social ad creative')
   const [autoPost, setAutoPost] = useState(false)
   const [scheduledTime, setScheduledTime] = useState('')
@@ -276,8 +280,10 @@ function RuleModal({
     setProductId(rule?.product_id ? String(rule.product_id) : '')
     setContentLibraryId(rule?.content_library_id ? String(rule.content_library_id) : '')
     setContentType(rule?.content_type ?? '')
+    const nextMarket = (rule?.market as MarketCode | null) ?? defaults.market
+    setMarket(nextMarket)
     setTone(rule?.tone ?? 'marketing')
-    setLanguage(rule?.language ?? 'th')
+    setLanguage(rule?.language ?? MARKET_DEFAULT_LANGUAGE[nextMarket])
     setStyle(rule?.style ?? 'social ad creative')
     setAutoPost(rule?.auto_post ?? false)
     setSelectionMode(rule?.product_selection_mode ?? '')
@@ -289,8 +295,9 @@ function RuleModal({
     setProductId('')
     setContentLibraryId('')
     setContentType('')
+    setMarket(defaults.market)
     setTone('marketing')
-    setLanguage('th')
+    setLanguage(MARKET_DEFAULT_LANGUAGE[defaults.market])
     setStyle('social ad creative')
     setAutoPost(false)
     setScheduledTime('')
@@ -319,6 +326,7 @@ function RuleModal({
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
         name: name.trim(),
         content_type: contentType.trim() || null,
+        market,
         tone: tone || null,
         language: language || null,
         style: style || null,
@@ -373,6 +381,23 @@ function RuleModal({
           ))}
         </FormField>
 
+        <FormField
+          label={t('automationPage.form.market')}
+          as="select"
+          value={market}
+          onChange={(event) => {
+            const nextMarket = event.target.value as MarketCode
+            setMarket(nextMarket)
+            setLanguage(MARKET_DEFAULT_LANGUAGE[nextMarket])
+          }}
+        >
+          {MARKET_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {t(`common.markets.${option}`)}
+            </option>
+          ))}
+        </FormField>
+
         <FormField label={t('automationPage.form.contentLibrary')} as="select" value={contentLibraryId} onChange={(event) => setContentLibraryId(event.target.value)}>
           <option value="">{t('automationPage.options.none')}</option>
           {contentLibrary.map((item) => (
@@ -395,11 +420,6 @@ function RuleModal({
           <option value="friendly">{t('automationPage.options.friendly')}</option>
           <option value="professional">{t('automationPage.options.professional')}</option>
           <option value="playful">{t('automationPage.options.playful')}</option>
-        </FormField>
-
-        <FormField label={t('automationPage.form.language')} as="select" value={language} onChange={(event) => setLanguage(event.target.value)}>
-          <option value="th">{t('automationPage.options.thai')}</option>
-          <option value="en">{t('automationPage.options.english')}</option>
         </FormField>
 
         <FormField label={t('automationPage.form.visualStyle')} as="select" value={style} onChange={(event) => setStyle(event.target.value)}>

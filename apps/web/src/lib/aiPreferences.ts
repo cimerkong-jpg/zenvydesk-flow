@@ -1,13 +1,16 @@
 export type AIProvider = 'openai' | 'gemini' | 'claude' | 'grok'
+import type { MarketCode } from './markets'
 
 export type AiPreferences = {
   provider: AIProvider
   model: string
+  market: MarketCode
 }
 
 type LegacyAiPreferences = Partial<AiPreferences> & {
   contentProvider?: AIProvider
   contentModel?: string
+  market?: MarketCode
 }
 
 const STORAGE_KEY = 'zenvydesk_ai_preferences'
@@ -24,6 +27,7 @@ export const AI_MODELS: Record<AIProvider, string[]> = {
 const DEFAULTS: AiPreferences = {
   provider: 'openai',
   model: 'gpt-4o-mini',
+  market: 'TH',
 }
 
 export function loadAiPreferences(): AiPreferences {
@@ -47,6 +51,10 @@ export function loadAiPreferences(): AiPreferences {
         modelCandidate && AI_MODELS[provider].includes(modelCandidate)
           ? modelCandidate
           : AI_MODELS[provider][0],
+      market:
+        parsed.market && ['VN', 'TH', 'PH', 'MY'].includes(parsed.market)
+          ? parsed.market
+          : DEFAULTS.market,
     }
   } catch {
     return DEFAULTS

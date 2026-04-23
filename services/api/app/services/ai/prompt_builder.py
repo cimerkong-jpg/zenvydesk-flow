@@ -1,16 +1,21 @@
 from app.models.content_library import ContentLibrary
 from app.models.product import Product
+from app.services.market_profiles import get_market_profile
 
 
 def build_prompt(
     product: Product,
     content_library: ContentLibrary | None = None,
+    market: str = "TH",
     tone: str = "marketing",
-    language: str = "th",
+    language: str | None = None,
 ) -> str:
+    profile = get_market_profile(market)
+    resolved_language = language or profile.language
     sections = [
         "Create a social media post for Facebook.",
-        f"Language: {language}",
+        f"Target market: {profile.label} ({profile.code})",
+        f"Language: {resolved_language}",
         f"Tone: {tone}",
         f"Product name: {product.name}",
     ]
@@ -28,5 +33,6 @@ def build_prompt(
         if content_library.content_type:
             sections.append(f"Content library type: {content_library.content_type}")
 
-    sections.append("Write clear, conversion-focused copy suitable for the Thai market.")
+    sections.append(f"Target audience: {profile.audience}")
+    sections.append(profile.content_guidance)
     return "\n".join(sections)

@@ -11,6 +11,7 @@ from app.schemas.draft import DraftCreate, DraftResponse
 from app.schemas.draft_generation import DraftGenerateRequest, DraftGenerateResponse
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.market_profiles import get_market_profile
 from app.services.permission_service import get_current_user
 
 router = APIRouter()
@@ -113,6 +114,7 @@ def generate_draft_content(
     generated_content = generate_content(
         product=product,
         content_library=content_library,
+        market=payload.market or "TH",
         tone=payload.tone,
         language=payload.language,
         provider=payload.ai_provider,
@@ -125,7 +127,7 @@ def generate_draft_content(
         raise HTTPException(status_code=400, detail=generated_content.error or "AI generation failed")
 
     media_url = generate_image(
-        generated_content.prompt,
+        "\n".join([generated_content.prompt, get_market_profile(payload.market).image_guidance]),
         provider_name=payload.image_provider,
         model=payload.image_model,
         base_url=payload.image_base_url,
@@ -161,6 +163,7 @@ def generate_draft_image(
     generated_content = generate_content(
         product=product,
         content_library=content_library,
+        market=payload.market or "TH",
         tone=payload.tone,
         language=payload.language,
         provider=payload.ai_provider,
@@ -174,6 +177,7 @@ def generate_draft_image(
     media_prompt = "\n".join(
         [
             generated_content.prompt,
+            get_market_profile(payload.market).image_guidance,
             f"Visual style: {payload.style or 'social ad creative'}",
             f"Draft content context: {generated_content.content}",
         ]

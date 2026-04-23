@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.creative_generation import CreativeGenerateRequest, CreativeGenerateResponse
 from app.services.ai.content_generator import generate_content
 from app.services.ai.image_generator import generate_image
+from app.services.market_profiles import get_market_profile
 from app.services.permission_service import get_current_user
 
 router = APIRouter()
@@ -47,6 +48,7 @@ def generate_creative(
     generated = generate_content(
         product=product,
         content_library=content_library,
+        market=payload.market or "TH",
         tone=payload.tone,
         language=payload.language,
         provider=ai_provider,
@@ -63,6 +65,7 @@ def generate_creative(
         image_prompt = "\n".join(
             [
                 generated.prompt,
+                get_market_profile(payload.market).image_guidance,
                 f"Visual style: {payload.style or 'social ad creative'}",
                 f"Draft content context: {generated.content}",
             ]

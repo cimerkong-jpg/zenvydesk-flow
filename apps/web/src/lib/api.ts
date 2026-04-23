@@ -1,4 +1,5 @@
 import { endpointUrls } from '../config'
+import type { MarketCode } from './markets'
 
 /* ================================
    Response types
@@ -118,6 +119,7 @@ export type DraftInput = {
 export type DraftGenerateInput = {
   product_id: number
   content_library_id?: number | null
+  market?: MarketCode
   tone?: string
   language?: string
   style?: string
@@ -202,6 +204,7 @@ export type AutomationRule = {
   content_library_id: number | null
   name: string
   content_type: string | null
+  market: MarketCode | null
   tone: string | null
   language: string | null
   style: string | null
@@ -218,6 +221,7 @@ export type AutomationRuleInput = {
   product_id?: number | null
   content_library_id?: number | null
   content_type?: string | null
+  market?: MarketCode | null
   tone?: string | null
   language?: string | null
   style?: string | null

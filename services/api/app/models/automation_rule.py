@@ -16,6 +16,7 @@ class AutomationRule(Base):
     is_active = Column(Boolean, default=True)
 
     content_type = Column(String, nullable=True)
+    market = Column(String, nullable=True)
     tone = Column(String, nullable=True)
     language = Column(String, nullable=True)
     style = Column(String, nullable=True)

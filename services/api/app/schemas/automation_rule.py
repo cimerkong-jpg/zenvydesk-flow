@@ -9,6 +9,7 @@ class AutomationRuleBase(BaseModel):
     product_id: Optional[int] = None
     content_library_id: Optional[int] = None
     content_type: Optional[str] = None
+    market: Optional[str] = "TH"
     tone: Optional[str] = None
     language: Optional[str] = None
     style: Optional[str] = None
