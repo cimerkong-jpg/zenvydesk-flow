@@ -1,4 +1,22 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { DataTable, type Column } from '../components/DataTable'
+import { FormField } from '../components/FormField'
+import { LoadingState } from '../components/LoadingState'
+import { Modal } from '../components/Modal'
+import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
+import { useToast } from '../components/Toast'
+import { useAsync } from '../hooks/useAsync'
+import { useSelectedPage } from '../hooks/useSelectedPage'
+import {
+  formatDateTime,
+  formatRelative,
+  fromDateTimeLocalValue,
+  toDateTimeLocalValue,
+  truncate,
+} from '../lib/format'
 import {
   fetchSchedules,
   postFromDraft,
@@ -7,24 +25,9 @@ import {
   type Draft,
   type ScheduledRunResponse,
 } from '../lib/api'
-import { PageHeader } from '../components/PageHeader'
-import { useAsync } from '../hooks/useAsync'
-import { useSelectedPage } from '../hooks/useSelectedPage'
-import { StatusBadge } from '../components/StatusBadge'
-import { LoadingState } from '../components/LoadingState'
-import { DataTable, type Column } from '../components/DataTable'
-import { Modal } from '../components/Modal'
-import { FormField } from '../components/FormField'
-import { useToast } from '../components/Toast'
-import {
-  formatDateTime,
-  formatRelative,
-  fromDateTimeLocalValue,
-  toDateTimeLocalValue,
-  truncate,
-} from '../lib/format'
 
 export function SchedulePage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const { selectedPage } = useSelectedPage()
   const schedules = useAsync(fetchSchedules, [])
@@ -38,7 +41,11 @@ export function SchedulePage() {
       const result = await runScheduledPost(mockMode)
       setLastRun(result)
       toast.success(
-        `${mockMode ? 'Mock run' : 'Live run'}: posted ${result.posted_count} of ${result.processed_count}`,
+        t('schedulePage.runSuccess', {
+          mode: mockMode ? t('schedulePage.mockRun') : t('schedulePage.liveRun'),
+          posted: result.posted_count,
+          processed: result.processed_count,
+        }),
       )
       schedules.refresh()
     } catch (err) {
@@ -51,7 +58,7 @@ export function SchedulePage() {
   const columns: Column<Draft>[] = [
     {
       key: 'content',
-      header: 'Content',
+      header: t('schedulePage.table.content'),
       render: (row) => (
         <div className="cell-primary">
           <div className="cell-title">{truncate(row.content, 120)}</div>
@@ -60,20 +67,18 @@ export function SchedulePage() {
     },
     {
       key: 'scheduled',
-      header: 'Scheduled for',
+      header: t('schedulePage.table.scheduledFor'),
       width: '200px',
       render: (row) => (
         <div>
-          <div>{row.scheduled_time ? formatDateTime(row.scheduled_time) : '—'}</div>
-          <div className="text-muted text-sm">
-            {row.scheduled_time ? formatRelative(row.scheduled_time) : ''}
-          </div>
+          <div>{row.scheduled_time ? formatDateTime(row.scheduled_time) : '-'}</div>
+          <div className="text-muted text-sm">{row.scheduled_time ? formatRelative(row.scheduled_time) : ''}</div>
         </div>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('schedulePage.table.status'),
       width: '120px',
       render: (row) => <StatusBadge status={row.status} />,
     },
@@ -84,19 +89,15 @@ export function SchedulePage() {
       align: 'right',
       render: (row) => (
         <div className="row-actions">
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => setReschedule(row)}
-            disabled={row.status === 'posted'}
-          >
-            📅 Reschedule
+          <button className="btn btn-ghost btn-sm" onClick={() => setReschedule(row)} disabled={row.status === 'posted'}>
+            {t('schedulePage.actions.reschedule')}
           </button>
           <button
             className="btn btn-primary btn-sm"
             onClick={async () => {
               try {
                 await postFromDraft(row.id)
-                toast.success(`Draft #${row.id} posted`)
+                toast.success(t('schedulePage.draftPosted', { id: row.id }))
                 schedules.refresh()
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : String(err))
@@ -104,7 +105,7 @@ export function SchedulePage() {
             }}
             disabled={row.status === 'posted' || !selectedPage}
           >
-            📤 Post now
+            {t('schedulePage.actions.postNow')}
           </button>
         </div>
       ),
@@ -113,70 +114,53 @@ export function SchedulePage() {
 
   return (
     <div className="page">
-      <PageHeader
-        title="Schedule"
-        description="All drafts with a scheduled publish time."
-      />
+      <PageHeader title={t('schedulePage.title')} description={t('schedulePage.description')} />
 
       <div className="action-panel">
-        <h2 className="action-panel-title">
-          <span>🚀</span>
-          Run due scheduled posts
-        </h2>
-        <p className="action-panel-description">
-          Execute all drafts whose scheduled time is in the past.
-        </p>
+        <h2 className="action-panel-title">{t('schedulePage.runTitle')}</h2>
+        <p className="action-panel-description">{t('schedulePage.runDescription')}</p>
         <div className="action-panel-buttons">
-          <button
-            className="btn btn-lg"
-            onClick={() => handleRun(true)}
-            disabled={running || !selectedPage}
-          >
-            {running ? '⏳ Running…' : '🧪 Mock run'}
+          <button className="btn btn-lg" onClick={() => handleRun(true)} disabled={running || !selectedPage}>
+            {running ? t('schedulePage.running') : t('schedulePage.mockRun')}
           </button>
-          <button
-            className="btn btn-secondary btn-lg"
-            onClick={() => handleRun(false)}
-            disabled={running || !selectedPage}
-          >
-            {running ? '⏳ Posting…' : '📤 Live run'}
+          <button className="btn btn-secondary btn-lg" onClick={() => handleRun(false)} disabled={running || !selectedPage}>
+            {running ? t('schedulePage.posting') : t('schedulePage.liveRun')}
           </button>
         </div>
       </div>
 
-      {lastRun && (
+      {lastRun ? (
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">Last run</h3>
+            <h3 className="card-title">{t('schedulePage.lastRun')}</h3>
           </div>
           <div className="result-metrics">
             <div className="metric-item">
               <div className="metric-value">{lastRun.processed_count}</div>
-              <div className="metric-label">Processed</div>
+              <div className="metric-label">{t('schedulePage.processed')}</div>
             </div>
             <div className="metric-item">
               <div className="metric-value success">{lastRun.posted_count}</div>
-              <div className="metric-label">Posted</div>
+              <div className="metric-label">{t('schedulePage.posted')}</div>
             </div>
             <div className="metric-item">
               <div className="metric-value error">{lastRun.failed_count}</div>
-              <div className="metric-label">Failed</div>
+              <div className="metric-label">{t('schedulePage.failed')}</div>
             </div>
             <div className="metric-item">
               <div className="metric-value warning">{lastRun.skipped_count}</div>
-              <div className="metric-label">Skipped</div>
+              <div className="metric-label">{t('schedulePage.skipped')}</div>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {schedules.loading ? (
         <LoadingState />
       ) : schedules.error ? (
         <div className="alert alert-error">
-          <span className="alert-icon">✗</span>
           <div className="alert-content">
-            <div className="alert-title">Failed to load</div>
+            <div className="alert-title">{t('schedulePage.failedLoad')}</div>
             <div className="alert-message">{schedules.error}</div>
           </div>
         </div>
@@ -186,8 +170,8 @@ export function SchedulePage() {
             columns={columns}
             rows={schedules.data ?? []}
             getRowKey={(row) => row.id}
-            emptyTitle="No scheduled drafts"
-            emptyDescription="Schedule drafts from the Drafts page to see them here."
+            emptyTitle={t('schedulePage.emptyTitle')}
+            emptyDescription={t('schedulePage.emptyDescription')}
           />
         </div>
       )}
@@ -198,9 +182,9 @@ export function SchedulePage() {
         onDone={() => {
           setReschedule(null)
           schedules.refresh()
-          toast.success('Rescheduled')
+          toast.success(t('schedulePage.rescheduled'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
     </div>
   )
@@ -217,14 +201,13 @@ function RescheduleModal({
   onDone: () => void
   onError: (msg: string) => void
 }) {
+  const { t } = useTranslation()
   const [value, setValue] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  // Initialize value whenever draft opens
   if (draft && value === '' && draft.scheduled_time) {
-    // only set once per open
-    const v = toDateTimeLocalValue(draft.scheduled_time)
-    if (v) setTimeout(() => setValue(v), 0)
+    const nextValue = toDateTimeLocalValue(draft.scheduled_time)
+    if (nextValue) setTimeout(() => setValue(nextValue), 0)
   }
 
   const handleSubmit = async () => {
@@ -244,7 +227,7 @@ function RescheduleModal({
   return (
     <Modal
       open={!!draft}
-      title="Reschedule Draft"
+      title={t('schedulePage.rescheduleModal.title')}
       description={draft ? truncate(draft.content, 100) : ''}
       onClose={() => {
         setValue('')
@@ -261,24 +244,19 @@ function RescheduleModal({
             }}
             disabled={submitting}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting || !value}
-          >
-            {submitting ? 'Saving…' : 'Save'}
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !value}>
+            {submitting ? t('schedulePage.rescheduleModal.saving') : t('schedulePage.rescheduleModal.save')}
           </button>
         </>
       }
     >
       <FormField
-        label="New scheduled time"
+        label={t('schedulePage.rescheduleModal.newTime')}
         type="datetime-local"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(event) => setValue(event.target.value)}
         required
       />
     </Modal>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { DataTable, type Column } from '../components/DataTable'
 import { Modal } from '../components/Modal'
@@ -12,7 +13,6 @@ import {
   updateUserStatus,
 } from '../lib/api'
 
-
 type UserForm = {
   email: string
   password: string
@@ -20,7 +20,6 @@ type UserForm = {
   role: string
   status: string
 }
-
 
 const defaultForm: UserForm = {
   email: '',
@@ -30,8 +29,8 @@ const defaultForm: UserForm = {
   status: 'active',
 }
 
-
 export function UsersPage() {
+  const { t } = useTranslation()
   const [users, setUsers] = useState<AuthUser[]>([])
   const [keyword, setKeyword] = useState('')
   const [role, setRole] = useState('')
@@ -64,7 +63,7 @@ export function UsersPage() {
   const columns: Column<AuthUser>[] = [
     {
       key: 'identity',
-      header: 'User',
+      header: t('usersPage.user'),
       render: (user) => (
         <div className="cell-primary">
           <div className="cell-title">{user.full_name ?? user.email}</div>
@@ -72,26 +71,34 @@ export function UsersPage() {
         </div>
       ),
     },
-    { key: 'role', header: 'Role', render: (user) => <span className="badge badge-neutral">{user.role}</span> },
+    {
+      key: 'role',
+      header: t('usersPage.role'),
+      render: (user) => <span className="badge badge-neutral">{user.role}</span>,
+    },
     {
       key: 'status',
-      header: 'Status',
+      header: t('usersPage.status'),
       render: (user) => <span className={`badge ${user.status === 'active' ? 'badge-success' : 'badge-warning'}`}>{user.status}</span>,
     },
-    { key: 'last_login', header: 'Last login', render: (user) => user.last_login_at ?? 'Never' },
+    {
+      key: 'last_login',
+      header: t('usersPage.lastLogin'),
+      render: (user) => user.last_login_at ?? t('usersPage.never'),
+    },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('usersPage.actions'),
       render: (user) => (
         <div className="row-actions">
           <button className="btn btn-ghost btn-sm" onClick={() => void updateUserRole(user.id, user.role === 'member' ? 'admin' : 'member').then(loadUsers)}>
-            Toggle role
+            {t('usersPage.toggleRole')}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={() => void updateUserStatus(user.id, user.status === 'active' ? 'inactive' : 'active').then(loadUsers)}>
-            Toggle status
+            {t('usersPage.toggleStatus')}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={() => void adminResetPassword(user.id, 'TempPass123!')}>
-            Reset password
+            {t('usersPage.resetPassword')}
           </button>
         </div>
       ),
@@ -101,15 +108,15 @@ export function UsersPage() {
   return (
     <div className="page">
       <PageHeader
-        title="Users"
-        description="Manage app accounts, roles, and status."
+        title={t('usersPage.title')}
+        description={t('usersPage.description')}
         actions={
           <div className="row-actions">
             <button className="btn btn-secondary" onClick={() => void loadUsers()}>
-              Refresh
+              {t('usersPage.refresh')}
             </button>
             <button className="btn btn-primary" onClick={() => setOpen(true)}>
-              Create user
+              {t('usersPage.createUser')}
             </button>
           </div>
         }
@@ -117,18 +124,18 @@ export function UsersPage() {
 
       <div className="card">
         <div className="row-actions" style={{ justifyContent: 'space-between' }}>
-          <input className="form-input" placeholder="Search by name or email" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
+          <input className="form-input" placeholder={t('usersPage.searchPlaceholder')} value={keyword} onChange={(event) => setKeyword(event.target.value)} />
           <select className="form-input" value={role} onChange={(event) => setRole(event.target.value)}>
-            <option value="">All roles</option>
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
-            <option value="super_admin">Super admin</option>
+            <option value="">{t('usersPage.allRoles')}</option>
+            <option value="member">{t('usersPage.member')}</option>
+            <option value="admin">{t('usersPage.admin')}</option>
+            <option value="super_admin">{t('usersPage.superAdmin')}</option>
           </select>
           <select className="form-input" value={statusValue} onChange={(event) => setStatusValue(event.target.value)}>
-            <option value="">All status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
+            <option value="">{t('usersPage.allStatus')}</option>
+            <option value="active">{t('usersPage.active')}</option>
+            <option value="inactive">{t('usersPage.inactive')}</option>
+            <option value="suspended">{t('usersPage.suspended')}</option>
           </select>
         </div>
       </div>
@@ -139,32 +146,32 @@ export function UsersPage() {
 
       <Modal
         open={open}
-        title="Create user"
+        title={t('usersPage.modal.title')}
         onClose={() => setOpen(false)}
         footer={
           <>
             <button className="btn btn-secondary" onClick={() => setOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button className="btn btn-primary" onClick={() => void handleCreate()}>
-              Create
+              {t('usersPage.modal.create')}
             </button>
           </>
         }
       >
         <div className="form-stack">
-          <input className="form-input" placeholder="Full name" value={form.full_name} onChange={(event) => setForm((current) => ({ ...current, full_name: event.target.value }))} />
-          <input className="form-input" placeholder="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
-          <input className="form-input" placeholder="Temporary password" type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+          <input className="form-input" placeholder={t('usersPage.modal.fullName')} value={form.full_name} onChange={(event) => setForm((current) => ({ ...current, full_name: event.target.value }))} />
+          <input className="form-input" placeholder={t('usersPage.modal.email')} value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+          <input className="form-input" placeholder={t('usersPage.modal.temporaryPassword')} type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
           <select className="form-input" value={form.role} onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))}>
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
-            <option value="super_admin">Super admin</option>
+            <option value="member">{t('usersPage.member')}</option>
+            <option value="admin">{t('usersPage.admin')}</option>
+            <option value="super_admin">{t('usersPage.superAdmin')}</option>
           </select>
           <select className="form-input" value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
+            <option value="active">{t('usersPage.active')}</option>
+            <option value="inactive">{t('usersPage.inactive')}</option>
+            <option value="suspended">{t('usersPage.suspended')}</option>
           </select>
           {error ? <div className="form-error">{error}</div> : null}
         </div>

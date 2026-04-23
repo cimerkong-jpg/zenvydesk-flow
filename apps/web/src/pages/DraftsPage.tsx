@@ -1,39 +1,35 @@
 import { useEffect, useState } from 'react'
-import {
-  createDraft,
-  updateDraft,
-  deleteDraft,
-  fetchDrafts,
-  fetchProducts,
-  fetchContentLibrary,
-  postFromDraft,
-  scheduleDraft,
-  generateDraft,
-  generateDraftImage,
-  type Draft,
-  type Product,
-  type ContentLibraryItem,
-} from '../lib/api'
+import { useTranslation } from 'react-i18next'
+
+import { DataTable, type Column } from '../components/DataTable'
+import { FormField } from '../components/FormField'
+import { LoadingState } from '../components/LoadingState'
+import { Modal } from '../components/Modal'
 import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
+import { useToast } from '../components/Toast'
 import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
-import { Modal } from '../components/Modal'
-import { FormField } from '../components/FormField'
-import { StatusBadge } from '../components/StatusBadge'
-import { EmptyState } from '../components/EmptyState'
-import { LoadingState } from '../components/LoadingState'
-import { DataTable, type Column } from '../components/DataTable'
-import { useToast } from '../components/Toast'
-import {
-  formatDateTime,
-  formatRelative,
-  fromDateTimeLocalValue,
-  toDateTimeLocalValue,
-  truncate,
-} from '../lib/format'
+import { formatDateTime, formatRelative, fromDateTimeLocalValue, toDateTimeLocalValue, truncate } from '../lib/format'
 import { loadAiPreferences } from '../lib/aiPreferences'
+import {
+  createDraft,
+  deleteDraft,
+  fetchContentLibrary,
+  fetchDrafts,
+  fetchProducts,
+  generateDraft,
+  generateDraftImage,
+  postFromDraft,
+  scheduleDraft,
+  type ContentLibraryItem,
+  type Draft,
+  type Product,
+  updateDraft,
+} from '../lib/api'
 
 export function DraftsPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const { selectedPage } = useSelectedPage()
   const drafts = useAsync(fetchDrafts, [])
@@ -53,45 +49,34 @@ export function DraftsPage() {
   const columns: Column<Draft>[] = [
     {
       key: 'content',
-      header: 'Content',
+      header: t('draftsPage.table.content'),
       render: (row) => (
         <div className="cell-primary">
           <div className="cell-title">{truncate(row.content, 120)}</div>
-          {row.media_url && (
-            <a
-              className="cell-link"
-              href={row.media_url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+          {row.media_url ? (
+            <a className="cell-link" href={row.media_url} target="_blank" rel="noopener noreferrer">
               {row.media_url}
             </a>
-          )}
+          ) : null}
         </div>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('draftsPage.table.status'),
       width: '120px',
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: 'scheduled',
-      header: 'Scheduled',
+      header: t('draftsPage.table.scheduled'),
       width: '180px',
       render: (row) =>
-        row.scheduled_time ? (
-          <span title={formatDateTime(row.scheduled_time)}>
-            {formatDateTime(row.scheduled_time)}
-          </span>
-        ) : (
-          <span className="text-muted">-</span>
-        ),
+        row.scheduled_time ? <span title={formatDateTime(row.scheduled_time)}>{formatDateTime(row.scheduled_time)}</span> : <span className="text-muted">-</span>,
     },
     {
       key: 'created',
-      header: 'Created',
+      header: t('draftsPage.table.created'),
       width: '140px',
       render: (row) => formatRelative(row.created_at),
     },
@@ -104,31 +89,31 @@ export function DraftsPage() {
         <div className="row-actions">
           <button
             className="btn btn-ghost btn-sm"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={(event) => {
+              event.stopPropagation()
               setEditingDraft(row)
             }}
             disabled={row.status === 'posted'}
           >
-            Edit
+            {t('common.edit')}
           </button>
           <button
             className="btn btn-ghost btn-sm"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={(event) => {
+              event.stopPropagation()
               setScheduleFor(row)
             }}
             disabled={row.status === 'posted'}
           >
-            Schedule
+            {t('draftsPage.actions.schedule')}
           </button>
           <button
             className="btn btn-primary btn-sm"
-            onClick={async (e) => {
-              e.stopPropagation()
+            onClick={async (event) => {
+              event.stopPropagation()
               try {
                 await postFromDraft(row.id)
-                toast.success(`Draft #${row.id} posted`)
+                toast.success(t('draftsPage.draftPosted', { id: row.id }))
                 refreshAll()
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : String(err))
@@ -136,16 +121,16 @@ export function DraftsPage() {
             }}
             disabled={row.status === 'posted' || !selectedPage}
           >
-            Post
+            {t('draftsPage.actions.post')}
           </button>
           <button
             className="btn btn-ghost btn-sm text-danger"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={(event) => {
+              event.stopPropagation()
               setDeletingDraft(row)
             }}
           >
-            Delete
+            {t('common.delete')}
           </button>
         </div>
       ),
@@ -155,35 +140,30 @@ export function DraftsPage() {
   return (
     <div className="page">
       <PageHeader
-        title="Drafts"
-        description="Write, schedule, and publish posts to your Facebook page."
+        title={t('draftsPage.title')}
+        description={t('draftsPage.description')}
         actions={
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            + New Draft
+            {t('draftsPage.newDraft')}
           </button>
         }
       />
 
-      {!selectedPage && (
+      {!selectedPage ? (
         <div className="alert alert-warning">
-          <span className="alert-icon">!</span>
           <div className="alert-content">
-            <div className="alert-title">No page selected</div>
-            <div className="alert-message">
-              You can still create, edit, delete, and schedule drafts. Select a Facebook page
-              before posting.
-            </div>
+            <div className="alert-title">{t('draftsPage.noPageTitle')}</div>
+            <div className="alert-message">{t('draftsPage.noPageDescription')}</div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {drafts.loading ? (
         <LoadingState />
       ) : drafts.error ? (
         <div className="alert alert-error">
-          <span className="alert-icon">x</span>
           <div className="alert-content">
-            <div className="alert-title">Failed to load drafts</div>
+            <div className="alert-title">{t('draftsPage.failedLoad')}</div>
             <div className="alert-message">{drafts.error}</div>
           </div>
         </div>
@@ -193,11 +173,11 @@ export function DraftsPage() {
             columns={columns}
             rows={drafts.data ?? []}
             getRowKey={(row) => row.id}
-            emptyTitle="No drafts yet"
-            emptyDescription="Create your first draft to start building content."
+            emptyTitle={t('draftsPage.emptyTitle')}
+            emptyDescription={t('draftsPage.emptyDescription')}
             emptyAction={
               <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-                + Create Draft
+                {t('draftsPage.createDraft')}
               </button>
             }
           />
@@ -215,9 +195,9 @@ export function DraftsPage() {
         onCreated={() => {
           setShowCreate(false)
           refreshAll()
-          toast.success('Draft created')
+          toast.success(t('draftsPage.created'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
 
       <CreateDraftModal
@@ -232,9 +212,9 @@ export function DraftsPage() {
         onCreated={() => {
           setEditingDraft(null)
           refreshAll()
-          toast.success('Draft updated')
+          toast.success(t('draftsPage.updated'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
 
       <DeleteDraftModal
@@ -247,7 +227,7 @@ export function DraftsPage() {
             await deleteDraft(deletingDraft.id)
             setDeletingDraft(null)
             refreshAll()
-            toast.success('Draft deleted')
+            toast.success(t('draftsPage.deleted'))
           } catch (err) {
             toast.error(err instanceof Error ? err.message : String(err))
           }
@@ -260,9 +240,9 @@ export function DraftsPage() {
         onScheduled={() => {
           setScheduleFor(null)
           refreshAll()
-          toast.success('Draft scheduled')
+          toast.success(t('draftsPage.scheduled'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
     </div>
   )
@@ -289,21 +269,18 @@ function CreateDraftModal({
   onCreated: () => void
   onError: (msg: string) => void
   submitting: boolean
-  setSubmitting: (v: boolean) => void
+  setSubmitting: (value: boolean) => void
 }) {
+  const { t } = useTranslation()
   const isEdit = !!draft
-  const [productId, setProductId] = useState<string>(draft?.product_id?.toString() ?? '')
-  const [contentLibraryId, setContentLibraryId] = useState<string>(
-    draft?.content_library_id?.toString() ?? '',
-  )
+  const [productId, setProductId] = useState(draft?.product_id?.toString() ?? '')
+  const [contentLibraryId, setContentLibraryId] = useState(draft?.content_library_id?.toString() ?? '')
   const [tone, setTone] = useState('marketing')
   const [language, setLanguage] = useState('th')
   const [style, setStyle] = useState('social ad creative')
   const [content, setContent] = useState(draft?.content ?? '')
   const [mediaUrl, setMediaUrl] = useState(draft?.media_url ?? '')
-  const [scheduledTime, setScheduledTime] = useState(
-    draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '',
-  )
+  const [scheduledTime, setScheduledTime] = useState(draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '')
   const [generating, setGenerating] = useState(false)
   const [generatingImage, setGeneratingImage] = useState(false)
 
@@ -331,7 +308,7 @@ function CreateDraftModal({
 
   const handleGenerate = async () => {
     if (!productId) {
-      onError('Select a product before generating with AI.')
+      onError(t('draftsPage.form.productRequired'))
       return
     }
 
@@ -358,7 +335,7 @@ function CreateDraftModal({
 
   const handleGenerateImage = async () => {
     if (!productId) {
-      onError('Select a product before generating an image.')
+      onError(t('draftsPage.form.imageProductRequired'))
       return
     }
 
@@ -387,20 +364,15 @@ function CreateDraftModal({
 
   const handleMediaFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) {
-      return
-    }
-
+    if (!file) return
     if (!file.type.startsWith('image/')) {
-      onError('Select an image file.')
+      onError(t('draftsPage.form.selectImage'))
       return
     }
-
     if (file.size > 3 * 1024 * 1024) {
-      onError('Image size must be less than 3MB.')
+      onError(t('draftsPage.form.imageTooLarge'))
       return
     }
-
     const reader = new FileReader()
     reader.onloadend = () => {
       setMediaUrl((reader.result as string) || '')
@@ -410,7 +382,7 @@ function CreateDraftModal({
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      onError('Content is required.')
+      onError(t('draftsPage.form.contentRequired'))
       return
     }
 
@@ -443,12 +415,8 @@ function CreateDraftModal({
   return (
     <Modal
       open={open}
-      title={isEdit ? 'Edit Draft' : 'New Draft'}
-      description={
-        isEdit
-          ? 'Update draft content and settings.'
-          : 'Compose content manually or generate it with AI.'
-      }
+      title={isEdit ? t('draftsPage.form.editTitle') : t('draftsPage.form.newTitle')}
+      description={isEdit ? t('draftsPage.form.editDescription') : t('draftsPage.form.newDescription')}
       size="lg"
       onClose={() => {
         reset()
@@ -465,28 +433,23 @@ function CreateDraftModal({
             }}
             disabled={submitting}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting || !content.trim()}
-          >
-            {submitting ? (isEdit ? 'Updating...' : 'Creating...') : isEdit ? 'Update Draft' : 'Create Draft'}
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !content.trim()}>
+            {submitting ? (isEdit ? t('draftsPage.form.updating') : t('draftsPage.form.creating')) : isEdit ? t('draftsPage.form.update') : t('draftsPage.form.create')}
           </button>
         </>
       }
     >
       <div className="form-stack">
         <FormField
-          label="Product"
+          label={t('draftsPage.form.product')}
           as="select"
           value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-          hint="Pick a product first for stronger AI output."
+          onChange={(event) => setProductId(event.target.value)}
+          hint={t('draftsPage.form.productHint')}
         >
-          <option value="">(none)</option>
+          <option value="">{t('draftsPage.form.noneOption')}</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
               {product.name}
@@ -495,13 +458,13 @@ function CreateDraftModal({
         </FormField>
 
         <FormField
-          label="Content Library"
+          label={t('draftsPage.form.contentLibrary')}
           as="select"
           value={contentLibraryId}
-          onChange={(e) => setContentLibraryId(e.target.value)}
-          hint="Optional supporting content for AI or manual drafting."
+          onChange={(event) => setContentLibraryId(event.target.value)}
+          hint={t('draftsPage.form.contentLibraryHint')}
         >
-          <option value="">(none)</option>
+          <option value="">{t('draftsPage.form.noneOption')}</option>
           {contentLibrary.map((item) => (
             <option key={item.id} value={item.id}>
               {item.title || truncate(item.content, 50)}
@@ -509,96 +472,76 @@ function CreateDraftModal({
           ))}
         </FormField>
 
-        <FormField
-          label="Tone"
-          as="select"
-          value={tone}
-          onChange={(e) => setTone(e.target.value)}
-          hint="Used only when generating with AI."
-        >
-          <option value="marketing">Marketing</option>
-          <option value="friendly">Friendly</option>
-          <option value="professional">Professional</option>
-          <option value="playful">Playful</option>
+        <FormField label={t('draftsPage.form.tone')} as="select" value={tone} onChange={(event) => setTone(event.target.value)} hint={t('draftsPage.form.toneHint')}>
+          <option value="marketing">{t('automationPage.options.marketing')}</option>
+          <option value="friendly">{t('automationPage.options.friendly')}</option>
+          <option value="professional">{t('automationPage.options.professional')}</option>
+          <option value="playful">{t('automationPage.options.playful')}</option>
+        </FormField>
+
+        <FormField label={t('draftsPage.form.language')} as="select" value={language} onChange={(event) => setLanguage(event.target.value)} hint={t('draftsPage.form.languageHint')}>
+          <option value="th">{t('automationPage.options.thai')}</option>
+          <option value="en">{t('automationPage.options.english')}</option>
         </FormField>
 
         <FormField
-          label="Language"
-          as="select"
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          hint="Used only when generating with AI."
-        >
-          <option value="th">Thai</option>
-          <option value="en">English</option>
-        </FormField>
-
-        <FormField
-          label="Visual style"
+          label={t('draftsPage.form.visualStyle')}
           as="select"
           value={style}
-          onChange={(e) => setStyle(e.target.value)}
-          hint="Used for AI image generation."
+          onChange={(event) => setStyle(event.target.value)}
+          hint={t('draftsPage.form.visualStyleHint')}
         >
-          <option value="social ad creative">Social ad creative</option>
-          <option value="product showcase">Product showcase</option>
-          <option value="lifestyle photo">Lifestyle photo</option>
-          <option value="clean studio shot">Clean studio shot</option>
+          <option value="social ad creative">{t('automationPage.options.socialAdCreative')}</option>
+          <option value="product showcase">{t('automationPage.options.productShowcase')}</option>
+          <option value="lifestyle photo">{t('automationPage.options.lifestylePhoto')}</option>
+          <option value="clean studio shot">{t('automationPage.options.cleanStudioShot')}</option>
         </FormField>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={handleGenerateImage}
+            onClick={() => void handleGenerateImage()}
             disabled={generatingImage || generating || submitting || !productId}
           >
-            {generatingImage ? 'Generating image...' : 'Generate image'}
+            {generatingImage ? t('draftsPage.form.generatingImage') : t('draftsPage.form.generateImage')}
           </button>
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={handleGenerate}
+            onClick={() => void handleGenerate()}
             disabled={generating || submitting || !productId}
           >
-            {generating ? 'Generating...' : 'Generate with AI'}
+            {generating ? t('draftsPage.form.generating') : t('draftsPage.form.generateWithAi')}
           </button>
-        </div>
-        <div className="form-hint">
-          AI provider, model, and API keys are taken from Settings and stored in this browser.
         </div>
 
         <FormField
-          label="Content"
+          label={t('draftsPage.form.content')}
           as="textarea"
           required
           rows={6}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="What do you want to post?"
-          hint="You can always edit AI-generated content before saving."
+          onChange={(event) => setContent(event.target.value)}
+          placeholder={t('draftsPage.form.contentPlaceholder')}
+          hint={t('draftsPage.form.contentHint')}
         />
 
         <div className="form-field">
-          <span className="form-label">Media</span>
+          <span className="form-label">{t('draftsPage.form.media')}</span>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              id="draft-media-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleMediaFileChange}
-            />
-            <span className="form-hint">Upload an image or keep using a URL/AI image.</span>
+            <input id="draft-media-upload" type="file" accept="image/*" onChange={handleMediaFileChange} />
+            <span className="form-hint">{t('draftsPage.form.mediaHint')}</span>
           </div>
           <FormField
-            label="Media URL"
+            label={t('draftsPage.form.mediaUrl')}
             type="url"
             value={mediaUrl.startsWith('data:') ? '' : mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="https://..."
-            hint="Optional image or video URL."
+            onChange={(event) => setMediaUrl(event.target.value)}
+            placeholder={t('draftsPage.form.mediaUrlPlaceholder')}
+            hint={t('draftsPage.form.mediaUrlHint')}
           />
-          {mediaUrl && (
+          {mediaUrl ? (
             <div style={{ marginTop: '12px' }}>
               <img
                 src={mediaUrl}
@@ -606,15 +549,15 @@ function CreateDraftModal({
                 style={{ maxWidth: '240px', maxHeight: '240px', borderRadius: '10px', border: '1px solid #d1d5db' }}
               />
             </div>
-          )}
+          ) : null}
         </div>
 
         <FormField
-          label="Schedule for"
+          label={t('draftsPage.form.scheduleFor')}
           type="datetime-local"
           value={scheduledTime}
-          onChange={(e) => setScheduledTime(e.target.value)}
-          hint="Leave empty to keep as draft."
+          onChange={(event) => setScheduledTime(event.target.value)}
+          hint={t('draftsPage.form.scheduleHint')}
         />
       </div>
     </Modal>
@@ -632,9 +575,8 @@ function ScheduleModal({
   onScheduled: () => void
   onError: (msg: string) => void
 }) {
-  const [value, setValue] = useState<string>(() =>
-    draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : '',
-  )
+  const { t } = useTranslation()
+  const [value, setValue] = useState(() => (draft?.scheduled_time ? toDateTimeLocalValue(draft.scheduled_time) : ''))
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -643,7 +585,7 @@ function ScheduleModal({
 
   const handleSubmit = async () => {
     if (!draft || !value) {
-      onError('Pick a date and time.')
+      onError(t('draftsPage.form.pickDateTime'))
       return
     }
     setSubmitting(true)
@@ -660,32 +602,21 @@ function ScheduleModal({
   return (
     <Modal
       open={!!draft}
-      title="Schedule Draft"
+      title={t('draftsPage.form.scheduleModalTitle')}
       description={draft ? truncate(draft.content, 120) : ''}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting || !value}
-          >
-            {submitting ? 'Scheduling...' : 'Schedule'}
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !value}>
+            {submitting ? t('draftsPage.form.scheduling') : t('draftsPage.actions.schedule')}
           </button>
         </>
       }
     >
-      <FormField
-        label="Scheduled time"
-        type="datetime-local"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        required
-      />
+      <FormField label={t('draftsPage.form.scheduledTime')} type="datetime-local" value={value} onChange={(event) => setValue(event.target.value)} required />
     </Modal>
   )
 }
@@ -701,6 +632,7 @@ function DeleteDraftModal({
   onClose: () => void
   onConfirm: () => Promise<void>
 }) {
+  const { t } = useTranslation()
   const [deleting, setDeleting] = useState(false)
 
   const handleConfirm = async () => {
@@ -715,32 +647,25 @@ function DeleteDraftModal({
   return (
     <Modal
       open={open}
-      title="Delete Draft"
-      description="This action cannot be undone."
+      title={t('draftsPage.deleteModal.title')}
+      description={t('draftsPage.deleteModal.description')}
       size="sm"
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={deleting}>
-            Cancel
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={handleConfirm}
-            disabled={deleting}
-          >
-            {deleting ? 'Deleting...' : 'Delete Draft'}
+          <button type="button" className="btn btn-danger" onClick={handleConfirm} disabled={deleting}>
+            {deleting ? t('draftsPage.deleteModal.deleting') : t('draftsPage.deleteModal.confirm')}
           </button>
         </>
       }
     >
-      <p>Are you sure you want to delete this draft?</p>
+      <p>{t('draftsPage.deleteModal.question')}</p>
       <p className="text-muted text-sm" style={{ marginTop: '8px' }}>
         {truncate(draftContent, 100)}
       </p>
     </Modal>
   )
 }
-
-void EmptyState

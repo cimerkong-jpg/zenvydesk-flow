@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 
 
 export function RegisterPage() {
+  const { t } = useTranslation()
   const { user, loading, register } = useAuth()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -20,7 +22,7 @@ export function RegisterPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('auth.register.passwordMismatch'))
       return
     }
     setSubmitting(true)
@@ -40,40 +42,40 @@ export function RegisterPage() {
         <div className="login-brand">
           <div className="logo-icon">Z</div>
           <div>
-            <h1>Create account</h1>
-            <p>Use internal app auth for ZenvyDesk access. Facebook is connected later.</p>
+            <h1>{t('auth.register.title')}</h1>
+            <p>{t('auth.register.subtitle')}</p>
           </div>
         </div>
         <form className="form-stack" onSubmit={handleSubmit}>
           <label className="form-field">
-            <span className="form-label">Full name</span>
+            <span className="form-label">{t('auth.register.fullName')}</span>
             <input className="form-input" value={fullName} onChange={(event) => setFullName(event.target.value)} />
           </label>
           <label className="form-field">
-            <span className="form-label">Email</span>
+            <span className="form-label">{t('auth.register.email')}</span>
             <input className="form-input" value={email} onChange={(event) => setEmail(event.target.value)} />
           </label>
           <label className="form-field">
-            <span className="form-label">Password</span>
+            <span className="form-label">{t('auth.register.password')}</span>
             <input className="form-input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
           </label>
           <label className="form-field">
-            <span className="form-label">Confirm password</span>
+            <span className="form-label">{t('auth.register.confirmPassword')}</span>
             <input className="form-input" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
           </label>
           {error ? (
             <div className="alert alert-error">
               <div className="alert-content">
-                <div className="alert-title">Registration failed</div>
+                <div className="alert-title">{t('auth.register.failedTitle')}</div>
                 <div className="alert-message">{error}</div>
               </div>
             </div>
           ) : null}
           <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
-            {submitting ? 'Creating account...' : 'Create account'}
+            {submitting ? t('auth.register.submitting') : t('auth.register.submit')}
           </button>
           <div className="form-hint">
-            Already have an account? <Link to="/login">Sign in</Link>
+            {t('auth.register.alreadyHaveAccount')} <Link to="/login">{t('auth.register.signIn')}</Link>
           </div>
         </form>
       </div>

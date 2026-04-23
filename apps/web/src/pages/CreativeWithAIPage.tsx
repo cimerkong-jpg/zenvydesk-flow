@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PageHeader } from '../components/PageHeader'
+import { useTranslation } from 'react-i18next'
+
 import { FormField } from '../components/FormField'
 import { LoadingState } from '../components/LoadingState'
+import { PageHeader } from '../components/PageHeader'
+import { useToast } from '../components/Toast'
 import { useAsync } from '../hooks/useAsync'
 import { useSelectedPage } from '../hooks/useSelectedPage'
-import { useToast } from '../components/Toast'
+import { fromDateTimeLocalValue } from '../lib/format'
+import { AI_MODELS, AI_PROVIDER_OPTIONS, type AIProvider, loadAiPreferences } from '../lib/aiPreferences'
 import {
   createDraft,
   creativeGenerate,
@@ -14,17 +18,11 @@ import {
   scheduleDraft,
   type CreativeGenerateResponse,
 } from '../lib/api'
-import { fromDateTimeLocalValue } from '../lib/format'
-import {
-  AI_MODELS,
-  AI_PROVIDER_OPTIONS,
-  type AIProvider,
-  loadAiPreferences,
-} from '../lib/aiPreferences'
 
 type GenerationMode = 'post' | 'image' | 'content'
 
 export function CreativeWithAIPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const { selectedPage } = useSelectedPage()
   const products = useAsync(fetchProducts, [])
@@ -58,7 +56,7 @@ export function CreativeWithAIPage() {
 
   const selectedProduct = useMemo(
     () => products.data?.find((item) => item.id === Number(productId)) ?? null,
-    [products.data, productId],
+    [productId, products.data],
   )
 
   const selectedLibrary = useMemo(
@@ -68,7 +66,7 @@ export function CreativeWithAIPage() {
 
   const handleGenerate = async () => {
     if (!productId) {
-      toast.error('Chọn product trước khi generate.')
+      toast.error(t('creativePage.productRequired'))
       return
     }
 
@@ -86,7 +84,7 @@ export function CreativeWithAIPage() {
         ai_model: model,
       })
       setPreview(result)
-      toast.success('Preview AI đã sẵn sàng.')
+      toast.success(t('creativePage.previewReady'))
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setPreviewError(message)
@@ -98,7 +96,7 @@ export function CreativeWithAIPage() {
 
   const createDraftFromPreview = async () => {
     if (!preview) {
-      throw new Error('Generate preview trước khi thực hiện action.')
+      throw new Error(t('creativePage.previewRequiredForAction'))
     }
 
     return createDraft({
@@ -114,7 +112,7 @@ export function CreativeWithAIPage() {
     setSubmittingAction('draft')
     try {
       const draft = await createDraftFromPreview()
-      toast.success(`Đã thêm vào draft #${draft.id}`)
+      toast.success(t('creativePage.draftAdded', { id: draft.id }))
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error))
     } finally {
@@ -124,7 +122,7 @@ export function CreativeWithAIPage() {
 
   const handleSchedule = async () => {
     if (!scheduleTime) {
-      toast.error('Chọn thời gian trước khi đặt lịch.')
+      toast.error(t('creativePage.scheduleRequired'))
       return
     }
 
@@ -132,7 +130,7 @@ export function CreativeWithAIPage() {
     try {
       const draft = await createDraftFromPreview()
       await scheduleDraft(draft.id, fromDateTimeLocalValue(scheduleTime))
-      toast.success(`Đã đặt lịch draft #${draft.id}`)
+      toast.success(t('creativePage.draftScheduled', { id: draft.id }))
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error))
     } finally {
@@ -142,11 +140,11 @@ export function CreativeWithAIPage() {
 
   const handlePostNow = async () => {
     if (!selectedPage) {
-      toast.error('Chọn Facebook page trước khi post.')
+      toast.error(t('creativePage.pageRequired'))
       return
     }
     if (!preview) {
-      toast.error('Generate preview trước khi post.')
+      toast.error(t('creativePage.previewRequiredForPost'))
       return
     }
 
@@ -160,7 +158,7 @@ export function CreativeWithAIPage() {
         content_library_id: contentLibraryId ? Number(contentLibraryId) : null,
       })
       await postFromDraft(draft.id)
-      toast.success(`Đã post draft #${draft.id}`)
+      toast.success(t('creativePage.draftPosted', { id: draft.id }))
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error))
     } finally {
@@ -170,15 +168,12 @@ export function CreativeWithAIPage() {
 
   return (
     <div className="page">
-      <PageHeader
-        title="Creative with AI"
-        description="Generate a full post, image-only creative, or content-only copy with a complete preview."
-      />
+      <PageHeader title={t('creativePage.title')} description={t('creativePage.description')} />
 
       <div className="creative-layout">
         <div className="card creative-controls">
           <div className="card-header">
-            <h3 className="card-title">Creative setup</h3>
+            <h3 className="card-title">{t('creativePage.setupTitle')}</h3>
           </div>
 
           {products.loading || contentLibrary.loading ? (
@@ -187,25 +182,14 @@ export function CreativeWithAIPage() {
             <div className="form-stack">
               <div className="creative-mode-switch">
                 {(['post', 'image', 'content'] as GenerationMode[]).map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`filter-tab ${mode === item ? 'active' : ''}`}
-                    onClick={() => setMode(item)}
-                  >
-                    {item === 'post' ? 'Tạo Post' : item === 'image' ? 'Tạo Ảnh' : 'Tạo Content'}
+                  <button key={item} type="button" className={`filter-tab ${mode === item ? 'active' : ''}`} onClick={() => setMode(item)}>
+                    {t(`creativePage.mode.${item}`)}
                   </button>
                 ))}
               </div>
 
-              <FormField
-                label="Product"
-                as="select"
-                value={productId}
-                onChange={(event) => setProductId(event.target.value)}
-                required
-              >
-                <option value="">Chọn product</option>
+              <FormField label={t('creativePage.form.product')} as="select" value={productId} onChange={(event) => setProductId(event.target.value)} required>
+                <option value="">{t('creativePage.form.productPlaceholder')}</option>
                 {products.data?.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.name}
@@ -214,13 +198,13 @@ export function CreativeWithAIPage() {
               </FormField>
 
               <FormField
-                label="Content Library"
+                label={t('creativePage.form.contentLibrary')}
                 as="select"
                 value={contentLibraryId}
                 onChange={(event) => setContentLibraryId(event.target.value)}
-                hint="Optional context for AI."
+                hint={t('creativePage.form.contentLibraryHint')}
               >
-                <option value="">Không dùng</option>
+                <option value="">{t('creativePage.form.noLibrary')}</option>
                 {contentLibrary.data?.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.title || item.content}
@@ -229,56 +213,36 @@ export function CreativeWithAIPage() {
               </FormField>
 
               <div className="creative-grid-2">
-                <FormField label="Tone" as="select" value={tone} onChange={(e) => setTone(e.target.value)}>
-                  <option value="marketing">Marketing</option>
-                  <option value="friendly">Friendly</option>
-                  <option value="professional">Professional</option>
-                  <option value="playful">Playful</option>
+                <FormField label={t('creativePage.form.tone')} as="select" value={tone} onChange={(event) => setTone(event.target.value)}>
+                  <option value="marketing">{t('automationPage.options.marketing')}</option>
+                  <option value="friendly">{t('automationPage.options.friendly')}</option>
+                  <option value="professional">{t('automationPage.options.professional')}</option>
+                  <option value="playful">{t('automationPage.options.playful')}</option>
                 </FormField>
-                <FormField
-                  label="Language"
-                  as="select"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                >
-                  <option value="th">Thai</option>
-                  <option value="en">English</option>
-                  <option value="vi">Vietnamese</option>
+                <FormField label={t('creativePage.form.language')} as="select" value={language} onChange={(event) => setLanguage(event.target.value)}>
+                  <option value="th">{t('automationPage.options.thai')}</option>
+                  <option value="en">{t('automationPage.options.english')}</option>
+                  <option value="vi">{t('common.vietnamese')}</option>
                 </FormField>
               </div>
 
-              <FormField
-                label="Style"
-                as="select"
-                value={style}
-                onChange={(e) => setStyle(e.target.value)}
-              >
-                <option value="social ad creative">Social ad creative</option>
-                <option value="product showcase">Product showcase</option>
-                <option value="lifestyle photo">Lifestyle photo</option>
+              <FormField label={t('creativePage.form.style')} as="select" value={style} onChange={(event) => setStyle(event.target.value)}>
+                <option value="social ad creative">{t('automationPage.options.socialAdCreative')}</option>
+                <option value="product showcase">{t('automationPage.options.productShowcase')}</option>
+                <option value="lifestyle photo">{t('automationPage.options.lifestylePhoto')}</option>
                 <option value="minimal clean">Minimal clean</option>
                 <option value="luxury premium">Luxury premium</option>
               </FormField>
 
               <div className="creative-grid-2">
-                <FormField
-                  label="AI provider"
-                  as="select"
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as AIProvider)}
-                >
+                <FormField label={t('creativePage.form.aiProvider')} as="select" value={provider} onChange={(event) => setProvider(event.target.value as AIProvider)}>
                   {AI_PROVIDER_OPTIONS.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </FormField>
-                <FormField
-                  label="AI model"
-                  as="select"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                >
+                <FormField label={t('creativePage.form.aiModel')} as="select" value={model} onChange={(event) => setModel(event.target.value)}>
                   {AI_MODELS[provider].map((option) => (
                     <option key={option} value={option}>
                       {option}
@@ -287,24 +251,18 @@ export function CreativeWithAIPage() {
                 </FormField>
               </div>
 
-              <button
-                type="button"
-                className="btn btn-primary btn-lg"
-                onClick={handleGenerate}
-                disabled={!productId || generating}
-              >
-                {generating ? 'Generating preview...' : 'Generate preview'}
+              <button type="button" className="btn btn-primary btn-lg" onClick={() => void handleGenerate()} disabled={!productId || generating}>
+                {generating ? t('creativePage.generatingPreview') : t('creativePage.generatePreview')}
               </button>
 
-              {previewError && (
+              {previewError ? (
                 <div className="alert alert-error">
-                  <span className="alert-icon">x</span>
                   <div className="alert-content">
-                    <div className="alert-title">Generation failed</div>
+                    <div className="alert-title">{t('creativePage.generationFailed')}</div>
                     <div className="alert-message">{previewError}</div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
@@ -312,117 +270,91 @@ export function CreativeWithAIPage() {
         <div className="creative-preview-stack">
           <div className="card creative-preview-card">
             <div className="card-header">
-              <h3 className="card-title">Preview</h3>
-              {preview && (
-                <span className="badge badge-info">
-                  {preview.ai_provider}/{preview.ai_model}
-                </span>
-              )}
+              <h3 className="card-title">{t('creativePage.previewTitle')}</h3>
+              {preview ? <span className="badge badge-info">{preview.ai_provider}/{preview.ai_model}</span> : null}
             </div>
 
             {!preview ? (
               <div className="empty-state">
-                <div className="empty-state-icon">✨</div>
-                <div className="empty-state-title">No preview yet</div>
-                <div className="empty-state-description">
-                  Chọn product, style, AI provider, model rồi generate để xem bản creative hoàn chỉnh.
-                </div>
+                <div className="empty-state-title">{t('creativePage.noPreviewTitle')}</div>
+                <div className="empty-state-description">{t('creativePage.noPreviewDescription')}</div>
               </div>
             ) : (
               <div className="creative-preview">
                 <div className="creative-preview-meta">
-                  <span className="badge badge-neutral">Mode: {preview.generation_type}</span>
-                  <span className="badge badge-neutral">Tone: {tone}</span>
-                  <span className="badge badge-neutral">Language: {language}</span>
-                  <span className="badge badge-neutral">Style: {style}</span>
+                  <span className="badge badge-neutral">{t(`creativePage.mode.${preview.generation_type}`)}</span>
+                  <span className="badge badge-neutral">{t('creativePage.form.tone')}: {tone}</span>
+                  <span className="badge badge-neutral">{t('creativePage.form.language')}: {language}</span>
+                  <span className="badge badge-neutral">{t('creativePage.form.style')}: {style}</span>
                 </div>
 
-                {selectedProduct && (
+                {selectedProduct ? (
                   <div className="creative-preview-context">
                     <div className="creative-context-title">{selectedProduct.name}</div>
-                    <div className="creative-context-text">{selectedProduct.description || 'No description'}</div>
-                    {selectedLibrary && (
+                    <div className="creative-context-text">{selectedProduct.description || t('creativePage.context.noDescription')}</div>
+                    {selectedLibrary ? (
                       <div className="creative-context-text">
-                        Library: {selectedLibrary.title || selectedLibrary.content}
+                        {t('creativePage.context.library')}: {selectedLibrary.title || selectedLibrary.content}
                       </div>
-                    )}
+                    ) : null}
                   </div>
-                )}
+                ) : null}
 
-                {mode !== 'content' && (
+                {mode !== 'content' ? (
                   <div className="creative-preview-media">
                     {preview.media_url ? (
                       <img src={preview.media_url} alt="AI preview" className="creative-preview-image" />
                     ) : (
-                      <div className="creative-preview-placeholder">No image generated</div>
+                      <div className="creative-preview-placeholder">{t('creativePage.context.noImageGenerated')}</div>
                     )}
                     <div className="creative-preview-caption">
                       {preview.image_provider}/{preview.image_model}
                     </div>
                   </div>
-                )}
+                ) : null}
 
-                {(mode !== 'image' || Boolean(preview.content)) && (
+                {mode !== 'image' || Boolean(preview.content) ? (
                   <div className="creative-preview-content">
-                    <div className="creative-context-title">Generated content</div>
+                    <div className="creative-context-title">{t('creativePage.context.generatedContent')}</div>
                     <p>{preview.content}</p>
                   </div>
-                )}
+                ) : null}
               </div>
             )}
           </div>
 
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">Actions</h3>
+              <h3 className="card-title">{t('creativePage.actionsTitle')}</h3>
               {selectedPage ? (
-                <span className="badge badge-success">Page: {selectedPage.page_name}</span>
+                <span className="badge badge-success">{t('creativePage.pageSelected', { name: selectedPage.page_name })}</span>
               ) : (
-                <span className="badge badge-warning">No page selected</span>
+                <span className="badge badge-warning">{t('creativePage.noPageSelected')}</span>
               )}
             </div>
 
             <div className="form-stack">
               <FormField
-                label="Schedule time"
+                label={t('creativePage.scheduleTime')}
                 type="datetime-local"
                 value={scheduleTime}
-                onChange={(e) => setScheduleTime(e.target.value)}
-                hint="Used only for Schedule."
+                onChange={(event) => setScheduleTime(event.target.value)}
+                hint={t('creativePage.scheduleTimeHint')}
               />
 
               <div className="creative-action-row">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleAddToDraft}
-                  disabled={!preview || submittingAction !== null}
-                >
-                  {submittingAction === 'draft' ? 'Adding...' : 'Add to Draft'}
+                <button type="button" className="btn btn-secondary" onClick={() => void handleAddToDraft()} disabled={!preview || submittingAction !== null}>
+                  {submittingAction === 'draft' ? t('creativePage.adding') : t('creativePage.addToDraft')}
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleSchedule}
-                  disabled={!preview || submittingAction !== null}
-                >
-                  {submittingAction === 'schedule' ? 'Scheduling...' : 'Schedule'}
+                <button type="button" className="btn btn-secondary" onClick={() => void handleSchedule()} disabled={!preview || submittingAction !== null}>
+                  {submittingAction === 'schedule' ? t('creativePage.scheduling') : t('creativePage.schedule')}
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handlePostNow}
-                  disabled={!preview || !selectedPage || submittingAction !== null}
-                >
-                  {submittingAction === 'post' ? 'Posting...' : 'Post now'}
+                <button type="button" className="btn btn-primary" onClick={() => void handlePostNow()} disabled={!preview || !selectedPage || submittingAction !== null}>
+                  {submittingAction === 'post' ? t('creativePage.posting') : t('creativePage.postNow')}
                 </button>
               </div>
 
-              {!selectedPage && (
-                <div className="form-hint">
-                  You can still generate and save drafts without a page. Only posting is blocked.
-                </div>
-              )}
+              {!selectedPage ? <div className="form-hint">{t('creativePage.saveWithoutPage')}</div> : null}
             </div>
           </div>
         </div>

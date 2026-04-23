@@ -1,11 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
-import {
-  createContentLibraryItem,
-  updateContentLibraryItem,
-  deleteContentLibraryItem,
-  fetchContentLibrary,
-  type ContentLibraryItem,
-} from '../lib/api'
+import { useTranslation } from 'react-i18next'
+
 import { DataTable, type Column } from '../components/DataTable'
 import { FormField } from '../components/FormField'
 import { LoadingState } from '../components/LoadingState'
@@ -15,8 +10,16 @@ import { StatusBadge } from '../components/StatusBadge'
 import { useToast } from '../components/Toast'
 import { useAsync } from '../hooks/useAsync'
 import { formatRelative, truncate } from '../lib/format'
+import {
+  createContentLibraryItem,
+  deleteContentLibraryItem,
+  fetchContentLibrary,
+  type ContentLibraryItem,
+  updateContentLibraryItem,
+} from '../lib/api'
 
 export function ContentLibraryPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const items = useAsync(fetchContentLibrary, [])
   const [showCreate, setShowCreate] = useState(false)
@@ -26,26 +29,24 @@ export function ContentLibraryPage() {
   const columns: Column<ContentLibraryItem>[] = [
     {
       key: 'title',
-      header: 'Title',
+      header: t('contentLibraryPage.table.title'),
       width: '220px',
       render: (row) => (
         <div className="cell-primary">
-          <div className="cell-title">{row.title || 'Untitled'}</div>
-          {row.content_type && (
-            <div className="cell-subtitle text-muted text-sm">{row.content_type}</div>
-          )}
+          <div className="cell-title">{row.title || t('contentLibraryPage.untitled')}</div>
+          {row.content_type ? <div className="cell-subtitle text-muted text-sm">{row.content_type}</div> : null}
         </div>
       ),
     },
     {
       key: 'content',
-      header: 'Content',
+      header: t('contentLibraryPage.table.content'),
       render: (row) =>
         row.content_type === 'image' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img
               src={row.content}
-              alt={row.title || 'Content preview'}
+              alt={row.title || t('contentLibraryPage.untitled')}
               style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px' }}
             />
             <span className="text-muted text-sm">{truncate(row.content, 90)}</span>
@@ -56,13 +57,13 @@ export function ContentLibraryPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('contentLibraryPage.table.status'),
       width: '120px',
       render: (row) => <StatusBadge status={row.is_active ? 'active' : 'inactive'} />,
     },
     {
       key: 'created',
-      header: 'Created',
+      header: t('contentLibraryPage.table.created'),
       width: '140px',
       render: (row) => formatRelative(row.created_at),
     },
@@ -73,10 +74,10 @@ export function ContentLibraryPage() {
       render: (row) => (
         <div className="row-actions">
           <button className="btn btn-ghost btn-sm" onClick={() => setEditingItem(row)}>
-            Edit
+            {t('common.edit')}
           </button>
           <button className="btn btn-ghost btn-sm text-danger" onClick={() => setDeletingItem(row)}>
-            Delete
+            {t('common.delete')}
           </button>
         </div>
       ),
@@ -86,11 +87,11 @@ export function ContentLibraryPage() {
   return (
     <div className="page">
       <PageHeader
-        title="Content Library"
-        description="Store reusable copy, images, videos, and templates for drafts and automations."
+        title={t('contentLibraryPage.title')}
+        description={t('contentLibraryPage.description')}
         actions={
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            + New Item
+            {t('contentLibraryPage.newItem')}
           </button>
         }
       />
@@ -100,7 +101,7 @@ export function ContentLibraryPage() {
       ) : items.error ? (
         <div className="alert alert-error">
           <div className="alert-content">
-            <div className="alert-title">Failed to load content library</div>
+            <div className="alert-title">{t('contentLibraryPage.failedLoad')}</div>
             <div className="alert-message">{items.error}</div>
           </div>
         </div>
@@ -110,11 +111,11 @@ export function ContentLibraryPage() {
             columns={columns}
             rows={items.data ?? []}
             getRowKey={(row) => row.id}
-            emptyTitle="No content items"
-            emptyDescription="Create reusable snippets, image references, or template copy."
+            emptyTitle={t('contentLibraryPage.emptyTitle')}
+            emptyDescription={t('contentLibraryPage.emptyDescription')}
             emptyAction={
               <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-                + Add First Item
+                {t('contentLibraryPage.addFirstItem')}
               </button>
             }
           />
@@ -127,7 +128,7 @@ export function ContentLibraryPage() {
         onSuccess={() => {
           setShowCreate(false)
           items.refresh()
-          toast.success('Content item created')
+          toast.success(t('contentLibraryPage.created'))
         }}
         onError={(message) => toast.error(message)}
       />
@@ -139,23 +140,21 @@ export function ContentLibraryPage() {
         onSuccess={() => {
           setEditingItem(null)
           items.refresh()
-          toast.success('Content item updated')
+          toast.success(t('contentLibraryPage.updated'))
         }}
         onError={(message) => toast.error(message)}
       />
 
       <DeleteConfirmModal
         open={!!deletingItem}
-        itemTitle={deletingItem?.title || 'Untitled'}
+        itemTitle={deletingItem?.title || t('contentLibraryPage.untitled')}
         onClose={() => setDeletingItem(null)}
         onConfirm={async () => {
-          if (!deletingItem) {
-            return
-          }
+          if (!deletingItem) return
           await deleteContentLibraryItem(deletingItem.id)
           setDeletingItem(null)
           items.refresh()
-          toast.success('Content item deleted')
+          toast.success(t('contentLibraryPage.deleted'))
         }}
       />
     </div>
@@ -175,6 +174,7 @@ function ContentFormModal({
   onSuccess: () => void
   onError: (message: string) => void
 }) {
+  const { t } = useTranslation()
   const isEdit = !!item
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -195,18 +195,15 @@ function ContentFormModal({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) {
-      return
-    }
+    if (!file) return
 
     const expectedPrefix = contentType === 'video' ? 'video/' : 'image/'
     if (!file.type.startsWith(expectedPrefix)) {
-      onError(`Select a ${contentType || 'media'} file that matches the chosen type.`)
+      onError(t('contentLibraryPage.form.invalidFileType', { type: contentType || 'media' }))
       return
     }
-
     if (file.size > 5 * 1024 * 1024) {
-      onError('Media file must be less than 5MB.')
+      onError(t('contentLibraryPage.form.mediaTooLarge'))
       return
     }
 
@@ -219,7 +216,7 @@ function ContentFormModal({
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      onError('Content is required.')
+      onError(t('contentLibraryPage.form.contentRequired'))
       return
     }
 
@@ -251,8 +248,8 @@ function ContentFormModal({
   return (
     <Modal
       open={open}
-      title={isEdit ? 'Edit Content Item' : 'New Content Item'}
-      description="Save reusable text, media references, or templates."
+      title={isEdit ? t('contentLibraryPage.form.editTitle') : t('contentLibraryPage.form.newTitle')}
+      description={t('contentLibraryPage.form.description')}
       size="lg"
       onClose={() => {
         reset()
@@ -261,74 +258,72 @@ function ContentFormModal({
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Saving...' : isEdit ? 'Update Item' : 'Save Item'}
+            {submitting ? t('contentLibraryPage.form.saving') : isEdit ? t('contentLibraryPage.form.update') : t('contentLibraryPage.form.save')}
           </button>
         </>
       }
     >
       <div className="form-stack">
         <FormField
-          label="Content type"
+          label={t('contentLibraryPage.form.contentType')}
           as="select"
           value={contentType}
           onChange={(event) => setContentType(event.target.value)}
-          hint="Choose the type first so the form can adapt."
+          hint={t('contentLibraryPage.form.typeHint')}
         >
-          <option value="">(none)</option>
-          <option value="text">text</option>
-          <option value="snippet">snippet</option>
-          <option value="template">template</option>
-          <option value="image">image</option>
-          <option value="video">video</option>
+          <option value="">{t('automationPage.options.none')}</option>
+          <option value="text">{t('contentLibraryPage.types.text')}</option>
+          <option value="snippet">{t('contentLibraryPage.types.snippet')}</option>
+          <option value="template">{t('contentLibraryPage.types.template')}</option>
+          <option value="image">{t('contentLibraryPage.types.image')}</option>
+          <option value="video">{t('contentLibraryPage.types.video')}</option>
         </FormField>
 
         <FormField
-          label="Title"
+          label={t('contentLibraryPage.form.title')}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Optional title"
+          placeholder={t('contentLibraryPage.form.titlePlaceholder')}
         />
 
-        {isMediaType && (
+        {isMediaType ? (
           <label className="form-field">
-            <span className="form-label">{isImage ? 'Upload image' : 'Upload video'}</span>
+            <span className="form-label">{isImage ? t('contentLibraryPage.form.uploadImage') : t('contentLibraryPage.form.uploadVideo')}</span>
             <input type="file" accept={isImage ? 'image/*' : 'video/*'} onChange={handleFileChange} />
-            <span className="form-hint">Upload a local file or paste a media URL/data URL below.</span>
+            <span className="form-hint">{t('contentLibraryPage.form.mediaUploadHint')}</span>
           </label>
-        )}
+        ) : null}
 
         <FormField
-          label={isImage ? 'Image URL or data URL' : isVideo ? 'Video URL or data URL' : 'Content'}
-          as={isMediaType ? 'textarea' : 'textarea'}
+          label={isImage ? t('contentLibraryPage.form.imageUrl') : isVideo ? t('contentLibraryPage.form.videoUrl') : t('contentLibraryPage.form.content')}
+          as="textarea"
           rows={isMediaType ? 4 : 6}
           required
           value={content}
           onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setContent(event.target.value)}
-          placeholder={isImage ? 'https://example.com/image.jpg' : isVideo ? 'https://example.com/video.mp4' : 'Reusable content'}
+          placeholder={
+            isImage
+              ? t('contentLibraryPage.form.imagePlaceholder')
+              : isVideo
+                ? t('contentLibraryPage.form.videoPlaceholder')
+                : t('contentLibraryPage.form.contentPlaceholder')
+          }
         />
 
-        {isImage && content && (
+        {isImage && content ? (
           <div style={{ marginTop: '8px' }}>
-            <img
-              src={content}
-              alt="Preview"
-              style={{ maxWidth: '240px', maxHeight: '240px', borderRadius: '10px', border: '1px solid #d1d5db' }}
-            />
+            <img src={content} alt="Preview" style={{ maxWidth: '240px', maxHeight: '240px', borderRadius: '10px', border: '1px solid #d1d5db' }} />
           </div>
-        )}
+        ) : null}
 
-        {isVideo && content && (
+        {isVideo && content ? (
           <div style={{ marginTop: '8px' }}>
-            <video
-              src={content}
-              controls
-              style={{ maxWidth: '320px', maxHeight: '240px', borderRadius: '10px', border: '1px solid #d1d5db' }}
-            />
+            <video src={content} controls style={{ maxWidth: '320px', maxHeight: '240px', borderRadius: '10px', border: '1px solid #d1d5db' }} />
           </div>
-        )}
+        ) : null}
       </div>
     </Modal>
   )
@@ -345,6 +340,7 @@ function DeleteConfirmModal({
   onClose: () => void
   onConfirm: () => Promise<void>
 }) {
+  const { t } = useTranslation()
   const [deleting, setDeleting] = useState(false)
 
   const handleConfirm = async () => {
@@ -359,24 +355,22 @@ function DeleteConfirmModal({
   return (
     <Modal
       open={open}
-      title="Delete Content Item"
-      description="This action cannot be undone."
+      title={t('contentLibraryPage.deleteModal.title')}
+      description={t('contentLibraryPage.deleteModal.description')}
       size="sm"
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={deleting}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="button" className="btn btn-danger" onClick={handleConfirm} disabled={deleting}>
-            {deleting ? 'Deleting...' : 'Delete Item'}
+            {deleting ? t('contentLibraryPage.deleteModal.deleting') : t('contentLibraryPage.deleteModal.confirm')}
           </button>
         </>
       }
     >
-      <p>
-        Are you sure you want to delete <strong>{itemTitle}</strong>?
-      </p>
+      <p>{t('contentLibraryPage.deleteModal.question', { name: itemTitle })}</p>
     </Modal>
   )
 }

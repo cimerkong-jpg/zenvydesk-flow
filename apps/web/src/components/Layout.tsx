@@ -96,20 +96,20 @@ export function Layout() {
             <span>ZenvyDesk</span>
           </div>
           <div className="sidebar-user">
-            <div className="sidebar-user-name">{user?.full_name ?? user?.email ?? 'guest'}</div>
+            <div className="sidebar-user-name">{user?.full_name ?? user?.email ?? t('layout.guest')}</div>
             <button className="btn btn-ghost btn-sm sidebar-logout" onClick={() => void logout()}>
-              Logout
+              {t('layout.logout')}
             </button>
           </div>
           <LanguageSelector />
         </div>
 
         <nav className="sidebar-nav">
-          {renderNavGroup('Main', navMain)}
-          {renderNavGroup('Content', navContent)}
-          {renderNavGroup('Automation', navAutomation)}
-          {renderNavGroup('Connections', navSettings)}
-          {navAdmin.length > 0 ? renderNavGroup('Admin', navAdmin) : null}
+          {renderNavGroup(t('layout.main'), navMain)}
+          {renderNavGroup(t('layout.content'), navContent)}
+          {renderNavGroup(t('layout.automation'), navAutomation)}
+          {renderNavGroup(t('layout.connections'), navSettings)}
+          {navAdmin.length > 0 ? renderNavGroup(t('layout.admin'), navAdmin) : null}
         </nav>
 
         <div className="sidebar-footer">
@@ -117,8 +117,8 @@ export function Layout() {
             <span className={`status-dot status-dot-${status === 'ok' ? 'success' : 'error'}`} />
             <span className="backend-status-text">
               {status === 'loading' && t('common.loading')}
-              {status === 'ok' && 'Backend online'}
-              {status === 'down' && 'Backend offline'}
+              {status === 'ok' && t('layout.backendOnline')}
+              {status === 'down' && t('layout.backendOffline')}
             </span>
           </div>
         </div>

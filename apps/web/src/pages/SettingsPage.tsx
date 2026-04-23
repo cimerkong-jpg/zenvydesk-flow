@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PageHeader } from '../components/PageHeader'
+import { useTranslation } from 'react-i18next'
+
 import { FormField } from '../components/FormField'
+import { PageHeader } from '../components/PageHeader'
 import { useToast } from '../components/Toast'
 import { apiBaseUrl } from '../config'
 import { useAuth } from '../context/AuthContext'
@@ -40,6 +42,7 @@ const PROVIDER_PLACEHOLDERS: Record<AIProvider, string> = {
 }
 
 export function SettingsPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const { user } = useAuth()
   const { pages, selectedPage, setSelectedPage } = useSelectedPage()
@@ -105,7 +108,7 @@ export function SettingsPage() {
   const copyToClipboard = (value: string, label: string) => {
     navigator.clipboard
       .writeText(value)
-      .then(() => toast.success(`${label} copied`))
+      .then(() => toast.success(t('settingsPage.backend.copied', { label })))
       .catch((error) => toast.error(error instanceof Error ? error.message : String(error)))
   }
 
@@ -122,7 +125,7 @@ export function SettingsPage() {
     setSavingProvider(activeEditor)
     try {
       await upsertUserAiKey(activeEditor, draftKey)
-      toast.success(`${PROVIDER_LABELS[activeEditor]} key saved`)
+      toast.success(t('settingsPage.keys.keySaved', { provider: PROVIDER_LABELS[activeEditor] }))
       setDraftKey('')
       setActiveEditor(null)
       loadAiKeys()
@@ -137,7 +140,7 @@ export function SettingsPage() {
     setDeletingProvider(provider)
     try {
       await deleteUserAiKey(provider)
-      toast.success(`${PROVIDER_LABELS[provider]} key removed`)
+      toast.success(t('settingsPage.keys.keyRemoved', { provider: PROVIDER_LABELS[provider] }))
       if (activeEditor === provider) {
         setActiveEditor(null)
         setDraftKey('')
@@ -152,111 +155,111 @@ export function SettingsPage() {
 
   return (
     <div className="page">
-      <PageHeader title="Settings" description="Runtime status, AI preferences, personal AI keys, and page defaults." />
+      <PageHeader title={t('settingsPage.title')} description={t('settingsPage.description')} />
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Backend</h3>
+          <h3 className="card-title">{t('settingsPage.backend.title')}</h3>
           <button className="btn btn-ghost btn-sm" onClick={runHealthCheck}>
-            Refresh
+            {t('common.refresh')}
           </button>
         </div>
         <div className="info-grid">
           <div className="info-row">
-            <div className="info-label">API base URL</div>
+            <div className="info-label">{t('settingsPage.backend.apiBaseUrl')}</div>
             <div className="info-value">
               <code>{apiBaseUrl}</code>
-              <button className="btn btn-ghost btn-sm" onClick={() => copyToClipboard(apiBaseUrl, 'API URL')}>
-                Copy
+              <button className="btn btn-ghost btn-sm" onClick={() => copyToClipboard(apiBaseUrl, t('settingsPage.backend.apiBaseUrl'))}>
+                {t('settingsPage.backend.copy')}
               </button>
             </div>
           </div>
           <div className="info-row">
-            <div className="info-label">Health</div>
+            <div className="info-label">{t('settingsPage.backend.health')}</div>
             <div className="info-value">
-              {health === 'loading' && 'Checking...'}
-              {health === 'ok' && 'Online'}
-              {health === 'down' && 'Offline'}
+              {health === 'loading' && t('settingsPage.backend.checking')}
+              {health === 'ok' && t('settingsPage.backend.online')}
+              {health === 'down' && t('settingsPage.backend.offline')}
             </div>
           </div>
-          {checkedAt && (
+          {checkedAt ? (
             <div className="info-row">
-              <div className="info-label">Last checked</div>
+              <div className="info-label">{t('settingsPage.backend.lastChecked')}</div>
               <div className="info-value">{checkedAt.toLocaleTimeString()}</div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {(user?.role === 'admin' || user?.role === 'super_admin') && (
+      {user?.role === 'admin' || user?.role === 'super_admin' ? (
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">AI Configuration</h3>
+            <h3 className="card-title">{t('settingsPage.runtime.title')}</h3>
             <button className="btn btn-ghost btn-sm" onClick={loadRuntime}>
-              Reload
+              {t('settingsPage.runtime.reload')}
             </button>
           </div>
           {runtimeError ? (
             <div className="alert alert-error">
               <div className="alert-content">
-                <div className="alert-title">Failed to load runtime settings</div>
+                <div className="alert-title">{t('settingsPage.runtime.failed')}</div>
                 <div className="alert-message">{runtimeError}</div>
               </div>
             </div>
           ) : runtime ? (
             <div className="info-grid">
               <div className="info-row">
-                <div className="info-label">Environment</div>
+                <div className="info-label">{t('settingsPage.runtime.environment')}</div>
                 <div className="info-value">{runtime.app_env}</div>
               </div>
               <div className="info-row">
-                <div className="info-label">Frontend target</div>
+                <div className="info-label">{t('settingsPage.runtime.frontendTarget')}</div>
                 <div className="info-value">{runtime.frontend_base_url}</div>
               </div>
               <div className="info-row">
-                <div className="info-label">AI provider</div>
+                <div className="info-label">{t('settingsPage.runtime.aiProvider')}</div>
                 <div className="info-value">
                   {runtime.ai_provider} / {runtime.ai_model}
                 </div>
               </div>
               <div className="info-row">
-                <div className="info-label">AI status</div>
-                <div className="info-value">{runtime.ai_configured ? 'Configured' : 'Missing key/config'}</div>
+                <div className="info-label">{t('settingsPage.runtime.aiStatus')}</div>
+                <div className="info-value">{runtime.ai_configured ? t('settingsPage.runtime.configured') : t('settingsPage.runtime.missing')}</div>
               </div>
               <div className="info-row">
-                <div className="info-label">Image provider</div>
+                <div className="info-label">{t('settingsPage.runtime.imageProvider')}</div>
                 <div className="info-value">
                   {runtime.image_provider} / {runtime.image_model}
                 </div>
               </div>
               <div className="info-row">
-                <div className="info-label">Image status</div>
-                <div className="info-value">{runtime.image_configured ? 'Configured' : 'Missing key/config'}</div>
+                <div className="info-label">{t('settingsPage.runtime.imageStatus')}</div>
+                <div className="info-value">{runtime.image_configured ? t('settingsPage.runtime.configured') : t('settingsPage.runtime.missing')}</div>
               </div>
             </div>
           ) : (
-            <div className="text-muted">Loading runtime settings...</div>
+            <div className="text-muted">{t('settingsPage.runtime.loading')}</div>
           )}
         </div>
-      )}
+      ) : null}
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">AI Preferences</h3>
+          <h3 className="card-title">{t('settingsPage.preferences.title')}</h3>
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => {
               saveAiPreferences(preferences)
-              toast.success('AI preferences saved in browser storage')
+              toast.success(t('settingsPage.preferences.saved'))
             }}
           >
-            Save
+            {t('common.save')}
           </button>
         </div>
         <div className="form-stack">
           <div className="creative-grid-2">
             <FormField
-              label="Default AI provider"
+              label={t('settingsPage.preferences.defaultProvider')}
               as="select"
               value={preferences.provider}
               onChange={(event) => updatePreferences({ provider: event.target.value as AIProvider })}
@@ -268,7 +271,7 @@ export function SettingsPage() {
               ))}
             </FormField>
             <FormField
-              label="Default AI model"
+              label={t('settingsPage.preferences.defaultModel')}
               as="select"
               value={preferences.model}
               onChange={(event) => updatePreferences({ model: event.target.value })}
@@ -280,40 +283,37 @@ export function SettingsPage() {
               ))}
             </FormField>
           </div>
-          <div className="form-hint">
-            Provider and model stay in this browser. API keys are stored on your account and used server-side.
-          </div>
+          <div className="form-hint">{t('settingsPage.preferences.hint')}</div>
         </div>
       </div>
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">AI API Keys</h3>
+          <h3 className="card-title">{t('settingsPage.keys.title')}</h3>
         </div>
         <div className="form-stack">
-          <div className="form-hint">
-            Your personal key is used first. If not configured, ZenvyDesk may use the system fallback key.
-          </div>
+          <div className="form-hint">{t('settingsPage.keys.hint')}</div>
 
           {keysLoading ? (
-            <div className="text-muted">Loading AI key status...</div>
+            <div className="text-muted">{t('settingsPage.keys.loading')}</div>
           ) : (
             <ul className="list">
               {AI_PROVIDER_OPTIONS.map((provider) => {
                 const item = aiKeyMap[provider]
                 const isEditing = activeEditor === provider
+
                 return (
                   <li key={provider} className="list-item" style={{ alignItems: 'stretch' }}>
                     <div className="list-item-main">
                       <div className="list-item-title">{PROVIDER_LABELS[provider]}</div>
                       <div className="list-item-meta">
-                        Source: {item?.source ?? 'missing'} | Status: {item?.validation_status ?? 'not configured'} |{' '}
-                        {item?.key_hint ?? 'No key saved'}
+                        {t('settingsPage.keys.source')}: {item?.source ?? t('settingsPage.keys.sourceMissing')} | {t('settingsPage.keys.status')}:{' '}
+                        {item?.validation_status ?? t('settingsPage.keys.statusMissing')} | {item?.key_hint ?? t('settingsPage.keys.noKey')}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                       <span className={`badge ${item?.is_configured ? 'badge-success' : 'badge-warning'}`}>
-                        {item?.is_configured ? 'Configured' : 'Not configured'}
+                        {item?.is_configured ? t('settingsPage.keys.configured') : t('settingsPage.keys.notConfigured')}
                       </span>
                       <button
                         className="btn btn-ghost btn-sm"
@@ -322,17 +322,17 @@ export function SettingsPage() {
                           setDraftKey('')
                         }}
                       >
-                        {item?.source === 'user' ? 'Update' : 'Add key'}
+                        {item?.source === 'user' ? t('settingsPage.keys.update') : t('settingsPage.keys.add')}
                       </button>
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => void removeProviderKey(provider)}
                         disabled={deletingProvider === provider || item?.source !== 'user'}
                       >
-                        {deletingProvider === provider ? 'Removing...' : 'Delete'}
+                        {deletingProvider === provider ? t('settingsPage.keys.removing') : t('settingsPage.keys.delete')}
                       </button>
                     </div>
-                    {isEditing && (
+                    {isEditing ? (
                       <div style={{ width: '100%', marginTop: '12px' }}>
                         <FormField
                           label={`${PROVIDER_LABELS[provider]} API key`}
@@ -340,7 +340,7 @@ export function SettingsPage() {
                           value={draftKey}
                           onChange={(event) => setDraftKey(event.target.value)}
                           placeholder={PROVIDER_PLACEHOLDERS[provider]}
-                          hint="Saved keys are encrypted at rest and never shown back in full."
+                          hint={t('settingsPage.keys.savedHint')}
                         />
                         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                           <button
@@ -348,7 +348,7 @@ export function SettingsPage() {
                             onClick={() => void saveProviderKey()}
                             disabled={savingProvider === provider || !draftKey.trim()}
                           >
-                            {savingProvider === provider ? 'Saving...' : 'Save key'}
+                            {savingProvider === provider ? t('settingsPage.keys.saving') : t('settingsPage.keys.saveKey')}
                           </button>
                           <button
                             className="btn btn-ghost btn-sm"
@@ -358,11 +358,11 @@ export function SettingsPage() {
                             }}
                             disabled={savingProvider === provider}
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </li>
                 )
               })}
@@ -373,37 +373,39 @@ export function SettingsPage() {
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Default Facebook Page</h3>
+          <h3 className="card-title">{t('settingsPage.defaultPage.title')}</h3>
         </div>
         {pages.length === 0 ? (
           <div className="info-row">
-            <div className="info-label">No pages connected</div>
-            <div className="info-value text-muted">Go to Connections to connect and select a page.</div>
+            <div className="info-label">{t('settingsPage.defaultPage.none')}</div>
+            <div className="info-value text-muted">{t('settingsPage.defaultPage.noneDescription')}</div>
           </div>
         ) : (
           <ul className="list">
             {pages.map((page) => {
               const active = selectedPage?.facebook_page_id === page.facebook_page_id
+
               return (
                 <li key={page.facebook_page_id} className="list-item">
                   <div className="list-item-main">
                     <div className="list-item-title">{page.page_name}</div>
                     <div className="list-item-meta">
-                      ID: {page.facebook_page_id} | {page.connection_status} | token {page.has_access_token ? 'ready' : 'missing'}
+                      ID: {page.facebook_page_id} | {page.connection_status} | token{' '}
+                      {page.has_access_token ? t('settingsPage.defaultPage.tokenReady') : t('settingsPage.defaultPage.tokenMissing')}
                     </div>
                   </div>
                   {active ? (
-                    <span className="badge badge-success">Selected</span>
+                    <span className="badge badge-success">{t('settingsPage.defaultPage.selected')}</span>
                   ) : (
                     <button
                       className="btn btn-ghost btn-sm"
                       onClick={() => {
                         void setSelectedPage(page).then(() => {
-                          toast.success(`${page.page_name} set as default`)
+                          toast.success(t('settingsPage.defaultPage.setDefault', { name: page.page_name }))
                         })
                       }}
                     >
-                      Make default
+                      {t('settingsPage.defaultPage.makeDefault')}
                     </button>
                   )}
                 </li>

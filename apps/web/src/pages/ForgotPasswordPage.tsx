@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { forgotPassword } from '../lib/api'
 
 
 export function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
@@ -28,23 +30,30 @@ export function ForgotPasswordPage() {
         <div className="login-brand">
           <div className="logo-icon">Z</div>
           <div>
-            <h1>Forgot password</h1>
-            <p>Enter your email and ZenvyDesk will generate a reset token.</p>
+            <h1>{t('auth.forgotPassword.title')}</h1>
+            <p>{t('auth.forgotPassword.subtitle')}</p>
           </div>
         </div>
         <form className="form-stack" onSubmit={handleSubmit}>
           <label className="form-field">
-            <span className="form-label">Email</span>
+            <span className="form-label">{t('auth.forgotPassword.email')}</span>
             <input className="form-input" value={email} onChange={(event) => setEmail(event.target.value)} />
           </label>
           <button type="submit" className="btn btn-primary btn-lg">
-            Generate reset token
+            {t('auth.forgotPassword.submit')}
           </button>
-          {message ? <div className="alert alert-success"><div className="alert-content"><div className="alert-title">Request accepted</div><div className="alert-message">{message}</div></div></div> : null}
-          {token ? <div className="form-hint">Development reset token: {token}</div> : null}
+          {message ? (
+            <div className="alert alert-success">
+              <div className="alert-content">
+                <div className="alert-title">{t('auth.forgotPassword.acceptedTitle')}</div>
+                <div className="alert-message">{message}</div>
+              </div>
+            </div>
+          ) : null}
+          {token ? <div className="form-hint">{t('auth.forgotPassword.devToken', { token })}</div> : null}
           {error ? <div className="form-error">{error}</div> : null}
           <div className="form-hint">
-            <Link to="/login">Back to login</Link>
+            <Link to="/login">{t('auth.forgotPassword.backToLogin')}</Link>
           </div>
         </form>
       </div>

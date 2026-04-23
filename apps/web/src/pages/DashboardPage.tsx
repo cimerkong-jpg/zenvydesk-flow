@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
+  fetchAutomationRules,
+  fetchContentLibrary,
   fetchDrafts,
   fetchPostHistory,
   fetchProducts,
-  fetchContentLibrary,
-  fetchAutomationRules,
   runScheduledPost,
   type Draft,
   type PostHistory,
   type ScheduledRunResponse,
 } from '../lib/api'
-import { PageHeader } from '../components/PageHeader'
 import { EmptyState } from '../components/EmptyState'
+import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
 import { useSelectedPage } from '../hooks/useSelectedPage'
 import { useToast } from '../components/Toast'
 import { formatDateTime, formatRelative, truncate } from '../lib/format'
-import { StatusBadge } from '../components/StatusBadge'
 
 type DashboardStats = {
   drafts: number
@@ -28,9 +29,9 @@ type DashboardStats = {
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const { pages, selectedPage, setSelectedPage } = useSelectedPage()
-
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentDrafts, setRecentDrafts] = useState<Draft[]>([])
   const [recentPosts, setRecentPosts] = useState<PostHistory[]>([])
@@ -54,16 +55,8 @@ export function DashboardPage() {
         contentItems: content.length,
         rules: rules.length,
       })
-      setRecentDrafts(
-        [...drafts]
-          .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
-          .slice(0, 5),
-      )
-      setRecentPosts(
-        [...posts]
-          .sort((a, b) => (a.posted_at < b.posted_at ? 1 : -1))
-          .slice(0, 5),
-      )
+      setRecentDrafts([...drafts].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, 5))
+      setRecentPosts([...posts].sort((a, b) => (a.posted_at < b.posted_at ? 1 : -1)).slice(0, 5))
     })
   }, [])
 
@@ -73,9 +66,7 @@ export function DashboardPage() {
     try {
       const result = await runScheduledPost(mockMode)
       setRunResult(result)
-      toast.success(
-        `Posted ${result.posted_count} of ${result.processed_count} scheduled drafts`,
-      )
+      toast.success(t('dashboard.runSuccess', { posted: result.posted_count, processed: result.processed_count }))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     } finally {
@@ -85,10 +76,7 @@ export function DashboardPage() {
 
   return (
     <div className="page">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of your content pipeline and scheduled activity."
-      />
+      <PageHeader title={t('dashboard.title')} description={t('dashboard.description')} />
 
       {selectedPage ? (
         <div className="selected-page-section">
@@ -97,21 +85,18 @@ export function DashboardPage() {
             <div className="page-info">
               <div className="page-name">{selectedPage.page_name}</div>
               <div className="page-meta">
-                ID: {selectedPage.facebook_page_id} • Ready to post
+                ID: {selectedPage.facebook_page_id} • {t('dashboard.selectedPageReady')}
               </div>
             </div>
             {pages.length > 1 && (
-              <button
-                className="btn btn-on-gradient"
-                onClick={() => setShowPageSelector((v) => !v)}
-              >
-                Change Page ({pages.length})
+              <button className="btn btn-on-gradient" onClick={() => setShowPageSelector((v) => !v)}>
+                {t('dashboard.changePage', { count: pages.length })}
               </button>
             )}
           </div>
           {showPageSelector && pages.length > 1 && (
             <div className="page-selector-dropdown">
-              <div className="page-selector-title">Select Facebook Page</div>
+              <div className="page-selector-title">{t('dashboard.selectFacebookPage')}</div>
               {pages.map((page) => {
                 const active = page.facebook_page_id === selectedPage.facebook_page_id
                 return (
@@ -138,66 +123,54 @@ export function DashboardPage() {
         <div className="connection-card">
           <div className="connection-icon">f</div>
           <div className="connection-info">
-            <div className="connection-title">No Facebook Page Connected</div>
-            <div className="connection-subtitle">
-              Connect a Facebook page to start posting and automating content.
-            </div>
+            <div className="connection-title">{t('dashboard.noFacebookPage')}</div>
+            <div className="connection-subtitle">{t('dashboard.noFacebookPageDescription')}</div>
           </div>
           <Link to="/connections" className="btn btn-primary btn-lg">
-            Go to Connections
+            {t('dashboard.goToConnections')}
           </Link>
         </div>
       )}
 
       <div className="stat-grid">
-        <StatCard label="Drafts" value={stats?.drafts} icon="📝" to="/drafts" />
-        <StatCard label="Scheduled" value={stats?.scheduled} icon="📅" to="/schedule" />
-        <StatCard label="Posted" value={stats?.posted} icon="✅" to="/post-history" />
-        <StatCard label="Products" value={stats?.products} icon="🛍️" to="/products" />
-        <StatCard label="Content Items" value={stats?.contentItems} icon="📚" to="/content-library" />
-        <StatCard label="Automations" value={stats?.rules} icon="⚙️" to="/automation-rules" />
+        <StatCard label={t('dashboard.stats.drafts')} value={stats?.drafts} icon="📝" to="/drafts" />
+        <StatCard label={t('dashboard.stats.scheduled')} value={stats?.scheduled} icon="📅" to="/schedule" />
+        <StatCard label={t('dashboard.stats.posted')} value={stats?.posted} icon="✅" to="/post-history" />
+        <StatCard label={t('dashboard.stats.products')} value={stats?.products} icon="🛍️" to="/products" />
+        <StatCard label={t('dashboard.stats.contentItems')} value={stats?.contentItems} icon="📚" to="/content-library" />
+        <StatCard label={t('dashboard.stats.automations')} value={stats?.rules} icon="⚙️" to="/automation-rules" />
       </div>
 
       <div className="action-panel">
         <h2 className="action-panel-title">
           <span>🚀</span>
-          Run Scheduled Posts
+          {t('dashboard.runTitle')}
         </h2>
-        <p className="action-panel-description">
-          Execute all due scheduled drafts now. Start with mock mode to verify before posting live.
-        </p>
+        <p className="action-panel-description">{t('dashboard.runDescription')}</p>
         <div className="action-panel-buttons">
-          <button
-            className="btn btn-lg"
-            onClick={() => handleRun(true)}
-            disabled={running || !selectedPage}
-          >
+          <button className="btn btn-lg" onClick={() => handleRun(true)} disabled={running || !selectedPage}>
             {running ? (
               <>
                 <span className="spinner"></span>
-                Running…
+                {t('dashboard.running')}
               </>
             ) : (
               <>
                 <span>🧪</span>
-                Test Run (Mock)
+                {t('dashboard.testRun')}
               </>
             )}
           </button>
-          <button
-            className="btn btn-secondary btn-lg"
-            onClick={() => handleRun(false)}
-            disabled={running || !selectedPage}
-          >
+          <button className="btn btn-secondary btn-lg" onClick={() => handleRun(false)} disabled={running || !selectedPage}>
             {running ? (
               <>
                 <span className="spinner"></span>
-                Posting…
+                {t('dashboard.posting')}
               </>
             ) : (
               <>
                 <span>📤</span>
-                Post to Facebook
+                {t('dashboard.postToFacebook')}
               </>
             )}
           </button>
@@ -205,7 +178,7 @@ export function DashboardPage() {
         {!selectedPage && (
           <div className="action-panel-warning">
             <span>⚠️</span>
-            Connect a Facebook page to enable posting.
+            {t('dashboard.postingDisabled')}
           </div>
         )}
       </div>
@@ -215,31 +188,19 @@ export function DashboardPage() {
           <div className="card-header">
             <h3 className="card-title">
               <span>📊</span>
-              Last Execution Result
+              {t('dashboard.lastExecutionResult')}
             </h3>
             <span className="result-timestamp">{formatDateTime(new Date().toISOString())}</span>
           </div>
           <div className="result-metrics">
-            <div className="metric-item">
-              <div className="metric-value">{runResult.processed_count}</div>
-              <div className="metric-label">Processed</div>
-            </div>
-            <div className="metric-item">
-              <div className="metric-value success">{runResult.posted_count}</div>
-              <div className="metric-label">Posted</div>
-            </div>
-            <div className="metric-item">
-              <div className="metric-value error">{runResult.failed_count}</div>
-              <div className="metric-label">Failed</div>
-            </div>
-            <div className="metric-item">
-              <div className="metric-value warning">{runResult.skipped_count}</div>
-              <div className="metric-label">Skipped</div>
-            </div>
+            <Metric value={runResult.processed_count} label={t('dashboard.result.processed')} />
+            <Metric value={runResult.posted_count} label={t('dashboard.result.posted')} tone="success" />
+            <Metric value={runResult.failed_count} label={t('dashboard.result.failed')} tone="error" />
+            <Metric value={runResult.skipped_count} label={t('dashboard.result.skipped')} tone="warning" />
           </div>
           {runResult.errors.length > 0 && (
             <div className="result-errors">
-              <div className="result-errors-title">Errors ({runResult.errors.length})</div>
+              <div className="result-errors-title">{t('dashboard.result.errors', { count: runResult.errors.length })}</div>
               {runResult.errors.map((err, i) => (
                 <div key={i} className="result-error-item">
                   {err.draft_id && <strong>Draft {err.draft_id}: </strong>}
@@ -256,22 +217,18 @@ export function DashboardPage() {
           <div className="card-header">
             <h3 className="card-title">
               <span>📝</span>
-              Recent Drafts
+              {t('dashboard.recentDrafts')}
             </h3>
             <Link to="/drafts" className="btn btn-ghost btn-sm">
-              View all
+              {t('common.viewAll')}
             </Link>
           </div>
           {recentDrafts.length === 0 ? (
             <EmptyState
               icon="✏️"
-              title="No drafts yet"
-              description="Create your first draft to get started."
-              action={
-                <Link to="/drafts" className="btn btn-primary btn-sm">
-                  Create Draft
-                </Link>
-              }
+              title={t('dashboard.noDrafts')}
+              description={t('dashboard.noDraftsDescription')}
+              action={<Link to="/drafts" className="btn btn-primary btn-sm">{t('dashboard.createDraft')}</Link>}
             />
           ) : (
             <ul className="list">
@@ -281,7 +238,7 @@ export function DashboardPage() {
                     <div className="list-item-title">{truncate(d.content, 80)}</div>
                     <div className="list-item-meta">
                       {formatRelative(d.created_at)}
-                      {d.scheduled_time && <> · Scheduled {formatDateTime(d.scheduled_time)}</>}
+                      {d.scheduled_time && <> · {t('dashboard.scheduledAt', { time: formatDateTime(d.scheduled_time) })}</>}
                     </div>
                   </div>
                   <StatusBadge status={d.status} />
@@ -295,18 +252,14 @@ export function DashboardPage() {
           <div className="card-header">
             <h3 className="card-title">
               <span>📜</span>
-              Recent Post History
+              {t('dashboard.recentPostHistory')}
             </h3>
             <Link to="/post-history" className="btn btn-ghost btn-sm">
-              View all
+              {t('common.viewAll')}
             </Link>
           </div>
           {recentPosts.length === 0 ? (
-            <EmptyState
-              icon="📮"
-              title="No posts yet"
-              description="Once you post, history will appear here."
-            />
+            <EmptyState icon="📮" title={t('dashboard.noPosts')} description={t('dashboard.noPostsDescription')} />
           ) : (
             <ul className="list">
               {recentPosts.map((p) => (
@@ -326,17 +279,7 @@ export function DashboardPage() {
   )
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-  to,
-}: {
-  label: string
-  value: number | undefined
-  icon: string
-  to: string
-}) {
+function StatCard({ label, value, icon, to }: { label: string; value: number | undefined; icon: string; to: string }) {
   return (
     <Link to={to} className="stat-card">
       <div className="stat-card-icon">{icon}</div>
@@ -345,5 +288,14 @@ function StatCard({
         <div className="stat-card-label">{label}</div>
       </div>
     </Link>
+  )
+}
+
+function Metric({ value, label, tone }: { value: number; label: string; tone?: 'success' | 'error' | 'warning' }) {
+  return (
+    <div className="metric-item">
+      <div className={`metric-value ${tone ?? ''}`.trim()}>{value}</div>
+      <div className="metric-label">{label}</div>
+    </div>
   )
 }

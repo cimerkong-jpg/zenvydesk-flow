@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { EmptyState } from '../components/EmptyState'
 import { LoadingState } from '../components/LoadingState'
@@ -7,8 +8,8 @@ import { PageHeader } from '../components/PageHeader'
 import { useSelectedPage } from '../hooks/useSelectedPage'
 import { disconnectFacebook, startFacebookConnection } from '../lib/api'
 
-
 export function ConnectionsPage() {
+  const { t } = useTranslation()
   const { pages, selectedPage, setSelectedPage, loading, error, refresh } = useSelectedPage()
   const [disconnecting, setDisconnecting] = useState(false)
   const [searchParams] = useSearchParams()
@@ -21,21 +22,21 @@ export function ConnectionsPage() {
     if (fbError) {
       return {
         tone: 'error' as const,
-        title: 'Facebook connection failed',
-        message: `Facebook returned: ${fbError}`,
+        title: t('connectionsPage.facebookConnectionFailed'),
+        message: t('connectionsPage.facebookReturned', { message: fbError }),
       }
     }
 
     if (fbConnected === '1') {
       return {
         tone: 'success' as const,
-        title: 'Facebook connected',
-        message: `Saved ${pagesSaved ?? '0'} page(s) from Facebook.`,
+        title: t('connectionsPage.facebookConnected'),
+        message: t('connectionsPage.pagesSaved', { count: pagesSaved ?? '0' }),
       }
     }
 
     return null
-  }, [searchParams])
+  }, [searchParams, t])
 
   const handleConnect = async () => {
     const result = await startFacebookConnection()
@@ -55,19 +56,19 @@ export function ConnectionsPage() {
   return (
     <div className="page">
       <PageHeader
-        title="Connections"
-        description="Connect Facebook only after you are signed into ZenvyDesk."
+        title={t('connectionsPage.title')}
+        description={t('connectionsPage.description')}
         actions={
           <div className="row-actions">
             <button className="btn btn-ghost" onClick={() => void refresh()} disabled={loading}>
-              Refresh
+              {t('connectionsPage.refresh')}
             </button>
             <button className="btn btn-primary" onClick={() => void handleConnect()}>
-              {pages.length > 0 ? 'Reconnect Facebook' : 'Connect Facebook'}
+              {pages.length > 0 ? t('connectionsPage.reconnectFacebook') : t('connectionsPage.connectFacebook')}
             </button>
             {pages.length > 0 ? (
               <button className="btn btn-secondary" onClick={() => void handleDisconnect()} disabled={disconnecting}>
-                {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+                {disconnecting ? t('connectionsPage.disconnecting') : t('connectionsPage.disconnect')}
               </button>
             ) : null}
           </div>
@@ -88,7 +89,7 @@ export function ConnectionsPage() {
       ) : error ? (
         <div className="alert alert-error">
           <div className="alert-content">
-            <div className="alert-title">Failed to load pages</div>
+            <div className="alert-title">{t('connectionsPage.failedLoadPages')}</div>
             <div className="alert-message">{error}</div>
           </div>
         </div>
@@ -96,11 +97,11 @@ export function ConnectionsPage() {
         <div className="card">
           <EmptyState
             icon="link"
-            title="No Facebook pages connected"
-            description="Authorize Facebook to import the pages managed by the current app user."
+            title={t('connectionsPage.noPagesTitle')}
+            description={t('connectionsPage.noPagesDescription')}
             action={
               <button className="btn btn-primary" onClick={() => void handleConnect()}>
-                Connect Facebook
+                {t('connectionsPage.connectFacebook')}
               </button>
             }
           />
@@ -108,8 +109,8 @@ export function ConnectionsPage() {
       ) : (
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">Connected Pages ({pages.length})</h3>
-            {selectedPage ? <span className="badge badge-success">Selected: {selectedPage.page_name}</span> : null}
+            <h3 className="card-title">{t('connectionsPage.connectedPages', { count: pages.length })}</h3>
+            {selectedPage ? <span className="badge badge-success">{t('connectionsPage.selectedPage', { name: selectedPage.page_name })}</span> : null}
           </div>
           <ul className="list">
             {pages.map((page) => {
@@ -120,15 +121,15 @@ export function ConnectionsPage() {
                     <div className="list-item-title">{page.page_name}</div>
                     <div className="list-item-meta">
                       ID: {page.facebook_page_id}
-                      {page.is_active ? ' · Active' : ' · Inactive'}
-                      {page.has_access_token ? ' · Token ready' : ' · Needs reconnect'}
+                      {page.is_active ? ` · ${t('connectionsPage.active')}` : ` · ${t('connectionsPage.inactive')}`}
+                      {page.has_access_token ? ` · ${t('connectionsPage.tokenReady')}` : ` · ${t('connectionsPage.needsReconnect')}`}
                     </div>
                   </div>
                   {active ? (
-                    <span className="badge badge-success">Selected</span>
+                    <span className="badge badge-success">{t('connectionsPage.selected')}</span>
                   ) : (
                     <button className="btn btn-ghost btn-sm" onClick={() => void setSelectedPage(page)}>
-                      Use this page
+                      {t('connectionsPage.useThisPage')}
                     </button>
                   )}
                 </li>

@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
-import { createProduct, updateProduct, deleteProduct, fetchProducts, type Product } from '../lib/api'
-import { PageHeader } from '../components/PageHeader'
-import { useAsync } from '../hooks/useAsync'
-import { Modal } from '../components/Modal'
-import { FormField } from '../components/FormField'
-import { StatusBadge } from '../components/StatusBadge'
-import { LoadingState } from '../components/LoadingState'
+import { useTranslation } from 'react-i18next'
+
 import { DataTable, type Column } from '../components/DataTable'
+import { FormField } from '../components/FormField'
+import { LoadingState } from '../components/LoadingState'
+import { Modal } from '../components/Modal'
+import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
 import { useToast } from '../components/Toast'
+import { useAsync } from '../hooks/useAsync'
 import { formatRelative, truncate } from '../lib/format'
+import { createProduct, deleteProduct, fetchProducts, type Product, updateProduct } from '../lib/api'
 
 export function ProductsPage() {
+  const { t } = useTranslation()
   const toast = useToast()
   const products = useAsync(fetchProducts, [])
   const [showCreate, setShowCreate] = useState(false)
@@ -23,43 +26,33 @@ export function ProductsPage() {
       header: '',
       width: '72px',
       render: (row) =>
-        row.image_url ? (
-          <img src={row.image_url} alt={row.name} className="product-thumb" />
-        ) : (
-          <div className="product-thumb product-thumb-placeholder">🛍️</div>
-        ),
+        row.image_url ? <img src={row.image_url} alt={row.name} className="product-thumb" /> : <div className="product-thumb product-thumb-placeholder">IMG</div>,
     },
     {
       key: 'name',
-      header: 'Name',
+      header: t('productsPage.table.name'),
       render: (row) => (
         <div className="cell-primary">
           <div className="cell-title">{row.name}</div>
-          {row.description && (
-            <div className="cell-subtitle text-muted text-sm">
-              {truncate(row.description, 120)}
-            </div>
-          )}
+          {row.description ? <div className="cell-subtitle text-muted text-sm">{truncate(row.description, 120)}</div> : null}
         </div>
       ),
     },
     {
       key: 'price',
-      header: 'Price',
+      header: t('productsPage.table.price'),
       width: '120px',
-      render: (row) => <span>{row.price ?? '—'}</span>,
+      render: (row) => <span>{row.price ?? '-'}</span>,
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('productsPage.table.status'),
       width: '120px',
-      render: (row) => (
-        <StatusBadge status={row.is_active ? 'active' : 'inactive'} />
-      ),
+      render: (row) => <StatusBadge status={row.is_active ? 'active' : 'inactive'} />,
     },
     {
       key: 'created',
-      header: 'Created',
+      header: t('productsPage.table.created'),
       width: '140px',
       render: (row) => formatRelative(row.created_at),
     },
@@ -69,17 +62,11 @@ export function ProductsPage() {
       width: '180px',
       render: (row) => (
         <div className="row-actions">
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => setEditingProduct(row)}
-          >
-            Edit
+          <button className="btn btn-ghost btn-sm" onClick={() => setEditingProduct(row)}>
+            {t('common.edit')}
           </button>
-          <button
-            className="btn btn-ghost btn-sm text-danger"
-            onClick={() => setDeletingProduct(row)}
-          >
-            Delete
+          <button className="btn btn-ghost btn-sm text-danger" onClick={() => setDeletingProduct(row)}>
+            {t('common.delete')}
           </button>
         </div>
       ),
@@ -89,11 +76,11 @@ export function ProductsPage() {
   return (
     <div className="page">
       <PageHeader
-        title="Products"
-        description="Catalog of products you can attach to drafts and automations."
+        title={t('productsPage.title')}
+        description={t('productsPage.description')}
         actions={
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            + New Product
+            {t('productsPage.newProduct')}
           </button>
         }
       />
@@ -102,9 +89,8 @@ export function ProductsPage() {
         <LoadingState />
       ) : products.error ? (
         <div className="alert alert-error">
-          <span className="alert-icon">✗</span>
           <div className="alert-content">
-            <div className="alert-title">Failed to load products</div>
+            <div className="alert-title">{t('productsPage.failedLoad')}</div>
             <div className="alert-message">{products.error}</div>
           </div>
         </div>
@@ -114,14 +100,11 @@ export function ProductsPage() {
             columns={columns}
             rows={products.data ?? []}
             getRowKey={(row) => row.id}
-            emptyTitle="No products yet"
-            emptyDescription="Add products to link them with drafts and automations."
+            emptyTitle={t('productsPage.emptyTitle')}
+            emptyDescription={t('productsPage.emptyDescription')}
             emptyAction={
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreate(true)}
-              >
-                + Create Product
+              <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+                {t('productsPage.createProduct')}
               </button>
             }
           />
@@ -134,9 +117,9 @@ export function ProductsPage() {
         onSuccess={() => {
           setShowCreate(false)
           products.refresh()
-          toast.success('Product created')
+          toast.success(t('productsPage.created'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
 
       <ProductFormModal
@@ -146,9 +129,9 @@ export function ProductsPage() {
         onSuccess={() => {
           setEditingProduct(null)
           products.refresh()
-          toast.success('Product updated')
+          toast.success(t('productsPage.updated'))
         }}
-        onError={(msg) => toast.error(msg)}
+        onError={(message) => toast.error(message)}
       />
 
       <DeleteConfirmModal
@@ -161,7 +144,7 @@ export function ProductsPage() {
             await deleteProduct(deletingProduct.id)
             setDeletingProduct(null)
             products.refresh()
-            toast.success('Product deleted')
+            toast.success(t('productsPage.deleted'))
           } catch (err) {
             toast.error(err instanceof Error ? err.message : String(err))
           }
@@ -184,6 +167,7 @@ function ProductFormModal({
   onSuccess: () => void
   onError: (msg: string) => void
 }) {
+  const { t } = useTranslation()
   const isEdit = !!product
   const [name, setName] = useState(product?.name ?? '')
   const [description, setDescription] = useState(product?.description ?? '')
@@ -198,7 +182,7 @@ function ProductFormModal({
     setPrice(product?.price ?? '')
     setImageUrl(product?.image_url ?? '')
     setImagePreview(product?.image_url ?? '')
-  }, [product, open])
+  }, [open, product])
 
   const reset = () => {
     setName('')
@@ -208,23 +192,17 @@ function ProductFormModal({
     setImagePreview('')
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
-
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      onError('Please select an image file')
+      onError(t('productsPage.form.selectImage'))
       return
     }
-
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      onError('Image size must be less than 2MB')
+      onError(t('productsPage.form.imageTooLarge'))
       return
     }
-
-    // Convert to base64 for preview and storage
     const reader = new FileReader()
     reader.onloadend = () => {
       const base64 = reader.result as string
@@ -236,24 +214,22 @@ function ProductFormModal({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      onError('Name is required.')
+      onError(t('productsPage.form.nameRequired'))
       return
     }
     setSubmitting(true)
     try {
-      const input = {
+      const payload = {
         name: name.trim(),
         description: description.trim() || null,
         price: price.trim() || null,
         image_url: imageUrl.trim() || null,
       }
-      
       if (isEdit && product) {
-        await updateProduct(product.id, input)
+        await updateProduct(product.id, payload)
       } else {
-        await createProduct(input)
+        await createProduct(payload)
       }
-      
       reset()
       onSuccess()
     } catch (err) {
@@ -266,8 +242,8 @@ function ProductFormModal({
   return (
     <Modal
       open={open}
-      title={isEdit ? 'Edit Product' : 'New Product'}
-      description={isEdit ? 'Update product details.' : 'Add a product to your catalog.'}
+      title={isEdit ? t('productsPage.form.editTitle') : t('productsPage.form.newTitle')}
+      description={isEdit ? t('productsPage.form.editDescription') : t('productsPage.form.newDescription')}
       size="lg"
       onClose={() => {
         reset()
@@ -284,86 +260,70 @@ function ProductFormModal({
             }}
             disabled={submitting}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting || !name.trim()}
-          >
-            {submitting ? (isEdit ? 'Updating…' : 'Creating…') : (isEdit ? 'Update Product' : 'Create Product')}
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !name.trim()}>
+            {submitting ? (isEdit ? t('productsPage.form.updating') : t('productsPage.form.creating')) : isEdit ? t('productsPage.form.update') : t('productsPage.form.create')}
           </button>
         </>
       }
     >
       <div className="form-stack">
         <FormField
-          label="Name"
+          label={t('productsPage.form.name')}
           required
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Premium Widget"
+          onChange={(event) => setName(event.target.value)}
+          placeholder={t('productsPage.form.namePlaceholder')}
         />
         <FormField
-          label="Description"
+          label={t('productsPage.form.description')}
           as="textarea"
           rows={4}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Short description for the product"
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder={t('productsPage.form.descriptionPlaceholder')}
         />
         <FormField
-          label="Price"
+          label={t('productsPage.form.price')}
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="e.g. 19.99 USD"
-          hint="Freeform text — include currency if needed."
+          onChange={(event) => setPrice(event.target.value)}
+          placeholder={t('productsPage.form.pricePlaceholder')}
+          hint={t('productsPage.form.priceHint')}
         />
-        
+
         <div className="form-field">
-          <label className="form-label">Product Image</label>
+          <label className="form-label">{t('productsPage.form.image')}</label>
           <div className="image-upload-section">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="file-input"
-              id="product-image-upload"
-            />
+            <input type="file" accept="image/*" onChange={handleFileChange} className="file-input" id="product-image-upload" />
             <label htmlFor="product-image-upload" className="btn btn-secondary btn-sm">
-              📁 Choose Image
+              {t('productsPage.form.chooseImage')}
             </label>
             <span className="text-sm text-muted" style={{ marginLeft: '12px' }}>
-              or enter URL below (max 2MB)
+              {t('productsPage.form.imageUploadHint')}
             </span>
           </div>
-          
-          {imagePreview && (
+
+          {imagePreview ? (
             <div className="image-preview" style={{ marginTop: '12px' }}>
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                style={{ 
-                  maxWidth: '200px', 
-                  maxHeight: '200px', 
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb'
-                }} 
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
               />
             </div>
-          )}
-          
+          ) : null}
+
           <FormField
-            label="Or Image URL"
+            label={t('productsPage.form.imageUrl')}
             type="url"
             value={imageUrl.startsWith('data:') ? '' : imageUrl}
-            onChange={(e) => {
-              setImageUrl(e.target.value)
-              setImagePreview(e.target.value)
+            onChange={(event) => {
+              setImageUrl(event.target.value)
+              setImagePreview(event.target.value)
             }}
-            placeholder="https://example.com/image.jpg"
-            hint="Leave empty if uploading file above"
+            placeholder={t('productsPage.form.imageUrlPlaceholder')}
+            hint={t('productsPage.form.imageHint')}
             style={{ marginTop: '12px' }}
           />
         </div>
@@ -383,6 +343,7 @@ function DeleteConfirmModal({
   onClose: () => void
   onConfirm: () => Promise<void>
 }) {
+  const { t } = useTranslation()
   const [deleting, setDeleting] = useState(false)
 
   const handleConfirm = async () => {
@@ -397,34 +358,22 @@ function DeleteConfirmModal({
   return (
     <Modal
       open={open}
-      title="Delete Product"
-      description="This action cannot be undone."
+      title={t('productsPage.deleteModal.title')}
+      description={t('productsPage.deleteModal.description')}
       size="sm"
       onClose={onClose}
       footer={
         <>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={onClose}
-            disabled={deleting}
-          >
-            Cancel
+          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={deleting}>
+            {t('common.cancel')}
           </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={handleConfirm}
-            disabled={deleting}
-          >
-            {deleting ? 'Deleting…' : 'Delete Product'}
+          <button type="button" className="btn btn-danger" onClick={handleConfirm} disabled={deleting}>
+            {deleting ? t('productsPage.deleteModal.deleting') : t('productsPage.deleteModal.confirm')}
           </button>
         </>
       }
     >
-      <p>
-        Are you sure you want to delete <strong>{productName}</strong>?
-      </p>
+      <p>{t('productsPage.deleteModal.question', { name: productName })}</p>
     </Modal>
   )
 }

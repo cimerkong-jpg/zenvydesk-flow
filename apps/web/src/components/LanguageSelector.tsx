@@ -11,7 +11,7 @@ export function LanguageSelector() {
   return (
     <div className="language-selector">
       <select
-        value={i18n.language}
+        value={i18n.language.startsWith('vi') ? 'vi' : 'en'}
         onChange={(e) => changeLanguage(e.target.value)}
         className="language-select"
       >

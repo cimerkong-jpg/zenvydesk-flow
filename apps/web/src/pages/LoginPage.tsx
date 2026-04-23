@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext'
 
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const { user, loading, login } = useAuth()
   const [email, setEmail] = useState('admin@zenvydesk.com')
   const [password, setPassword] = useState('Admin123!')
@@ -35,13 +37,13 @@ export function LoginPage() {
           <div className="logo-icon">Z</div>
           <div>
             <h1>ZenvyDesk</h1>
-            <p>Sign in with your app account, then connect Facebook from inside the product.</p>
+            <p>{t('auth.login.subtitle')}</p>
           </div>
         </div>
 
         <form className="form-stack" onSubmit={handleSubmit}>
           <label className="form-field">
-            <span className="form-label">Email</span>
+            <span className="form-label">{t('auth.login.email')}</span>
             <input
               className="form-input"
               value={email}
@@ -51,7 +53,7 @@ export function LoginPage() {
           </label>
 
           <label className="form-field">
-            <span className="form-label">Password</span>
+            <span className="form-label">{t('auth.login.password')}</span>
             <input
               className="form-input"
               type="password"
@@ -64,21 +66,21 @@ export function LoginPage() {
           {error ? (
             <div className="alert alert-error">
               <div className="alert-content">
-                <div className="alert-title">Login failed</div>
+                <div className="alert-title">{t('auth.login.failedTitle')}</div>
                 <div className="alert-message">{error}</div>
               </div>
             </div>
           ) : null}
 
           <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? t('auth.login.submitting') : t('auth.login.submit')}
           </button>
 
           <div className="form-hint">
-            Seeded super admin: `admin@zenvydesk.com` / `Admin123!`
+            {t('auth.login.seededAdmin', { email: 'admin@zenvydesk.com', password: 'Admin123!' })}
           </div>
           <div className="form-hint">
-            <Link to="/register">Create account</Link> · <Link to="/forgot-password">Forgot password</Link>
+            <Link to="/register">{t('auth.login.createAccount')}</Link> · <Link to="/forgot-password">{t('auth.login.forgotPassword')}</Link>
           </div>
         </form>
       </div>
